@@ -9,7 +9,7 @@ import torch
 import numpy as np
 from transformers import AutoTokenizer
 import small_text
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 import json
 
 
@@ -97,18 +97,24 @@ def sample_and_tokenize_data(dataset_name, tokenization_model, target_label=0):
 
 
 def evaluate(active_learner, train, test):
+
     y_pred = active_learner.classifier.predict(train)
     y_pred_test = active_learner.classifier.predict(test)
 
-    test_acc = accuracy_score(y_pred_test, test.y)
-    test_f1 = f1_score(y_pred_test, test.y)
+    r = {
+        'Train accuracy': accuracy_score(y_pred, train.y),
+        'Test accuracy': accuracy_score(y_pred_test, test.y),
+        'Train F1': f1_score(y_pred, train.y),
+        'Test F1': f1_score(y_pred_test, test.y),
+        'Train precision': precision_score(y_pred, train.y),
+        'Test precision': precision_score(y_pred_test, test.y),
+        'Train recall': recall_score(y_pred, train.y),
+        'Test recall': recall_score(y_pred_test, test.y)
+    }
 
-    print('Train accuracy: {:.2f}'.format(accuracy_score(y_pred, train.y)))
-    print('Test accuracy: {:.2f}'.format(test_acc))
-    print('Train F1: {:.2f}'.format(f1_score(y_pred, train.y)))
-    print('Test F1: {:.2f}'.format(test_f1))
+    print(json.dumps(r, indent=4))
 
-    return test_f1
+    return r
 
 
 class DiscriminativeActiveLearning_amended(small_text.query_strategies.strategies.DiscriminativeActiveLearning):
