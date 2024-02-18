@@ -256,6 +256,8 @@ if __name__ == '__main__':
 
     for als in ["Random", "Least Confidence", "BALD", "Expected Gradient Length", "BADGE", "DAL", "Core Set", "Contrastive"]:
 
+        print(f"***************************{als}******************************")
+
         ## Set up active learner
         active_learner = set_up_active_learner(
             train,
