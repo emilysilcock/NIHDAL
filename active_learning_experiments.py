@@ -242,21 +242,20 @@ if __name__ == '__main__':
         tokenization_model = transformer_model_name
     )
 
-    ## Take first labelled sample
-    # Simulates an initial labeling to warm-start the active learning process
-
-    # # Random
-    # indices_labeled = small_text.random_initialization(train.y, n_samples=100)
-    # Random, stratified by label
-    indices_labeled = small_text.random_initialization_balanced(train.y, n_samples=100)
-    lt = len([train.y[i] for i in indices_labeled if train.y[i] == 1])
-    lo = len([train.y[i] for i in indices_labeled if train.y[i] == 0])
-    print(f'Selected {lt} samples of target class and {lo} of non-target class for labelling')
-
-
     for als in ["Random", "Least Confidence", "BALD", "Expected Gradient Length", "BADGE", "DAL", "Core Set", "Contrastive"]:
 
         print(f"***************************{als}******************************")
+
+        ## Take first labelled sample
+        # Simulates an initial labeling to warm-start the active learning process
+
+        # # Random
+        # indices_labeled = small_text.random_initialization(train.y, n_samples=100)
+        # Random, stratified by label
+        indices_labeled = small_text.random_initialization_balanced(train.y, n_samples=100)
+        lt = len([train.y[i] for i in indices_labeled if train.y[i] == 1])
+        lo = len([train.y[i] for i in indices_labeled if train.y[i] == 0])
+        print(f'Selected {lt} samples of target class and {lo} of non-target class for labelling')
 
         ## Set up active learner
         active_learner = set_up_active_learner(
@@ -272,10 +271,11 @@ if __name__ == '__main__':
         active_learner.initialize_data(indices_labeled, train.y[indices_labeled])
 
         ## Query
-        NUM_QUERIES = 1
+        NUM_QUERIES = 10
 
         results = []
         res = evaluate(active_learner, train[indices_labeled], test)
+        print(type(res))
         res['on_topic'] = lt
         res['not_on_topic'] = lo
         results.append(res)
