@@ -10,6 +10,7 @@ import numpy as np
 from transformers import AutoTokenizer
 import small_text
 from sklearn.metrics import accuracy_score, f1_score
+import json
 
 
 def make_binary(dataset, target_label):
@@ -140,6 +141,7 @@ class DiscriminativeActiveLearning_amended(small_text.query_strategies.strategie
 
 def set_up_active_learner(train_dat, classification_model, active_learning_method):
 
+
     # Set up classifier
     transformer_model = small_text.TransformerModelArguments(classification_model)
 
@@ -185,12 +187,22 @@ def set_up_active_learner(train_dat, classification_model, active_learning_metho
 
         return a_learner
 
-
+    elif active_learning_method == "Random":
+        query_strategy = small_text.query_strategies.strategies.RandomSampling()
     elif active_learning_method == "Least Confidence":
         query_strategy = small_text.LeastConfidence()
-
-    elif active_learning_method == "Prediction Entropy": 
+    elif active_learning_method == "Prediction Entropy":
         query_strategy = small_text.PredictionEntropy()
+    elif active_learning_method == "BALD":
+       query_strategy = small_text.query_strategies.bayesian.BALD()
+    elif active_learning_method == "Expected Gradient Length":
+        query_strategy = small_text.integrations.pytorch.query_strategies.strategies.ExpectedGradientLength()
+    elif active_learning_method == "BADGE":
+        query_strategy = small_text.integrations.pytorch.query_strategies.strategies.BADGE(num_classes=2)
+    elif active_learning_method == "Core Set":
+        query_strategy = small_text.query_strategies.coresets.GreedyCoreset()
+    elif active_learning_method == "Contrastive":
+        query_strategy = small_text.query_strategies.strategies.ContrastiveActiveLearning()
 
     else:
         raise ValueError(f"Active Learning method {active_learning_method} is unknown")
@@ -241,44 +253,57 @@ if __name__ == '__main__':
     lo = len([train.y[i] for i in indices_labeled if train.y[i] == 0])
     print(f'Selected {lt} samples of target class and {lo} of non-target class for labelling')
 
-    ## Set up active learner
-    active_learner = set_up_active_learner(
-        train,
-        classification_model=transformer_model_name,
-        # active_learning_method="DAL"
-        active_learning_method="Least Confidence"
-        # active_learning_method="Prediction Entropy"
-    )
 
-    # Initalise - trains first pass of classification model
-    active_learner.initialize_data(indices_labeled, train.y[indices_labeled])
+    for als in ["Random", "Least Confidence", "BALD", "Expected Gradient Length", "BADGE", "DAL", "Core Set", "Contrastive"]:
 
-    ## Query
-    NUM_QUERIES = 10
+        ## Set up active learner
+        active_learner = set_up_active_learner(
+            train,
+            classification_model=transformer_model_name,
+            # active_learning_method="DAL"
+            # active_learning_method="Least Confidence"
+            # active_learning_method="Prediction Entropy"
+            active_learning_method=als
+        )
 
-    results = []
-    results.append(evaluate(active_learner, train[indices_labeled], test))
+        # Initalise - trains first pass of classification model
+        active_learner.initialize_data(indices_labeled, train.y[indices_labeled])
 
-    for i in range(NUM_QUERIES):
+        ## Query
+        NUM_QUERIES = 1
 
-        # Query 100 samples
-        indices_queried = active_learner.query(num_samples=100)
+        results = []
+        res = evaluate(active_learner, train[indices_labeled], test)
+        res['on_topic'] = lt
+        res['not_on_topic'] = lo
+        results.append(res)
 
-        # Label these (simulated)
-        y = train.y[indices_queried]
+        for i in range(NUM_QUERIES):
 
-        lt = len([i for i in y if i == 1])
-        lo = len([i for i in y if i == 0])
-        print(f'Selected {lt} samples of target class and {lo} of non-target class for labelling')
+            # Query 100 samples
+            indices_queried = active_learner.query(num_samples=100)
 
-        indices_labeled = np.concatenate([indices_queried, indices_labeled])
+            # Label these (simulated)
+            y = train.y[indices_queried]
 
-        # Perform an update step, which passes the label for each of the queried indices
-        # At end of the update step the classification model is retrained using all available labels
-        active_learner.update(y)
+            lt = len([i for i in y if i == 1])
+            lo = len([i for i in y if i == 0])
+            print(f'Selected {lt} samples of target class and {lo} of non-target class for labelling')
 
-        print('---------------')
-        print(f'Iteration #{i} ({len(indices_labeled)} samples total)')
+            indices_labeled = np.concatenate([indices_queried, indices_labeled])
 
-        # Evaluate classification model
-        results.append(evaluate(active_learner, train[indices_labeled], test))
+            # Perform an update step, which passes the label for each of the queried indices
+            # At end of the update step the classification model is retrained using all available labels
+            active_learner.update(y)
+
+            print('---------------')
+            print(f'Iteration #{i} ({len(indices_labeled)} samples total)')
+
+            # Evaluate classification model
+            res = evaluate(active_learner, train[indices_labeled], test)
+            res['on_topic'] = lt
+            res['not_on_topic'] = lo
+            results.append(res)
+
+        with open(f'{als}_results.json', 'w') as f:
+            json.dump(results, f, indent=4)
