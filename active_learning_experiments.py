@@ -178,14 +178,7 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
             query_sizes
         )
 
-        print(target_indices)
-        print(len(target_indices))
-        print(other_indices)
-        print(len(other_indices))
-        print(target_indices + other_indices)
-        print(len(target_indices + other_indices))
-
-        return target_indices + other_indices
+        return np.concatenate((target_indices, other_indices))
 
 
 def set_up_active_learner(train_dat, classification_model, active_learning_method):
