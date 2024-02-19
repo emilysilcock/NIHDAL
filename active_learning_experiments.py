@@ -270,7 +270,7 @@ def set_up_active_learner(train_dat, classification_model, active_learning_metho
 if __name__ == '__main__':
 
     ## Fix seeds
-    SEED = 42
+    SEED = 54
     torch.manual_seed(SEED)
     np.random.seed(SEED)
 
