@@ -309,7 +309,7 @@ if __name__ == '__main__':
     )
 
     # for als in ["Random", "Least Confidence", "BALD", "Expected Gradient Length", "BADGE", "DAL", "Core Set", "Contrastive", "NIHDAL"]:
-    for als in ["Expected Gradient Length", "BADGE", "DAL", "Core Set", "Contrastive"]:
+    for als in ["BADGE", "DAL", "Core Set", "Contrastive", "Expected Gradient Length"]:
 
         print(f"***************************{als}******************************")
 
