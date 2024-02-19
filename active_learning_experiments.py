@@ -309,7 +309,7 @@ if __name__ == '__main__':
     )
 
     # for als in ["Random", "Least Confidence", "BALD", "Expected Gradient Length", "BADGE", "DAL", "Core Set", "Contrastive", "NIHDAL"]:
-    for als in ["NIHDAL"]:
+    for als in ["Expected Gradient Length", "BADGE", "DAL", "Core Set", "Contrastive"]:
 
         print(f"***************************{als}******************************")
 
@@ -379,5 +379,7 @@ if __name__ == '__main__':
 
     # Todo:
             # Change hyperparameters on classification model so you're not getting odd behaviour
-            # Set up tests with deliberately unbalanced data 
-
+            # Set up tests with deliberately unbalanced data
+            # Decide on other measures of success
+            # Try with other data
+            # Try repeating a few times
