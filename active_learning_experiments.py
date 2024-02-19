@@ -155,8 +155,8 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
 
         query_sizes = self._get_query_sizes(self.num_iterations, n/2)
 
-        target_indices_labeled = [i for i in indices_labeled if y[i] == 1]
-        other_indices_labeled = [i for i in indices_labeled if y[i] == 0]
+        target_indices_labeled = [i for i in indices_labeled if train.y[i] == 1]
+        other_indices_labeled = [i for i in indices_labeled if train.y[i] == 0]
 
         # Predict target or other for unlabelled data 
         preds = active_learner.classifier.predict(train)
