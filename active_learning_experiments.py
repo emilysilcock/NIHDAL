@@ -178,6 +178,13 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
             query_sizes
         )
 
+        print(target_indices)
+        print(len(target_indices))
+        print(other_indices)
+        print(len(other_indices))
+        print(target_indices + other_indices)
+        print(len(target_indices + other_indices))
+
         return target_indices + other_indices
 
 
@@ -290,8 +297,6 @@ if __name__ == '__main__':
         target_label=0,
         tokenization_model = transformer_model_name
     )
-
-    print(len(train))
 
     # for als in ["Random", "Least Confidence", "BALD", "Expected Gradient Length", "BADGE", "DAL", "Core Set", "Contrastive", "NIHDAL"]:
     for als in ["NIHDAL"]:
