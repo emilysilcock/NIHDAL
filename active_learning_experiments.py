@@ -155,6 +155,9 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
 
         query_sizes = self._get_query_sizes(self.num_iterations, n/2)
 
+        print(type(indices_labeled))
+        print(indices_labeled)
+
         target_indices_labeled = [i for i in indices_labeled if train.y[i] == 1]
         other_indices_labeled = [i for i in indices_labeled if train.y[i] == 0]
 
