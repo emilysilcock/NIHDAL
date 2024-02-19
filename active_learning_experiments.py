@@ -145,6 +145,42 @@ class DiscriminativeActiveLearning_amended(small_text.query_strategies.strategie
         return np.argpartition(-proba, q)[:q]
 
 
+class NIHDAL(DiscriminativeActiveLearning_amended):
+    """Similar to Discriminative Active Learning, but applied on the predicted positives and 
+     negatives separately. 
+    """
+
+    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
+        self._validate_query_input(indices_unlabeled, n)
+
+        query_sizes = self._get_query_sizes(self.num_iterations, n/2)
+
+        target_indices_labeled = [i for i in indices_labeled if y[i] == 1]
+        other_indices_labeled = [i for i in indices_labeled if y[i] == 0]
+
+        # Predict target or other for unlabelled data 
+        preds = active_learner.classifier.predict(train)
+        target_indices_unlabeled = [i for i in indices_unlabeled if preds[i] == 1]
+        other_indices_unlabeled = [i for i in indices_unlabeled if preds[i] == 0]
+        
+        print("Finding targets to label ...")
+        target_indices = self.discriminative_active_learning(
+            dataset, 
+            target_indices_unlabeled, 
+            target_indices_labeled,
+            query_sizes
+        )
+        print("Finding others to label ...")
+        other_indices = self.discriminative_active_learning(
+            dataset, 
+            other_indices_unlabeled, 
+            other_indices_labeled,
+            query_sizes
+        )
+
+        return target_indices + other_indices
+
+
 def set_up_active_learner(train_dat, classification_model, active_learning_method):
 
 
@@ -168,17 +204,24 @@ def set_up_active_learner(train_dat, classification_model, active_learning_metho
         kwargs=dict(hyperparameters)
         )
 
-    if active_learning_method == "DAL":
+    if active_learning_method in ["DAL", "NIHDAL"]:
 
-        # query_strategy = small_text.query_strategies.strategies.DiscriminativeActiveLearning(
-        query_strategy = DiscriminativeActiveLearning_amended(
-            classifier,
-            num_iterations=10, # This is referred to as the number of sub-batches in the DAL paper - they found 10-20 worked well. We might want to increase this
-            unlabeled_factor=10,  # This means the unlabelled gets downsampled so it's only ever 10x the size of the labelled
-            pbar='tqdm'
-            )
+        if active_learning_method == "DAL":
+            # query_strategy = small_text.query_strategies.strategies.DiscriminativeActiveLearning(
+            query_strategy = DiscriminativeActiveLearning_amended(
+                classifier,
+                num_iterations=10, # This is referred to as the number of sub-batches in the DAL paper - they found 10-20 worked well. We might want to increase this
+                unlabeled_factor=10,  # This means the unlabelled gets downsampled so it's only ever 10x the size of the labelled
+                pbar='tqdm'
+                )
+        else:
+            query_strategy = NIHDAL(
+                classifier,
+                num_iterations=10, # This is referred to as the number of sub-batches in the DAL paper - they found 10-20 worked well. We might want to increase this
+                unlabeled_factor=10,  # This means the unlabelled gets downsampled so it's only ever 10x the size of the labelled
+                pbar='tqdm'
+                )
 
-        # Early stopping for DAL
         ## DAL paper they find that early stopping is important and they use 0.98 on accuracy
         early_stopping = small_text.training.early_stopping.EarlyStopping(small_text.training.metrics.Metric('train_acc', lower_is_better=False), threshold=0.98)
 
@@ -202,7 +245,7 @@ def set_up_active_learner(train_dat, classification_model, active_learning_metho
     elif active_learning_method == "BALD":
        query_strategy = small_text.query_strategies.bayesian.BALD()
     elif active_learning_method == "Expected Gradient Length":
-        query_strategy = small_text.integrations.pytorch.query_strategies.strategies.ExpectedGradientLength()
+        query_strategy = small_text.integrations.pytorch.query_strategies.strategies.ExpectedGradientLength(num_classes=2)
     elif active_learning_method == "BADGE":
         query_strategy = small_text.integrations.pytorch.query_strategies.strategies.BADGE(num_classes=2)
     elif active_learning_method == "Core Set":
@@ -248,7 +291,8 @@ if __name__ == '__main__':
         tokenization_model = transformer_model_name
     )
 
-    for als in ["Random", "Least Confidence", "BALD", "Expected Gradient Length", "BADGE", "DAL", "Core Set", "Contrastive"]:
+    # for als in ["Random", "Least Confidence", "BALD", "Expected Gradient Length", "BADGE", "DAL", "Core Set", "Contrastive", "NIHDAL"]:
+    for als in ["NIHDAL"]:
 
         print(f"***************************{als}******************************")
 
@@ -281,7 +325,6 @@ if __name__ == '__main__':
 
         results = []
         res = evaluate(active_learner, train[indices_labeled], test)
-        print(type(res))
         res['on_topic'] = lt
         res['not_on_topic'] = lo
         results.append(res)
