@@ -158,8 +158,8 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
         target_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 1])
         other_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 0])
 
-        # If there are no predicted targets 
-        if len(target_indices_unlabeled) == 0 or len(other_indices_unlabeled):
+        # If there are no predicted targets
+        if len(target_indices_unlabeled) == 0 or len(other_indices_unlabeled) == 0:
             print("Classification model predicted all items with same label, reverting to DAL")
 
             query_sizes = self._get_query_sizes(self.num_iterations, n)
@@ -375,3 +375,9 @@ if __name__ == '__main__':
 
         with open(f'{als}_results.json', 'w') as f:
             json.dump(results, f, indent=4)
+
+
+    # Todo:
+            # Change hyperparameters on classification model so you're not getting odd behaviour
+            # Set up tests with deliberately unbalanced data 
+
