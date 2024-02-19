@@ -159,8 +159,10 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
         other_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 0])
 
         # If there are no predicted targets 
-        if len(other_indices_labeled) == 0 or len(other_indices_unlabeled):
+        if len(target_indices_unlabeled) == 0 or len(other_indices_unlabeled):
             print("Classification model predicted all items with same label, reverting to DAL")
+
+            query_sizes = self._get_query_sizes(self.num_iterations, n)
 
             indices = self.discriminative_active_learning(
                     dataset,
