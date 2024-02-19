@@ -153,7 +153,7 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
     def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
         self._validate_query_input(indices_unlabeled, n)
 
-        query_sizes = self._get_query_sizes(self.num_iterations, n/2)
+        query_sizes = self._get_query_sizes(self.num_iterations, int(n/2))
 
         target_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 1])
         other_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 0])
@@ -162,12 +162,6 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
         preds = active_learner.classifier.predict(train)
         target_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 1])
         other_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 0])
-
-        print(target_indices_unlabeled)
-        print(len(target_indices_unlabeled))
-        print(len(target_indices_labeled))
-        print(len(other_indices_unlabeled))
-        print(len(other_indices_labeled))
 
         print("Finding targets to label ...")
         target_indices = self.discriminative_active_learning(
@@ -296,6 +290,8 @@ if __name__ == '__main__':
         target_label=0,
         tokenization_model = transformer_model_name
     )
+
+    print(len(train))
 
     # for als in ["Random", "Least Confidence", "BALD", "Expected Gradient Length", "BADGE", "DAL", "Core Set", "Contrastive", "NIHDAL"]:
     for als in ["NIHDAL"]:
