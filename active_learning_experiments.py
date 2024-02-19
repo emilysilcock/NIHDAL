@@ -158,13 +158,13 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
         print(type(indices_labeled))
         print(indices_labeled)
 
-        target_indices_labeled = [i for i in indices_labeled if train.y[i] == 1]
-        other_indices_labeled = [i for i in indices_labeled if train.y[i] == 0]
+        target_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 1])
+        other_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 0])
 
         # Predict target or other for unlabelled data 
         preds = active_learner.classifier.predict(train)
-        target_indices_unlabeled = [i for i in indices_unlabeled if preds[i] == 1]
-        other_indices_unlabeled = [i for i in indices_unlabeled if preds[i] == 0]
+        target_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 1])
+        other_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 0])
         
         print("Finding targets to label ...")
         target_indices = self.discriminative_active_learning(
