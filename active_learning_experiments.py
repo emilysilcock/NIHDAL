@@ -373,7 +373,7 @@ if __name__ == '__main__':
             res['not_on_topic'] = lo
             results.append(res)
 
-        with open(f'{als}_results.json', 'w') as f:
+        with open(f'{als}_results_{SEED}.json', 'w') as f:
             json.dump(results, f, indent=4)
 
 
