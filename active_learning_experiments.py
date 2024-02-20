@@ -287,7 +287,7 @@ def set_up_active_learner(train_dat, classification_model, active_learning_metho
 if __name__ == '__main__':
 
     ## Fix seeds
-    SEED = 42
+    SEED = 65372 #42 
     torch.manual_seed(SEED)
     np.random.seed(SEED)
 
@@ -308,8 +308,8 @@ if __name__ == '__main__':
         tokenization_model = transformer_model_name
     )
 
-    # for als in ["Random", "Least Confidence", "BALD", "Expected Gradient Length", "BADGE", "DAL", "Core Set", "Contrastive", "NIHDAL"]:
-    for als in ["BADGE", "DAL", "Core Set", "Contrastive", "Expected Gradient Length"]:
+    for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", "NIHDAL", "Expected Gradient Length"]:
+    # for als in ["BADGE", "DAL", "Core Set", "Contrastive", "Expected Gradient Length"]:
 
         print(f"***************************{als}******************************")
 
