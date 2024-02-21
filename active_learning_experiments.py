@@ -11,15 +11,18 @@ from transformers import AutoTokenizer
 import small_text
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 import json
+import random 
 
 
-def make_binary(dataset, target_label):
+def make_binary(dataset, target_labels):
 
     # Create mapping
     num_classes = dataset.features['label'].num_classes
 
     class_mapping = {lab: 0 for lab in range(num_classes)}
-    class_mapping[target_label] = 1
+    
+    for tl in target_labels:
+        class_mapping[tl] = 1
 
     # Apply the mapping to change the labels
     binary_dataset = dataset.map(lambda example: {'label': class_mapping[example['label']]})
@@ -34,7 +37,7 @@ def make_binary(dataset, target_label):
     return binary_dataset
 
 
-def make_imbalanced(dataset):
+def make_imbalanced(dataset, indices_to_track=None):
 
     # Split dataset
     other_samples = dataset.filter(lambda example: example['label'] == 0)
@@ -52,93 +55,70 @@ def make_imbalanced(dataset):
     # Concat back together
     imbalanced_dataset = datasets.concatenate_datasets([target_samples_to_keep, other_samples])
 
-    return imbalanced_dataset
+    if indices_to_track:
+
+        target_list = [i for i in target_samples_to_keep]
+
+        tracked_indices = []
+        for idx in indices_to_track:
+            point = dataset[idx]
+            if point in target_list:
+                tracked_indices.append(target_list.index(dataset[idx]))
+
+        return imbalanced_dataset, tracked_indices
+
+    else:
+        return imbalanced_dataset
 
 
-def sample_and_tokenize_data(dataset_name, tokenization_model, target_label=0):
-
+def sample_and_tokenize_data(dataset_name, tokenization_model, target_labels=[0], biased = False):
 
     raw_dataset = datasets.load_dataset(dataset_name)
+    dataset_to_change = datasets.load_dataset(dataset_name)
 
-    raw_dataset['train'] = make_binary(raw_dataset['train'], target_label=target_label)
-    raw_dataset['test'] = make_binary(raw_dataset['test'], target_label=target_label)
+    dataset_to_change['train'] = make_binary(raw_dataset['train'], target_labels=target_labels)
+    dataset_to_change['test'] = make_binary(raw_dataset['test'], target_labels=target_labels)
 
-    raw_dataset['train'] = make_imbalanced(raw_dataset['train'])
-    raw_dataset['test'] = make_imbalanced(raw_dataset['test'])
+    if biased:
+        unsampled_train_indices = [i for i, lab in enumerate(raw_dataset['train']['label']) if lab == target_labels[1]]
+        unsampled_test_indices = [i for i, lab in enumerate(raw_dataset['test']['label']) if lab == target_labels[1]]
 
-    ## Prep dataset
-    num_classes = raw_dataset['train'].features['label'].num_classes
+        dataset_to_change['train'], unsampled_train_indices = make_imbalanced(dataset_to_change['train'], indices_to_track=unsampled_train_indices)
+        dataset_to_change['test'], unsampled_test_indices = make_imbalanced(dataset_to_change['test'], indices_to_track=unsampled_test_indices)
+
+    else:
+        dataset_to_change['train'] = make_imbalanced(dataset_to_change['train'])
+        dataset_to_change['test'] = make_imbalanced(dataset_to_change['test'])
 
     # Set up tokenizer
     tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
 
     # Covert to a TransformersDataset
-    target_labels = np.arange(num_classes)
+    labels = np.arange(2)
 
     train_dat = small_text.TransformersDataset.from_arrays(
-        texts=raw_dataset['train']['text'],
-        y=raw_dataset['train']['label'],
+        texts=dataset_to_change['train']['text'],
+        y=dataset_to_change['train']['label'],
         tokenizer=tokenizer,
         max_length=100,
-        target_labels=target_labels
+        target_labels=labels
         )
 
     test_dat = small_text.TransformersDataset.from_arrays(
-        texts=raw_dataset['test']['text'],
-        y=raw_dataset['test']['label'],
+        texts=dataset_to_change['test']['text'],
+        y=dataset_to_change['test']['label'],
         tokenizer=tokenizer,
         max_length=100,
-        target_labels=target_labels
+        target_labels=labels
         )
-    
+
     assert not train_dat.multi_label
-    
-    return train_dat, test_dat
 
+    if biased:
+        return train_dat, test_dat, unsampled_train_indices, unsampled_test_indices
 
-def sample_and_tokenize_data_biased(dataset_name, tokenization_model, target_labels=[0, 1]):
-
-    # Pull out two classes of interest 
-    # Make these each 0.5% of the data
-    # Select the initial sample so that it's only the first class 
-    # Have some way of tracking how much of each of these classes you've pulled out at each labelling step, and how many are classified corectly at each labelling step
-
-    raw_dataset = datasets.load_dataset(dataset_name)
-
-    raw_dataset['train'] = make_binary(raw_dataset['train'], target_label=target_label)
-    raw_dataset['test'] = make_binary(raw_dataset['test'], target_label=target_label)
-
-    raw_dataset['train'] = make_imbalanced(raw_dataset['train'])
-    raw_dataset['test'] = make_imbalanced(raw_dataset['test'])
-
-    ## Prep dataset
-    num_classes = raw_dataset['train'].features['label'].num_classes
-
-    # Set up tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
-
-    # Covert to a TransformersDataset
-    target_labels = np.arange(num_classes)
-
-    train_dat = small_text.TransformersDataset.from_arrays(
-        texts=raw_dataset['train']['text'],
-        y=raw_dataset['train']['label'],
-        tokenizer=tokenizer,
-        max_length=100,
-        target_labels=target_labels
-        )
-
-    test_dat = small_text.TransformersDataset.from_arrays(
-        texts=raw_dataset['test']['text'],
-        y=raw_dataset['test']['label'],
-        tokenizer=tokenizer,
-        max_length=100,
-        target_labels=target_labels
-        )
-    
-    assert not train_dat.multi_label
-    
-    return train_dat, test_dat
+    else:
+        return train_dat, test_dat
 
 
 def evaluate(active_learner, train, test):
@@ -329,12 +309,44 @@ def set_up_active_learner(train_dat, classification_model, active_learning_metho
     return a_learner
 
 
+def random_initialization_biased(y, n_samples=10, non_sample=None):
+    """Randomly draws half class 1, in a biased way, and half class 0. 
+
+    Parameters
+    ----------
+    y : np.ndarray[int] or csr_matrix
+        Labels to be used for stratification.
+    n_samples :  int
+        Number of samples to draw.
+
+    Returns
+    -------
+    indices : np.ndarray[int]
+        Indices relative to y.
+    """
+
+    expected_samples_per_class = np.floor(n_samples/2).astype(int)
+
+    # Targets labels - don't sample from non_sample
+    all_indices = [i for i, lab in enumerate(y) if lab == 1 and i not in non_sample]
+    target_sample = random.sample(all_indices, expected_samples_per_class)
+
+    # Non-target labels
+    all_indices = [i for i, lab in enumerate(y) if lab == 0]
+    other_sample = random.sample(all_indices, expected_samples_per_class)
+
+    return np.array(target_sample + other_sample)
+
+
 if __name__ == '__main__':
 
     ## Fix seeds
-    SEED = 12731 # 65372 #42 
+    SEED = 42 #12731 # 65372 #42
     torch.manual_seed(SEED)
     np.random.seed(SEED)
+
+    # Choose sampling 
+    BIASED = True
 
     ## Choose backbone
     # transformer_model_name = 'bert-base-uncased'
@@ -345,37 +357,49 @@ if __name__ == '__main__':
     # deberta? Never really had great results on this
 
     ## Sample data
-    train, test = sample_and_tokenize_data(
-        dataset_name='ag_news',  # News data, labelled as 'World', 'Sports', 'Business', 'Sci/Tech'
-        # dataset_name = 'rotten_tomatoes', # movie reviews, labelled as either positive or negative
-        # go-emotions dataset (27 emotions + 1 neutral class)
-        target_label=0,
-        tokenization_model = transformer_model_name
-    )
+    if BIASED:
+        train, test, unsampled_train_indices, unsampled_test_indices = sample_and_tokenize_data(
+            dataset_name='ag_news',
+            target_labels=[0, 2],
+            tokenization_model = transformer_model_name,
+            biased=True
+        )
 
-    ## Sample data
-    # train, test = sample_and_tokenize_data_biased(
-    #     dataset_name='ag_news',  
-    #     target_labels=[0,1],
-    #     tokenization_model = transformer_model_name
-    # )
 
+    else:
+        train, test = sample_and_tokenize_data(
+            dataset_name='ag_news',  # News data, labelled as 'World', 'Sports', 'Business', 'Sci/Tech'
+            # dataset_name = 'rotten_tomatoes', # movie reviews, labelled as either positive or negative
+            # go-emotions dataset (27 emotions + 1 neutral class)
+            target_labels=[0],
+            tokenization_model = transformer_model_name,
+            biased=False
+        )
 
     for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", "NIHDAL", "Expected Gradient Length"]:
-    # for als in ["BADGE", "DAL", "Core Set", "Contrastive", "Expected Gradient Length"]:
 
         print(f"***************************{als}******************************")
 
         ## Take first labelled sample
         # Simulates an initial labeling to warm-start the active learning process
 
-        # # Random
-        # indices_labeled = small_text.random_initialization(train.y, n_samples=100)
-        # Random, stratified by label
-        indices_labeled = small_text.random_initialization_balanced(train.y, n_samples=100)
-        lt = len([train.y[i] for i in indices_labeled if train.y[i] == 1])
-        lo = len([train.y[i] for i in indices_labeled if train.y[i] == 0])
-        print(f'Selected {lt} samples of target class and {lo} of non-target class for labelling')
+        if BIASED:
+            # Only sample from one side of the target class 
+            indices_labeled = random_initialization_biased(train.y, n_samples=100, non_sample=unsampled_train_indices)
+
+            lt_1 = len([i for i in indices_labeled if train.y[i] == 1 and i not in unsampled_test_indices])
+            lt_2 = len([i for i in indices_labeled if train.y[i] == 1 and i in unsampled_test_indices])
+            lo = len([i for i in indices_labeled if train.y[i] == 0])
+            print(f'Selected {lt_1} samples of target class a), {lt_2} of target class b) {lo} of non-target class for labelling')
+
+        else:
+            # # Random
+            # indices_labeled = small_text.random_initialization(train.y, n_samples=100)
+            # Random, stratified by label
+            indices_labeled = small_text.random_initialization_balanced(train.y, n_samples=100)
+            lt = len([i for i in indices_labeled if train.y[i] == 1])
+            lo = len([i for i in indices_labeled if train.y[i] == 0])
+            print(f'Selected {lt} samples of target class and {lo} of non-target class for labelling')
 
         ## Set up active learner
         active_learner = set_up_active_learner(
@@ -407,9 +431,16 @@ if __name__ == '__main__':
             # Label these (simulated)
             y = train.y[indices_queried]
 
-            lt = len([i for i in y if i == 1])
-            lo = len([i for i in y if i == 0])
-            print(f'Selected {lt} samples of target class and {lo} of non-target class for labelling')
+            if BIASED:
+                lt_1 = len([i for i in range(len(y)) if y[i] == 1 and i not in unsampled_test_indices])
+                lt_2 = len([i for i in range(len(y)) if y[i] == 1 and i in unsampled_test_indices])
+                lo = len([i for i in y if i == 0])
+                print(f'Selected {lt_1} samples of target class a), {lt_2} of target class b) {lo} of non-target class for labelling')
+
+            else:
+                lt = len([i for i in y if i == 1])
+                lo = len([i for i in y if i == 0])
+                print(f'Selected {lt} samples of target class and {lo} of non-target class for labelling')
 
             indices_labeled = np.concatenate([indices_queried, indices_labeled])
 
@@ -426,8 +457,14 @@ if __name__ == '__main__':
             res['not_on_topic'] = lo
             results.append(res)
 
-        with open(f'{als}_results_{SEED}.json', 'w') as f:
-            json.dump(results, f, indent=4)
+
+        if BIASED:
+            with open(f'{als}_results_{SEED}_biased.json', 'w') as f:
+                json.dump(results, f, indent=4)
+
+        else:
+            with open(f'{als}_results_{SEED}.json', 'w') as f:
+                json.dump(results, f, indent=4)
 
 
     # Todo:
