@@ -329,6 +329,11 @@ def random_initialization_biased(y, n_samples=10, non_sample=None):
 
     # Targets labels - don't sample from non_sample
     all_indices = [i for i, lab in enumerate(y) if lab == 1 and i not in non_sample]
+
+    for i in all_indices:
+        print(train[i])
+        print("************")
+
     target_sample = random.sample(all_indices, expected_samples_per_class)
 
     # Non-target labels
@@ -345,7 +350,7 @@ if __name__ == '__main__':
     torch.manual_seed(SEED)
     np.random.seed(SEED)
 
-    # Choose sampling 
+    # Choose sampling
     BIASED = True
 
     ## Choose backbone
@@ -389,6 +394,7 @@ if __name__ == '__main__':
 
             lt_1 = len([i for i in indices_labeled if train.y[i] == 1 and i not in unsampled_test_indices])
             lt_2 = len([i for i in indices_labeled if train.y[i] == 1 and i in unsampled_test_indices])
+            lt=lt_1 + lt_2
             lo = len([i for i in indices_labeled if train.y[i] == 0])
             print(f'Selected {lt_1} samples of target class a), {lt_2} of target class b) {lo} of non-target class for labelling')
 
@@ -434,6 +440,7 @@ if __name__ == '__main__':
             if BIASED:
                 lt_1 = len([i for i in range(len(y)) if y[i] == 1 and i not in unsampled_test_indices])
                 lt_2 = len([i for i in range(len(y)) if y[i] == 1 and i in unsampled_test_indices])
+                lt=lt_1 + lt_2
                 lo = len([i for i in y if i == 0])
                 print(f'Selected {lt_1} samples of target class a), {lt_2} of target class b) {lo} of non-target class for labelling')
 
