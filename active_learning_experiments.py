@@ -96,6 +96,51 @@ def sample_and_tokenize_data(dataset_name, tokenization_model, target_label=0):
     return train_dat, test_dat
 
 
+def sample_and_tokenize_data_biased(dataset_name, tokenization_model, target_labels=[0, 1]):
+
+    # Pull out two classes of interest 
+    # Make these each 0.5% of the data
+    # Select the initial sample so that it's only the first class 
+    # Have some way of tracking how much of each of these classes you've pulled out at each labelling step, and how many are classified corectly at each labelling step
+
+    raw_dataset = datasets.load_dataset(dataset_name)
+
+    raw_dataset['train'] = make_binary(raw_dataset['train'], target_label=target_label)
+    raw_dataset['test'] = make_binary(raw_dataset['test'], target_label=target_label)
+
+    raw_dataset['train'] = make_imbalanced(raw_dataset['train'])
+    raw_dataset['test'] = make_imbalanced(raw_dataset['test'])
+
+    ## Prep dataset
+    num_classes = raw_dataset['train'].features['label'].num_classes
+
+    # Set up tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
+
+    # Covert to a TransformersDataset
+    target_labels = np.arange(num_classes)
+
+    train_dat = small_text.TransformersDataset.from_arrays(
+        texts=raw_dataset['train']['text'],
+        y=raw_dataset['train']['label'],
+        tokenizer=tokenizer,
+        max_length=100,
+        target_labels=target_labels
+        )
+
+    test_dat = small_text.TransformersDataset.from_arrays(
+        texts=raw_dataset['test']['text'],
+        y=raw_dataset['test']['label'],
+        tokenizer=tokenizer,
+        max_length=100,
+        target_labels=target_labels
+        )
+    
+    assert not train_dat.multi_label
+    
+    return train_dat, test_dat
+
+
 def evaluate(active_learner, train, test):
 
     y_pred = active_learner.classifier.predict(train)
@@ -287,7 +332,7 @@ def set_up_active_learner(train_dat, classification_model, active_learning_metho
 if __name__ == '__main__':
 
     ## Fix seeds
-    SEED = 65372 #42 
+    SEED = 12731 # 65372 #42 
     torch.manual_seed(SEED)
     np.random.seed(SEED)
 
@@ -307,6 +352,14 @@ if __name__ == '__main__':
         target_label=0,
         tokenization_model = transformer_model_name
     )
+
+    ## Sample data
+    # train, test = sample_and_tokenize_data_biased(
+    #     dataset_name='ag_news',  
+    #     target_labels=[0,1],
+    #     tokenization_model = transformer_model_name
+    # )
+
 
     for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", "NIHDAL", "Expected Gradient Length"]:
     # for als in ["BADGE", "DAL", "Core Set", "Contrastive", "Expected Gradient Length"]:
