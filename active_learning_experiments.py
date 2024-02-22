@@ -389,7 +389,7 @@ if __name__ == '__main__':
 
             lt_1 = len([i for i in indices_labeled if train.y[i] == 1 and i not in unsampled_indices])
             lt_2 = len([i for i in indices_labeled if train.y[i] == 1 and i in unsampled_indices])
-d            lt=lt_1 + lt_2
+            lt=lt_1 + lt_2
             lo = len([i for i in indices_labeled if train.y[i] == 0])
             print(f'Selected {lt_1} samples of target class a), {lt_2} of target class b) {lo} of non-target class for labelling')
 
