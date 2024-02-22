@@ -341,7 +341,7 @@ def random_initialization_biased(y, n_samples=10, non_sample=None):
 if __name__ == '__main__':
 
     ## Fix seeds
-    SEED = 42 #12731 # 65372 #42
+    SEED = 12731 # 65372 #42
     torch.manual_seed(SEED)
     np.random.seed(SEED)
     random.seed(SEED)
