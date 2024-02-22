@@ -202,6 +202,8 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
                 other_indices_labeled,
                 query_sizes
             )
+            print(target_indices)
+            print(other_indices)
 
         # If there are not enough predicted others
         elif len(other_indices_unlabeled) < n/2:
@@ -251,13 +253,13 @@ def set_up_active_learner(train_dat, classification_model, active_learning_metho
     # Set up classifier
     transformer_model = small_text.TransformerModelArguments(classification_model)
 
-    # Hyperparams - options here: [https://small-text.readthedocs.io/en/v1.3.3/api/classifier.html#small_text.integrations.transformers.classifiers.TransformerBasedClassification.__init__]
+    # Hyperparams - options here: https://small-text.readthedocs.io/en/v1.3.3/api/classifier.html#small_text.integrations.transformers.classifiers.TransformerBasedClassification.__init__
     hyperparameters = {
         'device': 'cuda',
         'mini_batch_size': 50,
         'num_epochs': 5, # default=10
         'class_weight': 'balanced', #  If ‘balanced’, then the loss function is weighted inversely proportional to the label distribution to the current train set. DAL Blog post said this was important
-        'lr': 2e-5,  # default=2e-5, AL for BERT 5e-05
+        'lr': 5e-5,  # default=2e-5, AL for BERT 5e-05
         # 'validation_set_size': 0.1, # default=0.1
         # validations_per_epoch: 1 # default=1
         }
@@ -363,13 +365,13 @@ def random_initialization_biased(y, n_samples=10, non_sample=None):
 if __name__ == '__main__':
 
     ## Fix seeds
-    SEED = 42 # 65372 42
+    SEED = 12731 # 65372 42
     torch.manual_seed(SEED)
     np.random.seed(SEED)
     random.seed(SEED)
 
     # Choose sampling
-    BIASED = False
+    BIASED = True
 
     ## Choose backbone
     # transformer_model_name = 'bert-base-uncased'
