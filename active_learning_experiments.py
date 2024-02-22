@@ -376,9 +376,9 @@ if __name__ == '__main__':
     random.seed(SEED)
 
     # Choose sampling
-    BIASED = False
+    BIASED = True
     # 42 unbiased running on 1, biased running on 2
-    # 12731 unbiased running on 3
+    # 12731 unbiased running on 3, biased running on 1
 
     ## Choose backbone
     # transformer_model_name = 'bert-base-uncased'
@@ -454,8 +454,14 @@ if __name__ == '__main__':
 
         results = []
         res = evaluate(active_learner, train[indices_labeled], test)
-        res['on_topic'] = lt
-        res['not_on_topic'] = lo
+
+        if BIASED:
+            res['on_first_topic'] = lt_1
+            res['on_second_topic'] = lt_2
+            res['not_on_topic'] = lo
+        else:
+            res['on_topic'] = lt
+            res['not_on_topic'] = lo
         results.append(res)
 
         for i in range(NUM_QUERIES):
