@@ -182,27 +182,48 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
         target_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 1])
         other_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 0])
 
-        # If there are no predicted targets
-        if len(target_indices_unlabeled) == 0 or len(other_indices_unlabeled) == 0:
-            print("Classification model predicted all items with same label, reverting to DAL")
+        target_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 1])
+        other_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 0])
 
-            query_sizes = self._get_query_sizes(self.num_iterations, n)
+        # If there are not enough predicted targets
+        if len(target_indices_unlabeled) < n/2:
+            print("Classification model predicted few targets")
 
-            indices = self.discriminative_active_learning(
-                    dataset,
-                    indices_unlabeled,
-                    indices_labeled,
-                    query_sizes
-                )
-            
-            return indices
+            # Take all predicted targets
+            target_indices = np.array(target_indices_unlabeled)
 
+            # Run normal DAL for the rest
+            query_sizes = self._get_query_sizes(self.num_iterations, n - len(target_indices))
+
+            print("Finding others to label ...")
+            other_indices = self.discriminative_active_learning(
+                dataset,
+                other_indices_unlabeled,
+                other_indices_labeled,
+                query_sizes
+            )
+
+        # If there are not enough predicted others
+        elif len(other_indices_unlabeled) < n/2:
+
+            print("Classification model predicted few non-targets, reverting to DAL")
+
+            # Take all other targets
+            other_indices = np.array(target_indices_unlabeled)
+
+            # Run normal DAL for the rest
+            query_sizes = self._get_query_sizes(self.num_iterations, n - len(other_indices))
+
+            print("Finding targets to label ...")
+            target_indices = self.discriminative_active_learning(
+                dataset,
+                target_indices_unlabeled,
+                target_indices_labeled,
+                query_sizes
+            )
 
         else:
             query_sizes = self._get_query_sizes(self.num_iterations, int(n/2))
-
-            target_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 1])
-            other_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 0])
 
             print("Finding targets to label ...")
             target_indices = self.discriminative_active_learning(
@@ -219,7 +240,7 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
                 query_sizes
             )
 
-            return np.concatenate((target_indices, other_indices))
+        return np.concatenate((target_indices, other_indices))
 
 
 def set_up_active_learner(train_dat, classification_model, active_learning_method):
@@ -376,7 +397,8 @@ if __name__ == '__main__':
             biased=False
         )
 
-    for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", "NIHDAL", "Expected Gradient Length"]:
+    # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", "NIHDAL", "Expected Gradient Length"]:
+    for als in ["NIHDAL"]:
 
         print(f"***************************{als}******************************")
 
