@@ -336,7 +336,7 @@ def random_initialization_biased(y, n_samples=10, non_sample=None):
     other_sample = random.sample(all_indices, expected_samples_per_class)
 
     print("*******************")
-    print(len([i for i in target_sample if y[i] == 1 and i in non_sample]))
+    print(len([i for i in target_sample if y[i] == 0 and i in non_sample]))
     print("*******************")
 
     return np.array(target_sample + other_sample)
