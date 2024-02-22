@@ -335,10 +335,6 @@ def random_initialization_biased(y, n_samples=10, non_sample=None):
     all_indices = [i for i, lab in enumerate(y) if lab == 0]
     other_sample = random.sample(all_indices, expected_samples_per_class)
 
-    print("*******************")
-    print(len([i for i in other_sample if i in non_sample]))
-    print("*******************")
-
     return np.array(target_sample + other_sample)
 
 
@@ -393,6 +389,7 @@ if __name__ == '__main__':
 
             lt_1 = len([i for i in indices_labeled if train.y[i] == 1 and i not in unsampled_test_indices])
             lt_2 = len([i for i in indices_labeled if train.y[i] == 1 and i in unsampled_test_indices])
+            print([i for i in indices_labeled if train.y[i] == 1 and i in unsampled_test_indices])
             lt=lt_1 + lt_2
             lo = len([i for i in indices_labeled if train.y[i] == 0])
             print(f'Selected {lt_1} samples of target class a), {lt_2} of target class b) {lo} of non-target class for labelling')
