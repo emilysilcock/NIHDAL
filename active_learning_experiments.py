@@ -169,7 +169,9 @@ class DiscriminativeActiveLearning_amended(small_text.query_strategies.strategie
         return np.argpartition(-proba, q)[:q]
 
 
-class NIHDAL(DiscriminativeActiveLearning_amended):
+#class NIHDAL(DiscriminativeActiveLearning_amended):
+class NIHDAL(small_text.query_strategies.strategies.DiscriminativeActiveLearning):
+
     """Similar to Discriminative Active Learning, but applied on the predicted positives and 
      negatives separately. 
     """
@@ -253,15 +255,18 @@ def set_up_active_learner(train_dat, classification_model, active_learning_metho
     transformer_model = small_text.TransformerModelArguments(classification_model)
 
     # Hyperparams - options here: https://small-text.readthedocs.io/en/v1.3.3/api/classifier.html#small_text.integrations.transformers.classifiers.TransformerBasedClassification.__init__
+
+    # model_selection = small_text.training.ModelSelection(metrics = small_text.training.metrics.Metric('val_f1', lower_is_better=False))
+
     hyperparameters = {
         'device': 'cuda',
         'mini_batch_size': 50,
-        'num_epochs': 10, # default=10
+        'num_epochs': 5, # default=10
         'class_weight': 'balanced', #  If ‘balanced’, then the loss function is weighted inversely proportional to the label distribution to the current train set. DAL Blog post said this was important
-        'lr': 2e-5,  # default=2e-5, AL for BERT 5e-05
+        'lr': 5e-5,  # default=2e-5, AL for BERT 5e-05
         # 'validation_set_size': 0.1, # default=0.1
         # validations_per_epoch: 1 # default=1,
-        'model_selection': False
+        # 'model_selection': model_selection
         }
 
     classifier = small_text.TransformerBasedClassificationFactory(
