@@ -344,6 +344,7 @@ if __name__ == '__main__':
     SEED = 42 #12731 # 65372 #42
     torch.manual_seed(SEED)
     np.random.seed(SEED)
+    random.seed(SEED)
 
     # Choose sampling
     BIASED = True
