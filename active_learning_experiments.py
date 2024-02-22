@@ -86,6 +86,11 @@ def sample_and_tokenize_data(dataset_name, tokenization_model, target_labels=[0]
         dataset_to_change['train'], unsampled_train_indices = make_imbalanced(dataset_to_change['train'], indices_to_track=unsampled_train_indices)
         dataset_to_change['test'], unsampled_test_indices = make_imbalanced(dataset_to_change['test'], indices_to_track=unsampled_test_indices)
 
+        for i in unsampled_train_indices:
+            print(i)
+            print(dataset_to_change['train'][i])
+            print("*******************")
+
     else:
         dataset_to_change['train'] = make_imbalanced(dataset_to_change['train'])
         dataset_to_change['test'] = make_imbalanced(dataset_to_change['test'])
@@ -329,10 +334,6 @@ def random_initialization_biased(y, n_samples=10, non_sample=None):
 
     # Targets labels - don't sample from non_sample
     all_indices = [i for i, lab in enumerate(y) if lab == 1 and i not in non_sample]
-
-    for i in all_indices:
-        print(train[i])
-        print("************")
 
     target_sample = random.sample(all_indices, expected_samples_per_class)
 
