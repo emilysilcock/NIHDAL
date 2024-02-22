@@ -501,11 +501,11 @@ if __name__ == '__main__':
 
 
         if BIASED:
-            with open(f'{als}_results_{SEED}_biased.json', 'w') as f:
+            with open(f'{als}_results_{SEED}_biased_a.json', 'w') as f:
                 json.dump(results, f, indent=4)
 
         else:
-            with open(f'{als}_results_{SEED}.json', 'w') as f:
+            with open(f'{als}_results_{SEED}_a.json', 'w') as f:
                 json.dump(results, f, indent=4)
 
 
