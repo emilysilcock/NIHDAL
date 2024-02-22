@@ -376,7 +376,8 @@ if __name__ == '__main__':
     random.seed(SEED)
 
     # Choose sampling
-    BIASED = False
+    BIASED = True
+    # 42 unbiased running on 1, biased running on 2
 
     ## Choose backbone
     # transformer_model_name = 'bert-base-uncased'
