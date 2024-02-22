@@ -340,7 +340,7 @@ def random_initialization_biased(y, n_samples=10, non_sample=None):
 if __name__ == '__main__':
 
     ## Fix seeds
-    SEED = 12731 # 65372 #42
+    SEED = 42 #12731 # 65372 
     torch.manual_seed(SEED)
     np.random.seed(SEED)
     random.seed(SEED)
@@ -389,8 +389,7 @@ if __name__ == '__main__':
 
             lt_1 = len([i for i in indices_labeled if train.y[i] == 1 and i not in unsampled_indices])
             lt_2 = len([i for i in indices_labeled if train.y[i] == 1 and i in unsampled_indices])
-            print([i for i in indices_labeled if train.y[i] == 1 and i in unsampled_indices])
-            lt=lt_1 + lt_2
+d            lt=lt_1 + lt_2
             lo = len([i for i in indices_labeled if train.y[i] == 0])
             print(f'Selected {lt_1} samples of target class a), {lt_2} of target class b) {lo} of non-target class for labelling')
 
