@@ -84,12 +84,6 @@ def sample_and_tokenize_data(dataset_name, tokenization_model, target_labels=[0]
 
         dataset_to_change['train'], bias_indices = make_imbalanced(dataset_to_change['train'], indices_to_track=unsampled_train_indices)
 
-        for i in [10, 2, 12]:
-            if i in bias_indices:
-                print("Found")
-            else:
-                print("Not found")
-
     else:
         dataset_to_change['train'] = make_imbalanced(dataset_to_change['train'])
 
@@ -364,7 +358,7 @@ if __name__ == '__main__':
 
     ## Sample data
     if BIASED:
-        train, test, unsampled_train_indices, unsampled_test_indices = sample_and_tokenize_data(
+        train, test, unsampled_indices = sample_and_tokenize_data(
             dataset_name='ag_news',
             target_labels=[0, 2],
             tokenization_model = transformer_model_name,
@@ -391,11 +385,11 @@ if __name__ == '__main__':
 
         if BIASED:
             # Only sample from one side of the target class 
-            indices_labeled = random_initialization_biased(train.y, n_samples=100, non_sample=unsampled_train_indices)
+            indices_labeled = random_initialization_biased(train.y, n_samples=100, non_sample=unsampled_indices)
 
-            lt_1 = len([i for i in indices_labeled if train.y[i] == 1 and i not in unsampled_test_indices])
-            lt_2 = len([i for i in indices_labeled if train.y[i] == 1 and i in unsampled_test_indices])
-            print([i for i in indices_labeled if train.y[i] == 1 and i in unsampled_test_indices])
+            lt_1 = len([i for i in indices_labeled if train.y[i] == 1 and i not in unsampled_indices])
+            lt_2 = len([i for i in indices_labeled if train.y[i] == 1 and i in unsampled_indices])
+            print([i for i in indices_labeled if train.y[i] == 1 and i in unsampled_indices])
             lt=lt_1 + lt_2
             lo = len([i for i in indices_labeled if train.y[i] == 0])
             print(f'Selected {lt_1} samples of target class a), {lt_2} of target class b) {lo} of non-target class for labelling')
@@ -442,8 +436,8 @@ if __name__ == '__main__':
             y = train.y[indices_queried]
 
             if BIASED:
-                lt_1 = len([i for i in range(len(y)) if y[i] == 1 and i not in unsampled_test_indices])
-                lt_2 = len([i for i in range(len(y)) if y[i] == 1 and i in unsampled_test_indices])
+                lt_1 = len([i for i in range(len(y)) if y[i] == 1 and i not in unsampled_indices])
+                lt_2 = len([i for i in range(len(y)) if y[i] == 1 and i in unsampled_indices])
                 lt=lt_1 + lt_2
                 lo = len([i for i in y if i == 0])
                 print(f'Selected {lt_1} samples of target class a), {lt_2} of target class b) {lo} of non-target class for labelling')
