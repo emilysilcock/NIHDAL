@@ -65,13 +65,6 @@ def make_imbalanced(dataset, indices_to_track=None):
             if point in target_list:
                 tracked_indices.append(target_list.index(dataset[idx]))
 
-        for i in [10, 2, 12]:
-            if i in tracked_indices:
-                print("Found")
-            else:
-                print("Not found")
-            print(imbalanced_dataset[i])
-
         return imbalanced_dataset, tracked_indices
 
     else:
@@ -89,7 +82,13 @@ def sample_and_tokenize_data(dataset_name, tokenization_model, target_labels=[0]
     if biased:
         unsampled_train_indices = [i for i, lab in enumerate(raw_dataset['train']['label']) if lab == target_labels[1]]
 
-        dataset_to_change['train'], unsampled_train_indices = make_imbalanced(dataset_to_change['train'], indices_to_track=unsampled_train_indices)
+        dataset_to_change['train'], bias_indices = make_imbalanced(dataset_to_change['train'], indices_to_track=unsampled_train_indices)
+
+        for i in [10, 2, 12]:
+            if i in bias_indices:
+                print("Found")
+            else:
+                print("Not found")
 
     else:
         dataset_to_change['train'] = make_imbalanced(dataset_to_change['train'])
@@ -121,7 +120,7 @@ def sample_and_tokenize_data(dataset_name, tokenization_model, target_labels=[0]
     assert not train_dat.multi_label
 
     if biased:
-        return train_dat, test_dat, unsampled_train_indices, unsampled_test_indices
+        return train_dat, test_dat, bias_indices
 
     else:
         return train_dat, test_dat
