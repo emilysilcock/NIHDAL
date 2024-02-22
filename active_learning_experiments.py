@@ -185,6 +185,8 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
         target_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 1])
         other_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 0])
 
+        print(target_indices_unlabeled, other_indices_unlabeled, target_indices_labeled, other_indices_unlabeled)
+
         # If there are not enough predicted targets
         if len(target_indices_unlabeled) < n/2:
             print("Classification model predicted few targets")
@@ -202,8 +204,6 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
                 other_indices_labeled,
                 query_sizes
             )
-            print(target_indices)
-            print(other_indices)
 
         # If there are not enough predicted others
         elif len(other_indices_unlabeled) < n/2:
@@ -242,8 +242,7 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
                 query_sizes
             )
 
-        all_indices = np.concatenate((target_indices, other_indices))
-        print(all_indices)
+        all_indices = np.concatenate((target_indices, other_indices)).astype(int)
         return all_indices
 
 
