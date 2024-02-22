@@ -361,17 +361,17 @@ def random_initialization_biased(y, n_samples=10, non_sample=None):
 if __name__ == '__main__':
 
     ## Fix seeds
-    SEED = 12731 # 65372 42
+    SEED = 42 #12731 # 65372 42
     torch.manual_seed(SEED)
     np.random.seed(SEED)
     random.seed(SEED)
 
     # Choose sampling
-    BIASED = True
+    BIASED = False
 
     ## Choose backbone
-    # transformer_model_name = 'bert-base-uncased'
-    transformer_model_name = 'distilroberta-base'
+    transformer_model_name = 'bert-base-uncased'
+    # transformer_model_name = 'distilroberta-base'
     # found pretty impressive performance with 'paraphrase-MiniLM-L3-v2' https://github.com/webis-de/small-text/blob/main/examples/notebooks/03-active-learning-with-setfit.ipynb
     # roberta-base
     # roberta-large
@@ -386,7 +386,6 @@ if __name__ == '__main__':
             biased=True
         )
 
-
     else:
         train, test = sample_and_tokenize_data(
             dataset_name='ag_news',  # News data, labelled as 'World', 'Sports', 'Business', 'Sci/Tech'
@@ -398,7 +397,7 @@ if __name__ == '__main__':
         )
 
     # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", "NIHDAL", "Expected Gradient Length"]:
-    for als in ["NIHDAL"]:
+    for als in ["Expected Gradient Length"]:
 
         print(f"***************************{als}******************************")
 
