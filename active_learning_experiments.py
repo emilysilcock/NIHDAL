@@ -185,7 +185,7 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
         target_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 1])
         other_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 0])
 
-        print(len(target_indices_unlabeled), len(other_indices_unlabeled), len(target_indices_labeled), len(other_indices_unlabeled))
+        print(len(target_indices_unlabeled), len(other_indices_unlabeled), len(target_indices_labeled), len(other_indices_labeled))
 
         # If there are not enough predicted targets
         if len(target_indices_unlabeled) < n/2:
