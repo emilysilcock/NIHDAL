@@ -278,8 +278,8 @@ def set_up_active_learner(train_dat, classification_model, active_learning_metho
     if active_learning_method in ["DAL", "NIHDAL"]:
 
         if active_learning_method == "DAL":
-            # query_strategy = small_text.query_strategies.strategies.DiscriminativeActiveLearning(
-            query_strategy = DiscriminativeActiveLearning_amended(
+            query_strategy = small_text.query_strategies.strategies.DiscriminativeActiveLearning(
+            # query_strategy = DiscriminativeActiveLearning_amended(
                 classifier,
                 num_iterations=10, # This is referred to as the number of sub-batches in the DAL paper - they found 10-20 worked well. We might want to increase this
                 unlabeled_factor=10,  # This means the unlabelled gets downsampled so it's only ever 10x the size of the labelled
