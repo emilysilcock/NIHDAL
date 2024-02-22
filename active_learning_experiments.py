@@ -86,6 +86,10 @@ def sample_and_tokenize_data(dataset_name, tokenization_model, target_labels=[0]
         dataset_to_change['train'], unsampled_train_indices = make_imbalanced(dataset_to_change['train'], indices_to_track=unsampled_train_indices)
         dataset_to_change['test'], unsampled_test_indices = make_imbalanced(dataset_to_change['test'], indices_to_track=unsampled_test_indices)
 
+        for i in [10, 2, 12]:
+            print(dataset_to_change['train'][i])
+            print("*********************")
+
     else:
         dataset_to_change['train'] = make_imbalanced(dataset_to_change['train'])
         dataset_to_change['test'] = make_imbalanced(dataset_to_change['test'])
@@ -394,6 +398,8 @@ if __name__ == '__main__':
             lt=lt_1 + lt_2
             lo = len([i for i in indices_labeled if train.y[i] == 0])
             print(f'Selected {lt_1} samples of target class a), {lt_2} of target class b) {lo} of non-target class for labelling')
+
+            
 
         else:
             # # Random
