@@ -457,8 +457,16 @@ if __name__ == '__main__':
 
             # Evaluate classification model
             res = evaluate(active_learner, train[indices_labeled], test)
-            res['on_topic'] = lt
-            res['not_on_topic'] = lo
+
+            if BIASED:
+                res['on_first_topic'] = lt_1
+                res['on_second_topic'] = lt_2
+                res['not_on_topic'] = lo
+
+            else:
+                res['on_topic'] = lt
+                res['not_on_topic'] = lo
+            
             results.append(res)
 
 
