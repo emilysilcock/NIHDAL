@@ -260,7 +260,8 @@ def set_up_active_learner(train_dat, classification_model, active_learning_metho
         'class_weight': 'balanced', #  If ‘balanced’, then the loss function is weighted inversely proportional to the label distribution to the current train set. DAL Blog post said this was important
         'lr': 2e-5,  # default=2e-5, AL for BERT 5e-05
         # 'validation_set_size': 0.1, # default=0.1
-        # validations_per_epoch: 1 # default=1
+        # validations_per_epoch: 1 # default=1,
+        'model_selection': False
         }
 
     classifier = small_text.TransformerBasedClassificationFactory(
