@@ -256,7 +256,7 @@ def set_up_active_learner(train_dat, classification_model, active_learning_metho
 
     # Hyperparams - options here: https://small-text.readthedocs.io/en/v1.3.3/api/classifier.html#small_text.integrations.transformers.classifiers.TransformerBasedClassification.__init__
 
-    model_selection = small_text.training.ModelSelection(metrics = small_text.training.metrics.Metric('val_f1', lower_is_better=False))
+    model_selection = small_text.training.ModelSelection(metrics = [small_text.training.metrics.Metric('val_f1', lower_is_better=False)])
 
     hyperparameters = {
         'device': 'cuda',
