@@ -256,17 +256,17 @@ def set_up_active_learner(train_dat, classification_model, active_learning_metho
 
     # Hyperparams - options here: https://small-text.readthedocs.io/en/v1.3.3/api/classifier.html#small_text.integrations.transformers.classifiers.TransformerBasedClassification.__init__
 
-    # model_selection = small_text.training.ModelSelection(metrics = small_text.training.metrics.Metric('val_f1', lower_is_better=False))
+    model_selection = small_text.training.ModelSelection(metrics = small_text.training.metrics.Metric('val_f1', lower_is_better=False))
 
     hyperparameters = {
         'device': 'cuda',
         'mini_batch_size': 50,
-        'num_epochs': 5, # default=10
+        'num_epochs': 20, # default=10
         'class_weight': 'balanced', #  If ‘balanced’, then the loss function is weighted inversely proportional to the label distribution to the current train set. DAL Blog post said this was important
-        'lr': 5e-5,  # default=2e-5, AL for BERT 5e-05
+        'lr': 2e-5,  # default=2e-5, AL for BERT 5e-05
         # 'validation_set_size': 0.1, # default=0.1
         # validations_per_epoch: 1 # default=1,
-        # 'model_selection': model_selection
+        'model_selection': model_selection
         }
 
     classifier = small_text.TransformerBasedClassificationFactory(
@@ -370,16 +370,13 @@ def random_initialization_biased(y, n_samples=10, non_sample=None):
 if __name__ == '__main__':
 
     ## Fix seeds
-    SEED = 65372 #12731 # 65372 42
+    SEED = 42 #12731 # 65372 42
     torch.manual_seed(SEED)
     np.random.seed(SEED)
     random.seed(SEED)
 
     # Choose sampling
     BIASED = False
-    # 42 unbiased running on 1, biased running on 2
-    # 12731 unbiased running on 3, biased running on 1
-    # 65372 unbiased running on 2
 
     ## Choose backbone
     # transformer_model_name = 'bert-base-uncased'
@@ -400,7 +397,7 @@ if __name__ == '__main__':
 
     else:
         train, test = sample_and_tokenize_data(
-            dataset_name='ag_news',  # News data, labelled as 'World', 'Sports', 'Business', 'Sci/Tech'
+            dataset_name='ag_news',  # d
             # dataset_name = 'rotten_tomatoes', # movie reviews, labelled as either positive or negative
             # go-emotions dataset (27 emotions + 1 neutral class)
             target_labels=[0],
