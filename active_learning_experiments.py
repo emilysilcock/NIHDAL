@@ -12,6 +12,7 @@ import small_text
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 import json
 import random 
+from copy import deepcopy
 
 
 def make_binary(dataset, target_labels):
@@ -147,7 +148,11 @@ class DiscriminativeActiveLearning_amended(small_text.query_strategies.strategie
 
     def _train_and_get_most_confident(self, ds, indices_unlabeled, indices_labeled, q):
 
-        clf = active_learner._clf
+        if self.clf_ is not None:
+            del self.clf_
+
+        # clf = active_learner._clf
+        clf = deepcopy(last_stable_model)
 
         num_unlabeled = min(indices_labeled.shape[0] * self.unlabeled_factor,
                             indices_unlabeled.shape[0])
@@ -180,7 +185,7 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
         self._validate_query_input(indices_unlabeled, n)
 
         # Predict target or other for unlabelled data
-        preds = active_learner.classifier.predict(train)
+        preds = last_stable_model.predict(train)
         target_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 1])
         other_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 0])
 
@@ -472,6 +477,9 @@ if __name__ == '__main__':
             res['not_on_topic'] = lo
         results.append(res)
 
+        ## Keep track of last stable model 
+        last_stable_model = deepcopy(active_learner.classifier)
+
         for i in range(NUM_QUERIES):
 
             # Query 100 samples
@@ -515,19 +523,26 @@ if __name__ == '__main__':
             
             results.append(res)
 
+            # Update last stable model - used for DAL and NIHDAL
+            if res['Test F1'] > 0:
+                print('Classification model updated')
+                last_stable_model = deepcopy(active_learner.classifier)
+
+            else:
+                print('Classification model not updated')
+
 
         if BIASED:
-            with open(f'{als}_results_{SEED}_biased_a.json', 'w') as f:
+            with open(f'{als}_results_{SEED}_biased.json', 'w') as f:
                 json.dump(results, f, indent=4)
 
         else:
-            with open(f'{als}_results_{SEED}_a.json', 'w') as f:
+            with open(f'{als}_results_{SEED}.json', 'w') as f:
                 json.dump(results, f, indent=4)
 
 
     # Todo:
             # Change hyperparameters on classification model so you're not getting odd behaviour
-            # Set up tests with deliberately unbalanced data
             # Decide on other measures of success
             # Try with other data
             # Try repeating a few times
