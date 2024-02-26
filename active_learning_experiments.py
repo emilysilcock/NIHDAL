@@ -151,8 +151,8 @@ class DiscriminativeActiveLearning_amended(small_text.query_strategies.strategie
         if self.clf_ is not None:
             del self.clf_
 
-        # clf = active_learner._clf
-        clf = deepcopy(last_stable_model)
+        clf = active_learner._clf
+        # clf = deepcopy(last_stable_model)
 
         num_unlabeled = min(indices_labeled.shape[0] * self.unlabeled_factor,
                             indices_unlabeled.shape[0])
