@@ -292,17 +292,24 @@ def set_up_active_learner(train_dat, classification_model, active_learning_metho
 
     if active_learning_method in ["DAL", "NIHDAL"]:
 
+        classifier_b = small_text.TransformerBasedClassificationFactory(
+            transformer_model,
+            num_classes=2,
+            kwargs=dict(hyperparameters)
+            )
+
+
         if active_learning_method == "DAL":
-            # query_strategy = small_text.query_strategies.strategies.DiscriminativeActiveLearning(
-            query_strategy = DiscriminativeActiveLearning_amended(
-                classifier,
+            query_strategy = small_text.query_strategies.strategies.DiscriminativeActiveLearning(
+            # query_strategy = DiscriminativeActiveLearning_amended(
+                classifier_b,
                 num_iterations=10, # This is referred to as the number of sub-batches in the DAL paper - they found 10-20 worked well. We might want to increase this
                 unlabeled_factor=10,  # This means the unlabelled gets downsampled so it's only ever 10x the size of the labelled
                 pbar='tqdm'
                 )
         else:
             query_strategy = NIHDAL(
-                classifier,
+                classifier_b,
                 num_iterations=10, # This is referred to as the number of sub-batches in the DAL paper - they found 10-20 worked well. We might want to increase this
                 unlabeled_factor=10,  # This means the unlabelled gets downsampled so it's only ever 10x the size of the labelled
                 pbar='tqdm'
@@ -421,7 +428,7 @@ if __name__ == '__main__':
         )
 
     # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", "NIHDAL", "Expected Gradient Length"]:
-    for als in ["NIHDAL"]:
+    for als in ["DAL"]:
 
         print(f"***************************{als}******************************")
 
