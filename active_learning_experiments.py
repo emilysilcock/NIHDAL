@@ -80,15 +80,15 @@ def sample_and_tokenize_data(dataset_name, tokenization_model, target_labels=[0]
     dataset_to_change['train'] = make_binary(raw_dataset['train'], target_labels=target_labels)
     dataset_to_change['test'] = make_binary(raw_dataset['test'], target_labels=target_labels)
 
-    if biased:
-        unsampled_train_indices = [i for i, lab in enumerate(raw_dataset['train']['label']) if lab == target_labels[1]]
+    # if biased:
+    #     unsampled_train_indices = [i for i, lab in enumerate(raw_dataset['train']['label']) if lab == target_labels[1]]
 
-        dataset_to_change['train'], bias_indices = make_imbalanced(dataset_to_change['train'], indices_to_track=unsampled_train_indices)
+    #     dataset_to_change['train'], bias_indices = make_imbalanced(dataset_to_change['train'], indices_to_track=unsampled_train_indices)
 
-    else:
-        dataset_to_change['train'] = make_imbalanced(dataset_to_change['train'])
+    # else:
+    #     dataset_to_change['train'] = make_imbalanced(dataset_to_change['train'])
 
-    dataset_to_change['test'] = make_imbalanced(dataset_to_change['test'])
+    # dataset_to_change['test'] = make_imbalanced(dataset_to_change['test'])
 
     # Set up tokenizer
     tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
