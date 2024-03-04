@@ -7,10 +7,6 @@ datasets.logging.set_verbosity_error()
 datasets.logging.get_verbosity = lambda: logging.NOTSET
 
 
-from matplotlib import rcParams
-rcParams.update({'xtick.labelsize': 14, 'ytick.labelsize': 14, 'axes.labelsize': 16})
-
-
 import torch
 import numpy as np
 
