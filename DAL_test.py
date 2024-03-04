@@ -209,7 +209,7 @@ def active_learning_loop(active_learner, train, test, num_queries):
         print(f'Iteration #{i} ({len(indices_labeled)} samples)')
         results.append(evaluate(active_learner, train[indices_labeled], test))
 
-        return results
+    return results
 
 
 if __name__ == '__main__':
