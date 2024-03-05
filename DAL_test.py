@@ -1,6 +1,7 @@
 import logging
+import json
 
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 import datasets
 import numpy as np
 import torch
@@ -156,18 +157,39 @@ def make_imbalanced(dataset, indices_to_track=None):
         return imbalanced_dataset
 
 
+# def evaluate(active_learner, train, test):
+#     y_pred = active_learner.classifier.predict(train)
+#     y_pred_test = active_learner.classifier.predict(test)
+    
+#     test_acc = accuracy_score(y_pred_test, test.y)
+
+#     print('Train accuracy: {:.2f}'.format(accuracy_score(y_pred, train.y)))
+#     print('Test accuracy: {:.2f}'.format(test_acc))
+#     print('Train F1: {:.2f}'.format(f1_score(y_pred, train.y)))
+#     print('Test F1: {:.2f}'.format(f1_score(y_pred_test, test.y)))
+    
+#     return test_acc
+
+
 def evaluate(active_learner, train, test):
+
     y_pred = active_learner.classifier.predict(train)
     y_pred_test = active_learner.classifier.predict(test)
-    
-    test_acc = accuracy_score(y_pred_test, test.y)
 
-    print('Train accuracy: {:.2f}'.format(accuracy_score(y_pred, train.y)))
-    print('Test accuracy: {:.2f}'.format(test_acc))
-    print('Train F1: {:.2f}'.format(f1_score(y_pred, train.y)))
-    print('Test F1: {:.2f}'.format(f1_score(y_pred_test, test.y)))
-    
-    return test_acc
+    r = {
+        'Train accuracy': accuracy_score(y_pred, train.y),
+        'Test accuracy': accuracy_score(y_pred_test, test.y),
+        'Train F1': f1_score(y_pred, train.y),
+        'Test F1': f1_score(y_pred_test, test.y),
+        'Train precision': precision_score(y_pred, train.y),
+        'Test precision': precision_score(y_pred_test, test.y),
+        'Train recall': recall_score(y_pred, train.y),
+        'Test recall': recall_score(y_pred_test, test.y)
+    }
+
+    print(json.dumps(r, indent=4))
+
+    return r
 
 
 def initialize_active_learner(active_learner, y_train):
@@ -202,12 +224,12 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0])
     train = TransformersDataset.from_arrays(raw_dataset['train']['text'],
                                             raw_dataset['train']['label'],
                                             tokenizer,
-                                            max_length=60,
+                                            max_length=100,
                                             target_labels=lab_array)
-    test = TransformersDataset.from_arrays(raw_dataset['test']['text'], 
+    test = TransformersDataset.from_arrays(raw_dataset['test']['text'],
                                           raw_dataset['test']['label'],
                                           tokenizer,
-                                          max_length=60,
+                                          max_length=100,
                                           target_labels=lab_array)
     
     return train, test
@@ -215,7 +237,7 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0])
 
 def set_up_active_learner(transformer_model_name, active_learning_method):
 
-    # Set up active learner 
+    # Set up active learner
     num_classes = 2
 
     transformer_model = TransformerModelArguments(transformer_model_name)
@@ -257,7 +279,12 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
     else:
         raise ValueError(f"Active Learning method {active_learning_method} is unknown")
 
-    a_learner = PoolBasedActiveLearner(clf_factory, query_strategy, train)
+    a_learner = PoolBasedActiveLearner(
+        clf_factory, 
+        query_strategy, 
+        train,
+        reuse_model=False, # Reuses the previous model during retraining (if a previous model exists), otherwise creates a new model for each retraining
+    )
 
     return a_learner
 
@@ -324,11 +351,10 @@ if __name__ == '__main__':
     # Todo:
     # - DAL using classification model
     # - biased initial seed
-    # - max token length during tokenisation
     # - Save all scores, not just accuracy
     # - Minibatch size
     # - Learning rate
     # - Number of epochs
     # - Unlabelled factor
     # - Early stopping
-    # - Reuse model = False
+    # - Add counts of target and non-target to results 
