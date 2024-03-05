@@ -19,7 +19,39 @@ from small_text import (
 )
 
 
-class NIHDAL(DiscriminativeActiveLearning):
+class DiscriminativeActiveLearning_amended(DiscriminativeActiveLearning):
+
+    # Amended to use the most recent topic classifier as per the DAL paper
+
+    def _train_and_get_most_confident(self, ds, indices_unlabeled, indices_labeled, q):
+
+        if self.clf_ is not None:
+            del self.clf_
+
+        clf = active_learner._clf
+        # clf = deepcopy(last_stable_model)
+
+        num_unlabeled = min(indices_labeled.shape[0] * self.unlabeled_factor,
+                            indices_unlabeled.shape[0])
+
+        indices_unlabeled_sub = np.random.choice(indices_unlabeled,
+                                                num_unlabeled,
+                                                replace=False)
+
+        ds_discr = DiscriminativeActiveLearning_amended.get_relabeled_copy(ds,
+                                                                indices_unlabeled_sub,
+                                                                indices_labeled)
+
+        self.clf_ = clf.fit(ds_discr)
+
+        proba = clf.predict_proba(ds[indices_unlabeled])
+        proba = proba[:, self.LABEL_UNLABELED_POOL]
+
+        # return instances which most likely belong to the "unlabeled" class (higher is better)
+        return np.argpartition(-proba, q)[:q]
+
+
+class NIHDAL(DiscriminativeActiveLearning_amended):
 
     """Similar to Discriminative Active Learning, but applied on the predicted positives and 
      negatives separately. 
@@ -257,7 +289,7 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
                                                                     }))
 
     if active_learning_method == "DAL":
-        query_strategy = DiscriminativeActiveLearning(classifier_factory=clf_factory_2, num_iterations=10)
+        query_strategy = DiscriminativeActiveLearning_amended(classifier_factory=clf_factory_2, num_iterations=10)
     elif active_learning_method == "NIHDAL":
         query_strategy = NIHDAL(classifier_factory=clf_factory_2, num_iterations=10)
     elif active_learning_method == "Random":
@@ -349,12 +381,11 @@ if __name__ == '__main__':
         results = active_learning_loop(active_learner, train, test, num_queries=10)
 
     # Todo:
-    # - DAL using classification model
+    # - How can train F1 be non-zero when there are no true positives?? 
     # - biased initial seed
-    # - Save all scores, not just accuracy
     # - Minibatch size
     # - Learning rate
     # - Number of epochs
     # - Unlabelled factor
     # - Early stopping
-    # - Add counts of target and non-target to results 
+    # - Add counts of target and non-target to results
