@@ -164,8 +164,8 @@ def evaluate(active_learner, train, test):
 
     print('Train accuracy: {:.2f}'.format(accuracy_score(y_pred, train.y)))
     print('Test accuracy: {:.2f}'.format(test_acc))
-    print('Train F1: {:.2f}'.format(f1_score(y_pred, train.y, average="weighted")))      ############################
-    print('Test F1: {:.2f}'.format(f1_score(y_pred_test, test.y, average="weighted")))   ############################
+    print('Train F1: {:.2f}'.format(f1_score(y_pred, train.y)))      ############################
+    print('Test F1: {:.2f}'.format(f1_score(y_pred_test, test.y)))   ############################
     
     return test_acc
 
