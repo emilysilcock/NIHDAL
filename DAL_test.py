@@ -274,17 +274,28 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
 
     transformer_model = TransformerModelArguments(transformer_model_name)
 
-    clf_factory = TransformerBasedClassificationFactory(transformer_model, 
-                                                        num_classes, 
-                                                        kwargs=dict({'device': 'cuda', 
+    # hyperparameters = {
+    #     'device': 'cuda',
+    #     'mini_batch_size': 50,
+    #     'model_selection': model_selection
+    # }
+
+
+    clf_factory = TransformerBasedClassificationFactory(transformer_model,
+                                                        num_classes,
+                                                        kwargs=dict({'device': 'cuda',
                                                                     'mini_batch_size': 32,
+                                                                    'num_epochs': 20,    ########
+                                                                    'lr': 5e-5,    #######
                                                                     'class_weight': 'balanced'
                                                                     }))
 
-    clf_factory_2 = TransformerBasedClassificationFactory(transformer_model, 
-                                                        num_classes, 
-                                                        kwargs=dict({'device': 'cuda', 
+    clf_factory_2 = TransformerBasedClassificationFactory(transformer_model,
+                                                        num_classes,
+                                                        kwargs=dict({'device': 'cuda',
                                                                     'mini_batch_size': 32,
+                                                                    'num_epochs': 20,    ########
+                                                                    'lr': 5e-5,    #######
                                                                     'class_weight': 'balanced'
                                                                     }))
 
@@ -312,8 +323,8 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
         raise ValueError(f"Active Learning method {active_learning_method} is unknown")
 
     a_learner = PoolBasedActiveLearner(
-        clf_factory, 
-        query_strategy, 
+        clf_factory,
+        query_strategy,
         train,
         reuse_model=False, # Reuses the previous model during retraining (if a previous model exists), otherwise creates a new model for each retraining
     )
@@ -381,11 +392,10 @@ if __name__ == '__main__':
         results = active_learning_loop(active_learner, train, test, num_queries=10)
 
     # Todo:
-    # - How can train F1 be non-zero when there are no true positives?? 
+        # - Minibatch size
+        # - Learning rate
+        # - Number of epochs
     # - biased initial seed
-    # - Minibatch size
-    # - Learning rate
-    # - Number of epochs
     # - Unlabelled factor
     # - Early stopping
     # - Add counts of target and non-target to results
