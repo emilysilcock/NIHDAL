@@ -164,8 +164,8 @@ def evaluate(active_learner, train, test):
 
     print('Train accuracy: {:.2f}'.format(accuracy_score(y_pred, train.y)))
     print('Test accuracy: {:.2f}'.format(test_acc))
-    print('Train F1: {:.2f}'.format(f1_score(y_pred, train.y)))      ############################
-    print('Test F1: {:.2f}'.format(f1_score(y_pred_test, test.y)))   ############################
+    print('Train F1: {:.2f}'.format(f1_score(y_pred, train.y)))
+    print('Test F1: {:.2f}'.format(f1_score(y_pred_test, test.y)))
     
     return test_acc
 
@@ -303,23 +303,23 @@ if __name__ == '__main__':
     datasets.logging.get_verbosity = lambda: logging.NOTSET
 
     # Set seed
-    seed = 2022
-    torch.manual_seed(seed)
-    np.random.seed(seed)
+    for seed in [42, 12731, 65372]:
+        torch.manual_seed(seed)
+        np.random.seed(seed)
 
-    # transformer_model_name = 'bert-base-uncased'
-    transformer_model_name = 'distilroberta-base'
+        # transformer_model_name = 'bert-base-uncased'
+        transformer_model_name = 'distilroberta-base'
 
-    # Load data
-    test, train = load_and_format_dataset(
-        dataset_name='ag_news',
-        tokenization_model=transformer_model_name,
-        target_labels=[0]
-    )
+        # Load data
+        test, train = load_and_format_dataset(
+            dataset_name='ag_news',
+            tokenization_model=transformer_model_name,
+            target_labels=[0]
+        )
 
-    active_learner = set_up_active_learner(transformer_model_name, active_learning_method="NIHDAL")
+        active_learner = set_up_active_learner(transformer_model_name, active_learning_method="NIHDAL")
 
-    results = active_learning_loop(active_learner, train, test, num_queries=10)
+        results = active_learning_loop(active_learner, train, test, num_queries=10)
 
     # Todo:
     # - DAL using classification model
