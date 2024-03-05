@@ -18,6 +18,87 @@ from small_text import (
 )
 
 
+class NIHDAL(DiscriminativeActiveLearning):
+
+    """Similar to Discriminative Active Learning, but applied on the predicted positives and 
+     negatives separately. 
+    """
+
+    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
+
+        self._validate_query_input(indices_unlabeled, n)
+
+        # Predict target or other for unlabelled data
+        # preds = last_stable_model.predict(train)
+        preds = active_learner.classifier.predict(train)
+
+        target_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 1])
+        other_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 0])
+
+        target_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 1])
+        other_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 0])
+
+        print(len(target_indices_unlabeled), len(other_indices_unlabeled), len(target_indices_labeled), len(other_indices_labeled))
+
+        # If there are not enough predicted targets
+        if len(target_indices_unlabeled) < n/2:
+            print("Classification model predicted few targets")
+
+            # Take all predicted targets
+            target_indices = np.array(target_indices_unlabeled)
+
+            # Run normal DAL for the rest
+            query_sizes = self._get_query_sizes(self.num_iterations, n - len(target_indices))
+
+            print("Finding others to label ...")
+            other_indices = self.discriminative_active_learning(
+                dataset,
+                other_indices_unlabeled,
+                other_indices_labeled,
+                query_sizes
+            )
+
+        # If there are not enough predicted others
+        elif len(other_indices_unlabeled) < n/2:
+
+            print("Classification model predicted few non-targets, reverting to DAL")
+
+            # Take all other targets
+            other_indices = np.array(target_indices_unlabeled)
+
+            # Run normal DAL for the rest
+            query_sizes = self._get_query_sizes(self.num_iterations, n - len(other_indices))
+
+            print("Finding targets to label ...")
+            target_indices = self.discriminative_active_learning(
+                dataset,
+                target_indices_unlabeled,
+                target_indices_labeled,
+                query_sizes
+            )
+
+        else:
+            query_sizes = self._get_query_sizes(self.num_iterations, int(n/2))
+
+            print("Finding targets to label ...")
+            target_indices = self.discriminative_active_learning(
+                dataset,
+                target_indices_unlabeled,
+                target_indices_labeled,
+                query_sizes
+            )
+            print("Finding others to label ...")
+            other_indices = self.discriminative_active_learning(
+                dataset,
+                other_indices_unlabeled,
+                other_indices_labeled,
+                query_sizes
+            )
+
+        all_indices = np.concatenate((target_indices, other_indices)).astype(int)
+        return all_indices
+
+
 def make_binary(dataset, target_labels):
 
     # Create mapping
@@ -155,6 +236,8 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
 
     if active_learning_method == "DAL":
         query_strategy = DiscriminativeActiveLearning(classifier_factory=clf_factory_2, num_iterations=10)
+    elif active_learning_method == "NIHDAL":
+        query_strategy = NIHDAL(classifier_factory=clf_factory_2, num_iterations=10)
     elif active_learning_method == "Random":
         query_strategy = small_text.query_strategies.strategies.RandomSampling()
     elif active_learning_method == "Least Confidence":
@@ -194,7 +277,7 @@ def active_learning_loop(active_learner, train, test, num_queries):
         # Query samples to label
         indices_queried = active_learner.query(num_samples=100)
 
-        # Simulate labelling 
+        # Simulate labelling
         y = train.y[indices_queried]
         lt = len([i for i in y if i == 1])
         lo = len([i for i in y if i == 0])
@@ -234,13 +317,12 @@ if __name__ == '__main__':
         target_labels=[0]
     )
 
-    active_learner = set_up_active_learner(transformer_model_name, active_learning_method="DAL")
+    active_learner = set_up_active_learner(transformer_model_name, active_learning_method="NIHDAL")
 
     results = active_learning_loop(active_learner, train, test, num_queries=10)
 
     # Todo:
     # - DAL using classification model
-    # - NIHDAL
     # - biased initial seed
     # - max token length during tokenisation
     # - Save all scores, not just accuracy
