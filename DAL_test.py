@@ -426,15 +426,11 @@ if __name__ == '__main__':
         transformer_model_name = 'distilroberta-base'
 
         # Load data
-        test, train = load_and_format_dataset(
+        train, test = load_and_format_dataset(
             dataset_name='ag_news',
             tokenization_model=transformer_model_name,
             target_labels=[0]
         )
-
-        print(len(train.y))
-        print(sum(train.y))
-        raise ValueError
 
         active_learner = set_up_active_learner(transformer_model_name, active_learning_method="NIHDAL")
 
