@@ -214,7 +214,7 @@ def make_binary(dataset, target_labels):
     binary_dataset = binary_dataset.cast(new_features)
 
     print("******************************")
-    print(binary_dataset['label'])
+    print(sum(binary_dataset['label']))
     raise ValueError
     print("******************************")
 
