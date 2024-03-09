@@ -213,11 +213,6 @@ def make_binary(dataset, target_labels):
         })
     binary_dataset = binary_dataset.cast(new_features)
 
-    print("******************************")
-    print(sum(binary_dataset['label']))
-    raise ValueError
-    print("******************************")
-
     return binary_dataset
 
 
@@ -238,6 +233,12 @@ def make_imbalanced(dataset, indices_to_track=None):
 
     # Concat back together
     imbalanced_dataset = datasets.concatenate_datasets([target_samples_to_keep, other_samples])
+
+    print("******************************")
+    print(len(imbalanced_dataset['label']))
+    print(sum(imbalanced_dataset['label']))
+    raise ValueError
+    print("******************************")
 
     if indices_to_track:
 
