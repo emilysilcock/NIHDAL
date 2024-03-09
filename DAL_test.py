@@ -132,6 +132,71 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
         return all_indices
 
 
+class NIHDAL_2(DiscriminativeActiveLearning_amended):
+
+    """Similar to Discriminative Active Learning, but applied on the predicted positives and 
+     negatives separately. 
+    """
+
+    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
+
+        # Predict target or other for unlabelled data
+        preds = active_learner.classifier.predict(train)
+
+        target_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 1])
+        other_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 0])
+
+        # Describe predicted target
+        target_indices_unlabeled_pos_count = sum([train.y[i] for i in target_indices_unlabeled])
+        actual_tar = round((target_indices_unlabeled_pos_count/len(target_indices_unlabeled))*100, 2)
+        print(f'There are {len(target_indices_unlabeled)} predicted target examples, of which {actual_tar} are actually target')
+
+        # Describe predicted other
+        other_indices_unlabeled_pos_count = sum([train.y[i] for i in other_indices_unlabeled])
+        actual_tar = round((other_indices_unlabeled_pos_count/len(other_indices_unlabeled))*100, 2)
+        print(f'There are {len(other_indices_unlabeled)} predicted target examples, of which {actual_tar} are actually target')
+
+        # Create balanced pool 
+        half_pool_size = max(len(target_indices_unlabeled), len(other_indices_unlabeled))
+
+        target_pool = np.random.choice(target_indices_unlabeled, half_pool_size, replace=False)
+        other_pool = np.random.choice(other_indices_unlabeled, half_pool_size, replace=False)
+
+        balanced_indices_unlabeled = np.concatenate((target_pool, other_pool)).astype(int).shuffle()
+
+        # Run DAL 
+        self._validate_query_input(balanced_indices_unlabeled, n)
+
+        query_sizes = self._get_query_sizes(self.num_iterations, int(n))
+
+        selected_indices = self.discriminative_active_learning(
+            dataset,
+            balanced_indices_unlabeled,
+            indices_labeled,
+            query_sizes
+        )
+
+        # Describe selected indices 
+
+        ## From pred pos
+        pred_pos_selected = [i for i in selected_indices if i in target_pool]
+        pred_pos_actual_pos = sum(train.y[pred_pos_selected])
+        print(f'Predicted positives: Selected {len(pred_pos_selected)} samples, with {pred_pos_actual_pos} target class')
+
+        ## From pred neg
+        pred_neg_selected = [i for i in selected_indices if i in other_pool]
+        pred_neg_actual_pos = sum(train.y[pred_neg_selected])
+        print(f'Predicted negatives: Selected {len(pred_neg_selected)} samples, with {pred_neg_actual_pos} target class')
+
+        ## Overall 
+        actual_pos = sum(train.y[selected_indices])
+        print(f'All: Selected {len(selected_indices)} samples, with {actual_pos} target class')
+
+
+        return selected_indices
+
+
+
 def make_binary(dataset, target_labels):
 
     # Create mapping
@@ -187,20 +252,6 @@ def make_imbalanced(dataset, indices_to_track=None):
 
     else:
         return imbalanced_dataset
-
-
-# def evaluate(active_learner, train, test):
-#     y_pred = active_learner.classifier.predict(train)
-#     y_pred_test = active_learner.classifier.predict(test)
-    
-#     test_acc = accuracy_score(y_pred_test, test.y)
-
-#     print('Train accuracy: {:.2f}'.format(accuracy_score(y_pred, train.y)))
-#     print('Test accuracy: {:.2f}'.format(test_acc))
-#     print('Train F1: {:.2f}'.format(f1_score(y_pred, train.y)))
-#     print('Test F1: {:.2f}'.format(f1_score(y_pred_test, test.y)))
-    
-#     return test_acc
 
 
 def evaluate(active_learner, train, test):
@@ -302,7 +353,8 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
     if active_learning_method == "DAL":
         query_strategy = DiscriminativeActiveLearning_amended(classifier_factory=clf_factory_2, num_iterations=10)
     elif active_learning_method == "NIHDAL":
-        query_strategy = NIHDAL(classifier_factory=clf_factory_2, num_iterations=10)
+        # query_strategy = NIHDAL(classifier_factory=clf_factory_2, num_iterations=10)
+        query_strategy = NIHDAL_2(classifier_factory=clf_factory_2, num_iterations=10)
     elif active_learning_method == "Random":
         query_strategy = small_text.query_strategies.strategies.RandomSampling()
     elif active_learning_method == "Least Confidence":
@@ -349,9 +401,6 @@ def active_learning_loop(active_learner, train, test, num_queries):
 
         # Simulate labelling
         y = train.y[indices_queried]
-        lt = len([i for i in y if i == 1])
-        lo = len([i for i in y if i == 0])
-        print(f'Selected {lt} samples of target class and {lo} of non-target class for labelling')
 
         # Return the labels for the current query to the active learner.
         active_learner.update(y)
@@ -392,9 +441,7 @@ if __name__ == '__main__':
         results = active_learning_loop(active_learner, train, test, num_queries=10)
 
     # Todo:
-        # - Minibatch size
-        # - Learning rate
-        # - Number of epochs
+    # - Minibatch size
     # - biased initial seed
     # - Unlabelled factor
     # - Early stopping
