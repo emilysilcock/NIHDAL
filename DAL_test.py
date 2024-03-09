@@ -432,7 +432,8 @@ if __name__ == '__main__':
             target_labels=[0]
         )
 
-        print(train.y)
+        print(len(train.y))
+        print(sum(train.y))
         raise ValueError
 
         active_learner = set_up_active_learner(transformer_model_name, active_learning_method="NIHDAL")
