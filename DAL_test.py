@@ -53,8 +53,8 @@ class DiscriminativeActiveLearning_amended(DiscriminativeActiveLearning):
 
 class NIHDAL(DiscriminativeActiveLearning_amended):
 
-    """Similar to Discriminative Active Learning, but applied on the predicted positives and 
-     negatives separately. 
+    """Similar to Discriminative Active Learning, but applied on the predicted target and 
+     others separately. 
     """
 
     def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
@@ -71,7 +71,13 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
         target_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 1])
         other_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 0])
 
-        print(len(target_indices_unlabeled), len(other_indices_unlabeled), len(target_indices_labeled), len(other_indices_labeled))
+        # Describe predicted target
+        target_indices_unlabeled_tar_count = sum(train.y[target_indices_unlabeled])
+        print(f'There are {len(target_indices_unlabeled)} predicted target examples, of which {target_indices_unlabeled_tar_count} are actually target')
+
+        # Describe predicted other
+        other_indices_unlabeled_tar_count = sum(train.y[other_indices_unlabeled])
+        print(f'There are {len(other_indices_unlabeled)} predicted non-target examples, of which {other_indices_unlabeled_tar_count} are actually target')
 
         # If there are not enough predicted targets
         if len(target_indices_unlabeled) < n/2:
@@ -128,14 +134,27 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
                 query_sizes
             )
 
-        all_indices = np.concatenate((target_indices, other_indices)).astype(int)
-        return all_indices
+        selected_indices = np.concatenate((target_indices, other_indices)).astype(int)
+
+        # Describe selected indices
+        ## From pred target
+        pred_tar_actual_tar = sum(train.y[target_indices])
+        print(f'Predicted target: Selected {len(target_indices)} samples, with {pred_tar_actual_tar} target class')
+
+        ## From pred other
+        pred_oth_actual_tar = sum(train.y[other_indices])
+        print(f'Predicted non-target: Selected {len(other_indices)} samples, with {pred_oth_actual_tar} target class')
+
+        ## Overall
+        actual_tar = sum(train.y[selected_indices])
+        print(f'All: Selected {len(selected_indices)} samples, with {actual_tar} target class')
+
+        return selected_indices
 
 
 class NIHDAL_2(DiscriminativeActiveLearning_amended):
 
-    """Similar to Discriminative Active Learning, but applied on the predicted positives and 
-     negatives separately. 
+    """Similar to Discriminative Active Learning, but applied reweighting the pool.
     """
 
     def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
@@ -147,12 +166,12 @@ class NIHDAL_2(DiscriminativeActiveLearning_amended):
         other_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 0])
 
         # Describe predicted target
-        target_indices_unlabeled_pos_count = sum(train.y[target_indices_unlabeled])
-        print(f'There are {len(target_indices_unlabeled)} predicted target examples, of which {target_indices_unlabeled_pos_count} are actually target')
+        target_indices_unlabeled_tar_count = sum(train.y[target_indices_unlabeled])
+        print(f'There are {len(target_indices_unlabeled)} predicted target examples, of which {target_indices_unlabeled_tar_count} are actually target')
 
         # Describe predicted other
-        other_indices_unlabeled_pos_count = sum(train.y[other_indices_unlabeled])
-        print(f'There are {len(other_indices_unlabeled)} predicted non-target examples, of which {other_indices_unlabeled_pos_count} are actually target')
+        other_indices_unlabeled_tar_count = sum(train.y[other_indices_unlabeled])
+        print(f'There are {len(other_indices_unlabeled)} predicted non-target examples, of which {other_indices_unlabeled_tar_count} are actually target')
 
         # Create balanced pool
         half_pool_size = min(len(target_indices_unlabeled), len(other_indices_unlabeled))
@@ -175,19 +194,19 @@ class NIHDAL_2(DiscriminativeActiveLearning_amended):
         )
 
         # Describe selected indices
-        ## From pred pos
-        pred_pos_selected = [i for i in selected_indices if i in target_pool]
-        pred_pos_actual_pos = sum(train.y[pred_pos_selected])
-        print(f'Predicted positives: Selected {len(pred_pos_selected)} samples, with {pred_pos_actual_pos} target class')
+        ## From pred target
+        pred_tar_selected = [i for i in selected_indices if i in target_pool]
+        pred_tar_actual_tar = sum(train.y[pred_tar_selected])
+        print(f'Predicted target: Selected {len(pred_tar_selected)} samples, with {pred_tar_actual_tar} target class')
 
-        ## From pred neg
-        pred_neg_selected = [i for i in selected_indices if i in other_pool]
-        pred_neg_actual_pos = sum(train.y[pred_neg_selected])
-        print(f'Predicted negatives: Selected {len(pred_neg_selected)} samples, with {pred_neg_actual_pos} target class')
+        ## From pred other
+        pred_oth_selected = [i for i in selected_indices if i in other_pool]
+        pred_oth_actual_tar = sum(train.y[pred_oth_selected])
+        print(f'Predicted non-target: Selected {len(pred_oth_selected)} samples, with {pred_oth_actual_tar} target class')
 
-        ## Overall 
-        actual_pos = sum(train.y[selected_indices])
-        print(f'All: Selected {len(selected_indices)} samples, with {actual_pos} target class')
+        ## Overall
+        actual_tar = sum(train.y[selected_indices])
+        print(f'All: Selected {len(selected_indices)} samples, with {actual_tar} target class')
 
         return selected_indices
 
@@ -348,8 +367,8 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
     if active_learning_method == "DAL":
         query_strategy = DiscriminativeActiveLearning_amended(classifier_factory=clf_factory_2, num_iterations=10)
     elif active_learning_method == "NIHDAL":
-        # query_strategy = NIHDAL(classifier_factory=clf_factory_2, num_iterations=10)
-        query_strategy = NIHDAL_2(classifier_factory=clf_factory_2, num_iterations=10)
+        query_strategy = NIHDAL(classifier_factory=clf_factory_2, num_iterations=10)
+        # query_strategy = NIHDAL_2(classifier_factory=clf_factory_2, num_iterations=10)
     elif active_learning_method == "Random":
         query_strategy = small_text.query_strategies.strategies.RandomSampling()
     elif active_learning_method == "Least Confidence":
