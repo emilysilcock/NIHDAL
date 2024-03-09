@@ -160,9 +160,10 @@ class NIHDAL_2(DiscriminativeActiveLearning_amended):
         target_pool = np.random.choice(target_indices_unlabeled, half_pool_size, replace=False)
         other_pool = np.random.choice(other_indices_unlabeled, half_pool_size, replace=False)
 
-        balanced_indices_unlabeled = np.concatenate((target_pool, other_pool)).astype(int).shuffle()
+        balanced_indices_unlabeled = np.concatenate((target_pool, other_pool)).astype(int)
+        balanced_indices_unlabeled = np.random.shuffle(balanced_indices_unlabeled)
 
-        # Run DAL 
+        # Run DAL
         self._validate_query_input(balanced_indices_unlabeled, n)
 
         query_sizes = self._get_query_sizes(self.num_iterations, int(n))
@@ -430,6 +431,10 @@ if __name__ == '__main__':
             tokenization_model=transformer_model_name,
             target_labels=[0]
         )
+
+        print("******************************")
+        print(sum(train.y))
+        print("******************************")
 
         active_learner = set_up_active_learner(transformer_model_name, active_learning_method="NIHDAL")
 
