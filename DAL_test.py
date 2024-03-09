@@ -161,7 +161,6 @@ class NIHDAL_2(DiscriminativeActiveLearning_amended):
         other_pool = np.random.choice(other_indices_unlabeled, half_pool_size, replace=False)
 
         balanced_indices_unlabeled = np.concatenate((target_pool, other_pool)).astype(int)
-        balanced_indices_unlabeled = np.random.shuffle(balanced_indices_unlabeled)
 
         # Run DAL
         self._validate_query_input(balanced_indices_unlabeled, n)
