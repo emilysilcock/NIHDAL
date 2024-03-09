@@ -148,16 +148,14 @@ class NIHDAL_2(DiscriminativeActiveLearning_amended):
 
         # Describe predicted target
         target_indices_unlabeled_pos_count = sum([train.y[i] for i in target_indices_unlabeled])
-        actual_tar = round((target_indices_unlabeled_pos_count/len(target_indices_unlabeled))*100, 2)
-        print(f'There are {len(target_indices_unlabeled)} predicted target examples, of which {actual_tar} are actually target')
+        print(f'There are {len(target_indices_unlabeled)} predicted target examples, of which {target_indices_unlabeled_pos_count} are actually target')
 
         # Describe predicted other
         other_indices_unlabeled_pos_count = sum([train.y[i] for i in other_indices_unlabeled])
-        actual_tar = round((other_indices_unlabeled_pos_count/len(other_indices_unlabeled))*100, 2)
-        print(f'There are {len(other_indices_unlabeled)} predicted target examples, of which {actual_tar} are actually target')
+        print(f'There are {len(other_indices_unlabeled)} predicted non-target examples, of which {other_indices_unlabeled_pos_count} are actually target')
 
-        # Create balanced pool 
-        half_pool_size = max(len(target_indices_unlabeled), len(other_indices_unlabeled))
+        # Create balanced pool
+        half_pool_size = min(len(target_indices_unlabeled), len(other_indices_unlabeled))
 
         target_pool = np.random.choice(target_indices_unlabeled, half_pool_size, replace=False)
         other_pool = np.random.choice(other_indices_unlabeled, half_pool_size, replace=False)
@@ -176,8 +174,7 @@ class NIHDAL_2(DiscriminativeActiveLearning_amended):
             query_sizes
         )
 
-        # Describe selected indices 
-
+        # Describe selected indices
         ## From pred pos
         pred_pos_selected = [i for i in selected_indices if i in target_pool]
         pred_pos_actual_pos = sum(train.y[pred_pos_selected])
@@ -192,9 +189,7 @@ class NIHDAL_2(DiscriminativeActiveLearning_amended):
         actual_pos = sum(train.y[selected_indices])
         print(f'All: Selected {len(selected_indices)} samples, with {actual_pos} target class')
 
-
         return selected_indices
-
 
 
 def make_binary(dataset, target_labels):
