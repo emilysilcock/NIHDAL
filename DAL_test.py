@@ -294,12 +294,6 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0])
     raw_dataset['train'] = make_imbalanced(raw_dataset['train'])
     raw_dataset['test'] = make_imbalanced(raw_dataset['test'])
 
-    print("******************************")
-    print(len(raw_dataset['train']['label']))
-    print(sum(raw_dataset['train']['label']))
-    raise ValueError
-    print("******************************")
-
     # Tokenize data
     tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
 
@@ -437,6 +431,9 @@ if __name__ == '__main__':
             tokenization_model=transformer_model_name,
             target_labels=[0]
         )
+
+        print(train)
+        raise ValueError
 
         active_learner = set_up_active_learner(transformer_model_name, active_learning_method="NIHDAL")
 
