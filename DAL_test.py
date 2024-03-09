@@ -147,11 +147,11 @@ class NIHDAL_2(DiscriminativeActiveLearning_amended):
         other_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 0])
 
         # Describe predicted target
-        target_indices_unlabeled_pos_count = sum([train.y[i] for i in target_indices_unlabeled])
+        target_indices_unlabeled_pos_count = sum(train.y[target_indices_unlabeled])
         print(f'There are {len(target_indices_unlabeled)} predicted target examples, of which {target_indices_unlabeled_pos_count} are actually target')
 
         # Describe predicted other
-        other_indices_unlabeled_pos_count = sum([train.y[i] for i in other_indices_unlabeled])
+        other_indices_unlabeled_pos_count = sum(train.y[other_indices_unlabeled])
         print(f'There are {len(other_indices_unlabeled)} predicted non-target examples, of which {other_indices_unlabeled_pos_count} are actually target')
 
         # Create balanced pool
