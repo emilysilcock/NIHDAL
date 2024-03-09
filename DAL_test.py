@@ -213,6 +213,11 @@ def make_binary(dataset, target_labels):
         })
     binary_dataset = binary_dataset.cast(new_features)
 
+    print("******************************")
+    print(binary_dataset)
+    raise ValueError
+    print("******************************")
+
     return binary_dataset
 
 
@@ -290,11 +295,11 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0])
     raw_dataset['train'] = make_binary(raw_dataset['train'], target_labels)
     raw_dataset['test'] = make_binary(raw_dataset['test'], target_labels)
 
-    # Make target class 1% of the daya
+    # Make target class 1% of the data
     raw_dataset['train'] = make_imbalanced(raw_dataset['train'])
     raw_dataset['test'] = make_imbalanced(raw_dataset['test'])
 
-    # Tokenize data 
+    # Tokenize data
     tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
 
     num_classes = raw_dataset['train'].features['label'].num_classes
@@ -310,7 +315,7 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0])
                                           tokenizer,
                                           max_length=100,
                                           target_labels=lab_array)
-    
+
     return train, test
 
 
@@ -431,10 +436,6 @@ if __name__ == '__main__':
             tokenization_model=transformer_model_name,
             target_labels=[0]
         )
-
-        print("******************************")
-        print(sum(train.y))
-        print("******************************")
 
         active_learner = set_up_active_learner(transformer_model_name, active_learning_method="NIHDAL")
 
