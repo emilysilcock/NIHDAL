@@ -234,12 +234,6 @@ def make_imbalanced(dataset, indices_to_track=None):
     # Concat back together
     imbalanced_dataset = datasets.concatenate_datasets([target_samples_to_keep, other_samples])
 
-    print("******************************")
-    print(len(imbalanced_dataset['label']))
-    print(sum(imbalanced_dataset['label']))
-    raise ValueError
-    print("******************************")
-
     if indices_to_track:
 
         target_list = [i for i in target_samples_to_keep]
@@ -299,6 +293,12 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0])
     # Make target class 1% of the data
     raw_dataset['train'] = make_imbalanced(raw_dataset['train'])
     raw_dataset['test'] = make_imbalanced(raw_dataset['test'])
+
+    print("******************************")
+    print(len(raw_dataset['train']['label']))
+    print(sum(raw_dataset['train']['label']))
+    raise ValueError
+    print("******************************")
 
     # Tokenize data
     tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
