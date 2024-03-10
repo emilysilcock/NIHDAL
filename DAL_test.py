@@ -289,7 +289,46 @@ def evaluate(active_learner, train, test):
     return r
 
 
-def initialize_active_learner(active_learner, y_train):
+def random_initialization_biased(y, n_samples=10, non_sample=None):
+    """Randomly draws half class 1, in a biased way, and half class 0. 
+
+    Parameters
+    ----------
+    y : np.ndarray[int] or csr_matrix
+        Labels to be used for stratification.
+    n_samples :  int
+        Number of samples to draw.
+
+    Returns
+    -------
+    indices : np.ndarray[int]
+        Indices relative to y.
+    """
+
+    expected_samples_per_class = np.floor(n_samples/2).astype(int)
+
+    # Targets labels - don't sample from non_sample
+    all_indices = [i for i, lab in enumerate(y) if lab == 1 and i not in non_sample]
+    target_sample = random.sample(all_indices, expected_samples_per_class)
+
+    # Non-target labels
+    all_indices = [i for i, lab in enumerate(y) if lab == 0]
+    other_sample = random.sample(all_indices, expected_samples_per_class)
+
+    return np.array(target_sample + other_sample)
+
+
+def initialize_active_learner_biased(active_learner, y_train, biased_indices):
+
+    # simulates an initial labeling to warm-start the active learning process
+
+    indices_initial = random_initialization_biased(y_train, n_samples=100, non_sample=biased_indices)
+    active_learner.initialize_data(indices_initial, y_train[indices_initial])
+
+    return indices_initial
+
+
+def initialize_active_learner_balanced(active_learner, y_train):
 
     # simulates an initial labeling to warm-start the active learning process
 
@@ -299,17 +338,24 @@ def initialize_active_learner(active_learner, y_train):
     return indices_initial
 
 
-def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0]):
+def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0], biased=False):
 
     # Load data
     raw_dataset = datasets.load_dataset(dataset_name)
+
+    if biased:
+        unsampled_train_indices = [i for i, lab in enumerate(raw_dataset['train']['label']) if lab == target_labels[1]]
 
     # Reduce to two classes
     raw_dataset['train'] = make_binary(raw_dataset['train'], target_labels)
     raw_dataset['test'] = make_binary(raw_dataset['test'], target_labels)
 
     # Make target class 1% of the data
-    raw_dataset['train'] = make_imbalanced(raw_dataset['train'])
+    if biased:
+        raw_dataset['train'], bias_indices = make_imbalanced(raw_dataset['train'], indices_to_track=unsampled_train_indices)
+    else:
+        raw_dataset['train'] = make_imbalanced(raw_dataset['train'])
+
     raw_dataset['test'] = make_imbalanced(raw_dataset['test'])
 
     # Tokenize data
@@ -318,18 +364,22 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0])
     num_classes = raw_dataset['train'].features['label'].num_classes
     lab_array = np.arange(num_classes)
 
-    train = TransformersDataset.from_arrays(raw_dataset['train']['text'],
+    train_dat = TransformersDataset.from_arrays(raw_dataset['train']['text'],
                                             raw_dataset['train']['label'],
                                             tokenizer,
                                             max_length=100,
                                             target_labels=lab_array)
-    test = TransformersDataset.from_arrays(raw_dataset['test']['text'],
+    test_dat = TransformersDataset.from_arrays(raw_dataset['test']['text'],
                                           raw_dataset['test']['label'],
                                           tokenizer,
                                           max_length=100,
                                           target_labels=lab_array)
 
-    return train, test
+    if biased:
+        return train_dat, test_dat, bias_indices
+
+    else:
+        return train_dat, test_dat
 
 
 def set_up_active_learner(transformer_model_name, active_learning_method):
@@ -399,12 +449,19 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
     return a_learner
 
 
-def active_learning_loop(active_learner, train, test, num_queries):
+def active_learning_loop(active_learner, train, test, num_queries, bias):
 
-    # Initialise with first sample 
-    indices_labeled = initialize_active_learner(active_learner, train.y)
+    # Initialise with first sample
+    if bias:
+        indices_labeled = initialize_active_learner_biased(active_learner, train.y, bias)
+    else:
+        indices_labeled = initialize_active_learner_balanced(active_learner, train.y)
 
     print(f'Initial sample contains {sum(train.y[indices_labeled])} target class')
+    if bias:
+        in_bias = [i for i in indices_labeled if i in bias]
+        print(f'Initial sample contains {len(in_bias)} from non-seeded target class')
+
 
     results = []
     results.append(evaluate(active_learner, train[indices_labeled], test))
@@ -434,33 +491,42 @@ if __name__ == '__main__':
     datasets.logging.set_verbosity_error()
     datasets.logging.get_verbosity = lambda: logging.NOTSET
 
-    for als in ['NIHDAL_simon', 'NIHDAL']:
+    biased = True
+    transformer_model_name = 'distilroberta-base'
+
+    for als in ['NIHDAL', 'NIHDAL_simon']:
 
         # Set seed
-        for seed in [12731, 65372]:
+        for seed in [42, 12731, 65372]:
             torch.manual_seed(seed)
             np.random.seed(seed)
 
-            # transformer_model_name = 'bert-base-uncased'
-            transformer_model_name = 'distilroberta-base'
-
             # Load data
-            train, test = load_and_format_dataset(
-                dataset_name='ag_news',
-                tokenization_model=transformer_model_name,
-                target_labels=[0]
-            )
+            if biased:
+                train, test, bias_indices = load_and_format_dataset(
+                    dataset_name='ag_news',
+                    tokenization_model=transformer_model_name,
+                    target_labels=[0, 2],
+                    biased=True
+                )
+
+            else:
+                train, test = load_and_format_dataset(
+                    dataset_name='ag_news',
+                    tokenization_model=transformer_model_name,
+                    target_labels=[0]
+                )
+                bias_indices = None
 
             active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als)
             
-            results = active_learning_loop(active_learner, train, test, num_queries=10)
+            results = active_learning_loop(active_learner, train, test, num_queries=10, bias=bias_indices)
 
             with open(f'{als}_results_{seed}.json', 'w') as f:
                 json.dump(results, f, indent=4)
 
         # Todo:
-        # - Minibatch size
-        # - biased initial seed
-        # - Unlabelled factor
         # - Early stopping
         # - Add counts of target and non-target to results
+        # - Minibatch size
+        # - Unlabelled factor
