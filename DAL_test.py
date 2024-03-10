@@ -68,6 +68,8 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
 
         target_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 1])
         other_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 0])
+        if biased: 
+            print("YES I FOUND THIS")
 
         target_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 1])
         other_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 0])
@@ -521,7 +523,7 @@ if __name__ == '__main__':
                 bias_indices = None
 
             active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als)
-            
+
             results = active_learning_loop(active_learner, train, test, num_queries=10, bias=bias_indices)
 
             with open(f'{als}_results_{seed}.json', 'w') as f:
