@@ -1,6 +1,7 @@
 import logging
 import json
 
+import random
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 import datasets
 import numpy as np
@@ -500,6 +501,7 @@ if __name__ == '__main__':
         for seed in [42, 12731, 65372]:
             torch.manual_seed(seed)
             np.random.seed(seed)
+            random.seed(seed)
 
             # Load data
             if biased:
