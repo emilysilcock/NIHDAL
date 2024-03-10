@@ -368,7 +368,8 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
         query_strategy = DiscriminativeActiveLearning_amended(classifier_factory=clf_factory_2, num_iterations=10)
     elif active_learning_method == "NIHDAL":
         query_strategy = NIHDAL(classifier_factory=clf_factory_2, num_iterations=10)
-        # query_strategy = NIHDAL_2(classifier_factory=clf_factory_2, num_iterations=10)
+    elif active_learning_method == "NIHDAL_simon":
+        query_strategy = NIHDAL_2(classifier_factory=clf_factory_2, num_iterations=10)
     elif active_learning_method == "Random":
         query_strategy = small_text.query_strategies.strategies.RandomSampling()
     elif active_learning_method == "Least Confidence":
@@ -431,32 +432,35 @@ def active_learning_loop(active_learner, train, test, num_queries):
 if __name__ == '__main__':
 
     datasets.logging.set_verbosity_error()
-
-    # disables the progress bar for notebooks: https://github.com/huggingface/datasets/issues/2651
     datasets.logging.get_verbosity = lambda: logging.NOTSET
 
-    # Set seed
-    for seed in [42, 12731, 65372]:
-        torch.manual_seed(seed)
-        np.random.seed(seed)
+    for als in ['NIHDAL_simon', 'NIHDAL']:
 
-        # transformer_model_name = 'bert-base-uncased'
-        transformer_model_name = 'distilroberta-base'
+        # Set seed
+        for seed in [12731, 65372]:
+            torch.manual_seed(seed)
+            np.random.seed(seed)
 
-        # Load data
-        train, test = load_and_format_dataset(
-            dataset_name='ag_news',
-            tokenization_model=transformer_model_name,
-            target_labels=[0]
-        )
+            # transformer_model_name = 'bert-base-uncased'
+            transformer_model_name = 'distilroberta-base'
 
-        active_learner = set_up_active_learner(transformer_model_name, active_learning_method="NIHDAL")
+            # Load data
+            train, test = load_and_format_dataset(
+                dataset_name='ag_news',
+                tokenization_model=transformer_model_name,
+                target_labels=[0]
+            )
 
-        results = active_learning_loop(active_learner, train, test, num_queries=10)
+            active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als)
+            
+            results = active_learning_loop(active_learner, train, test, num_queries=10)
 
-    # Todo:
-    # - Minibatch size
-    # - biased initial seed
-    # - Unlabelled factor
-    # - Early stopping
-    # - Add counts of target and non-target to results
+            with open(f'{als}_results_{seed}.json', 'w') as f:
+                json.dump(results, f, indent=4)
+
+        # Todo:
+        # - Minibatch size
+        # - biased initial seed
+        # - Unlabelled factor
+        # - Early stopping
+        # - Add counts of target and non-target to results
