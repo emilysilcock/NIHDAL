@@ -539,10 +539,10 @@ if __name__ == '__main__':
     biased = True
     transformer_model_name = 'distilroberta-base'
 
-    for als in ['NIHDAL_simon', 'NIHDAL']:
+    for als in ['Least Confidence', 'NIHDAL_simon', 'NIHDAL']:
 
         # Set seed
-        for seed in [42, 12731, 65372]:
+        for seed in [42]:  #, 12731, 65372
             torch.manual_seed(seed)
             np.random.seed(seed)
             random.seed(seed)
@@ -568,8 +568,13 @@ if __name__ == '__main__':
 
             results = active_learning_loop(active_learner, train, test, num_queries=10, bias=bias_indices)
 
-            with open(f'{als}_results_{seed}.json', 'w') as f:
-                json.dump(results, f, indent=4)
+            if biased:
+                with open(f'{als}_results_{seed}_biased_new.json', 'w') as f:
+                    json.dump(results, f, indent=4)
+            
+            else:
+                with open(f'{als}_results_{seed}_new.json', 'w') as f:
+                    json.dump(results, f, indent=4)
 
         # Todo:
         # - Add counts of target and non-target to results
