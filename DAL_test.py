@@ -470,26 +470,26 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
     else:
         raise ValueError(f"Active Learning method {active_learning_method} is unknown")
 
-    if "DAL" in active_learning_method:
+    # if "DAL" in active_learning_method:
 
-        ## DAL paper they find that early stopping is important and they use 0.98 on accuracy
-        early_stopping = small_text.training.early_stopping.EarlyStopping(small_text.training.metrics.Metric('train_acc', lower_is_better=False), threshold=0.90)
+    #     ## DAL paper they find that early stopping is important and they use 0.98 on accuracy
+    #     early_stopping = small_text.training.early_stopping.EarlyStopping(small_text.training.metrics.Metric('train_acc', lower_is_better=False), threshold=0.90)
 
-        a_learner = PoolBasedActiveLearner(
-            clf_factory,
-            query_strategy,
-            train,
-            reuse_model=False, # Reuses the previous model during retraining (if a previous model exists), otherwise creates a new model for each retraining
-            fit_kwargs={'early_stopping': early_stopping}
-        )
+    #     a_learner = PoolBasedActiveLearner(
+    #         clf_factory,
+    #         query_strategy,
+    #         train,
+    #         reuse_model=False, # Reuses the previous model during retraining (if a previous model exists), otherwise creates a new model for each retraining
+    #         fit_kwargs={'early_stopping': early_stopping}
+    #     )
 
-    else:
-        a_learner = PoolBasedActiveLearner(
-            clf_factory,
-            query_strategy,
-            train,
-            reuse_model=False, # Reuses the previous model during retraining (if a previous model exists), otherwise creates a new model for each retraining
-        )
+    # else:
+    a_learner = PoolBasedActiveLearner(
+        clf_factory,
+        query_strategy,
+        train,
+        reuse_model=False, # Reuses the previous model during retraining (if a previous model exists), otherwise creates a new model for each retraining
+    )
 
     return a_learner
 
