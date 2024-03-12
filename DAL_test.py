@@ -473,7 +473,7 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
     if "DAL" in active_learning_method:
 
         ## DAL paper they find that early stopping is important and they use 0.98 on accuracy
-        early_stopping = small_text.training.early_stopping.EarlyStopping(small_text.training.metrics.Metric('train_acc', lower_is_better=False), threshold=0.98)
+        early_stopping = small_text.training.early_stopping.EarlyStopping(small_text.training.metrics.Metric('train_acc', lower_is_better=False), threshold=0.90)
 
         a_learner = PoolBasedActiveLearner(
             clf_factory,
