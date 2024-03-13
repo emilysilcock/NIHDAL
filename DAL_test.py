@@ -571,8 +571,9 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
                 selected_descr['all']['non_seeded_target'] = len([i for i in indices_queried if i in bias])
 
         res['counts'] = selected_descr
+        print("************************")
         print(selected_descr)
-        # print(json.dumps(selected_descr, indent=2))
+        print("************************")
 
         results.append(res)
 
