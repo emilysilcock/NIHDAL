@@ -146,7 +146,7 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
         # Describe selected indices
         ## From pred target
 
-        global selected_descr
+        # global selected_descr
         selected_descr = {}
 
         pred_tar_actual_tar = sum(train.y[target_indices])
@@ -232,7 +232,7 @@ class NIHDAL_2(DiscriminativeActiveLearning_amended):
         )
 
         # Describe selected indices
-        global selected_descr
+        # global selected_descr
         selected_descr = {}
 
         ## From pred target
@@ -595,7 +595,8 @@ if __name__ == '__main__':
             np.random.seed(seed)
             random.seed(seed)
 
-            selected_descr = None
+            global selected_descr
+            selected_descr = None 
 
             # Load data
             if biased:
