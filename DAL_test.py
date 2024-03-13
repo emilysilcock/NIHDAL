@@ -585,48 +585,48 @@ if __name__ == '__main__':
     datasets.logging.set_verbosity_error()
     datasets.logging.get_verbosity = lambda: logging.NOTSET
 
-    biased = True
-    transformer_model_name = 'distilroberta-base'
+    for biased in [False, True]:
+        transformer_model_name = 'distilroberta-base'
 
-    for als in ['NIHDAL_simon', 'NIHDAL', 'Random']:
+        for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", 'NIHDAL', 'NIHDAL_simon']:
 
-        # Set seed
-        for seed in [12731, 65372]:  #42
-            torch.manual_seed(seed)
-            np.random.seed(seed)
-            random.seed(seed)
+            # Set seed
+            for seed in [42, 12731, 65372, 97, 163]: 
+                torch.manual_seed(seed)
+                np.random.seed(seed)
+                random.seed(seed)
 
-            selected_descr = None
+                selected_descr = None
 
-            # Load data
-            if biased:
-                train, test, bias_indices = load_and_format_dataset(
-                    dataset_name='ag_news',
-                    tokenization_model=transformer_model_name,
-                    target_labels=[0, 2],
-                    biased=True
-                )
+                # Load data
+                if biased:
+                    train, test, bias_indices = load_and_format_dataset(
+                        dataset_name='ag_news',
+                        tokenization_model=transformer_model_name,
+                        target_labels=[0, 2],
+                        biased=True
+                    )
 
-            else:
-                train, test = load_and_format_dataset(
-                    dataset_name='ag_news',
-                    tokenization_model=transformer_model_name,
-                    target_labels=[0]
-                )
-                bias_indices = None
+                else:
+                    train, test = load_and_format_dataset(
+                        dataset_name='ag_news',
+                        tokenization_model=transformer_model_name,
+                        target_labels=[0]
+                    )
+                    bias_indices = None
 
-            active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als)
+                active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als)
 
-            results = active_learning_loop(active_learner, train, test, num_queries=10, bias=bias_indices, selected_descr=selected_descr)
+                results = active_learning_loop(active_learner, train, test, num_queries=10, bias=bias_indices, selected_descr=selected_descr)
 
-            if biased:
-                with open(f'{als}_results_{seed}_biased_new.json', 'w') as f:
-                    json.dump(results, f, indent=4)
-            
-            else:
-                with open(f'{als}_results_{seed}_new.json', 'w') as f:
-                    json.dump(results, f, indent=4)
+                if biased:
+                    with open(f'results/{als}_results_{seed}_biased_new.json', 'w') as f:
+                        json.dump(results, f, indent=4)
+                
+                else:
+                    with open(f'results/{als}_results_{seed}_new.json', 'w') as f:
+                        json.dump(results, f, indent=4)
 
-        # Todo:
-        # - Minibatch size
-        # - Unlabelled factor
+            # Todo:
+            # - Minibatch size
+            # - Unlabelled factor
