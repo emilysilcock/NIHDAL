@@ -554,7 +554,7 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
         active_learner.update(y)
 
         indices_labeled = np.concatenate([indices_queried, indices_labeled])
-        
+
         print('---------------')
         print(f'Iteration #{i} ({len(indices_labeled)} samples)')
         res = evaluate(active_learner, train[indices_labeled], test)
@@ -571,7 +571,8 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
                 selected_descr['all']['non_seeded_target'] = len([i for i in indices_queried if i in bias])
 
         res['counts'] = selected_descr
-        print(json.dumps(selected_descr, indent=2))
+        print(selected_descr)
+        # print(json.dumps(selected_descr, indent=2))
 
         results.append(res)
 
