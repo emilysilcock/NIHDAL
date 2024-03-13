@@ -588,8 +588,8 @@ if __name__ == '__main__':
     biased = True
     transformer_model_name = 'distilroberta-base'
 
-    for als in ['NIHDAL_simon', 'NIHDAL']:
-    # for als in ['Random']:
+    # for als in ['NIHDAL_simon', 'NIHDAL']:
+    for als in ['Random']:
 
         # Set seed
         for seed in [12731, 65372]:  #42
