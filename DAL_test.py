@@ -563,7 +563,7 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
             selected_descr = {
                 'all': {
                     'selected': len(indices_queried),
-                    'target': sum(y)
+                    'target': int(sum(y))
                 }
             }
 
@@ -572,7 +572,7 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
 
         res['counts'] = selected_descr
         print("************************")
-        print(selected_descr)
+        print(json.dumps(selected_descr, indent=2))
         print("************************")
 
         results.append(res)
@@ -588,8 +588,8 @@ if __name__ == '__main__':
     biased = True
     transformer_model_name = 'distilroberta-base'
 
-    # for als in ['NIHDAL_simon', 'NIHDAL']:
-    for als in ['Random']:
+    for als in ['NIHDAL_simon', 'NIHDAL']:
+    # for als in ['Random']:
 
         # Set seed
         for seed in [12731, 65372]:  #42
