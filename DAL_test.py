@@ -146,7 +146,7 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
         # Describe selected indices
         ## From pred target
 
-        # global selected_descr
+        global selected_descr
         selected_descr = {}
 
         pred_tar_actual_tar = sum(train.y[target_indices])
@@ -232,7 +232,7 @@ class NIHDAL_2(DiscriminativeActiveLearning_amended):
         )
 
         # Describe selected indices
-        # global selected_descr
+        global selected_descr
         selected_descr = {}
 
         ## From pred target
@@ -525,7 +525,7 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
     return a_learner
 
 
-def active_learning_loop(active_learner, train, test, num_queries, bias):
+def active_learning_loop(active_learner, train, test, num_queries, bias, selected_descr):
 
     # Initialise with first sample
     if bias:
@@ -595,8 +595,7 @@ if __name__ == '__main__':
             np.random.seed(seed)
             random.seed(seed)
 
-            global selected_descr
-            selected_descr = None 
+            selected_descr = None
 
             # Load data
             if biased:
@@ -617,7 +616,7 @@ if __name__ == '__main__':
 
             active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als)
 
-            results = active_learning_loop(active_learner, train, test, num_queries=10, bias=bias_indices)
+            results = active_learning_loop(active_learner, train, test, num_queries=10, bias=bias_indices, selected_descr=selected_descr)
 
             if biased:
                 with open(f'{als}_results_{seed}_biased_new.json', 'w') as f:
