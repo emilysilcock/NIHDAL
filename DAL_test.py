@@ -595,6 +595,8 @@ if __name__ == '__main__':
             np.random.seed(seed)
             random.seed(seed)
 
+            selected_descr = None
+
             # Load data
             if biased:
                 train, test, bias_indices = load_and_format_dataset(
@@ -623,8 +625,6 @@ if __name__ == '__main__':
             else:
                 with open(f'{als}_results_{seed}_new.json', 'w') as f:
                     json.dump(results, f, indent=4)
-
-            selected_descr = None
 
         # Todo:
         # - Minibatch size
