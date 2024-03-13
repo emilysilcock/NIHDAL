@@ -1,5 +1,6 @@
 import logging
 import json
+import time 
 
 import random
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
@@ -581,6 +582,8 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
 
 
 if __name__ == '__main__':
+
+    time.sleep(21600)
 
     datasets.logging.set_verbosity_error()
     datasets.logging.get_verbosity = lambda: logging.NOTSET
