@@ -589,10 +589,11 @@ if __name__ == '__main__':
     for biased in [False, True]:
         transformer_model_name = 'distilroberta-base'
 
-        for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", 'NIHDAL', 'NIHDAL_simon']:
+        # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", 'NIHDAL', 'NIHDAL_simon']:
+        for als in ['NIHDAL']:
 
             # Set seed
-            for seed in [42, 12731, 65372, 97, 163]: 
+            for seed in [42, 12731, 65372, 97, 163]:
                 torch.manual_seed(seed)
                 np.random.seed(seed)
                 random.seed(seed)
