@@ -590,7 +590,7 @@ if __name__ == '__main__':
         transformer_model_name = 'distilroberta-base'
 
         # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", 'NIHDAL', 'NIHDAL_simon']:
-        for als in ['NIHDAL']:
+        for als in ['NIHDAL_simon']:
 
             print(f'****************{als}**********************')
 
