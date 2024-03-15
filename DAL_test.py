@@ -583,8 +583,6 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
 
 if __name__ == '__main__':
 
-    time.sleep(21600)
-
     datasets.logging.set_verbosity_error()
     datasets.logging.get_verbosity = lambda: logging.NOTSET
 
