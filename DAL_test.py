@@ -492,7 +492,7 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
     elif active_learning_method == "BALD":
        query_strategy = small_text.query_strategies.bayesian.BALD()
     elif active_learning_method == "EGL":
-        query_strategy = small_text.integrations.pytorch.query_strategies.strategies.ExpectedGradientLength(num_classes=2, device='cuda')
+        query_strategy = small_text.ExpectedGradientLength(num_classes=2, device='cuda')
     elif active_learning_method == "BADGE":
         query_strategy = small_text.integrations.pytorch.query_strategies.strategies.BADGE(num_classes=2)
     elif active_learning_method == "Core Set":
