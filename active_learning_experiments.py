@@ -14,6 +14,7 @@ from small_text import (
     PoolBasedActiveLearner,
     TransformerBasedClassificationFactory,
     TransformerModelArguments,
+    DiscriminativeActiveLearning,
     random_initialization_balanced
 )
 
