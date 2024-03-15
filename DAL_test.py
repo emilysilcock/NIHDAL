@@ -586,14 +586,18 @@ if __name__ == '__main__':
     datasets.logging.set_verbosity_error()
     datasets.logging.get_verbosity = lambda: logging.NOTSET
 
-    for biased in [False, True]:
+    for biased in [True, False]:
         transformer_model_name = 'distilroberta-base'
 
         # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", 'NIHDAL', 'NIHDAL_simon']:
         for als in ['NIHDAL']:
 
+            print(f'****************{als}**********************')
+
             # Set seed
             for seed in [42, 12731, 65372, 97, 163]:
+
+                print(f'#################{seed}##################')
                 torch.manual_seed(seed)
                 np.random.seed(seed)
                 random.seed(seed)
