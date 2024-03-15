@@ -345,8 +345,6 @@ def evaluate(active_learner, train, test):
         'Test recall': recall_score(y_pred_test, test.y)
     }
 
-    print(json.dumps(r, indent=4))
-
     return r
 
 
