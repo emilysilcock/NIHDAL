@@ -491,7 +491,7 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
         query_strategy = small_text.PredictionEntropy()
     elif active_learning_method == "BALD":
        query_strategy = small_text.query_strategies.bayesian.BALD()
-    elif active_learning_method == "Expected Gradient Length":
+    elif active_learning_method == "EGL":
         query_strategy = small_text.integrations.pytorch.query_strategies.strategies.ExpectedGradientLength(num_classes=2, device='cuda')
     elif active_learning_method == "BADGE":
         query_strategy = small_text.integrations.pytorch.query_strategies.strategies.BADGE(num_classes=2)
@@ -590,7 +590,7 @@ if __name__ == '__main__':
         transformer_model_name = 'distilroberta-base'
 
         # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", 'NIHDAL', 'NIHDAL_simon']:
-        for als in ['NIHDAL_simon']:
+        for als in ['EGL']:
 
             print(f'****************{als}**********************')
 
