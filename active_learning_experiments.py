@@ -1,6 +1,5 @@
 import logging
 import json
-import time 
 
 import random
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
@@ -13,8 +12,6 @@ import small_text
 from small_text import (
     TransformersDataset,
     PoolBasedActiveLearner,
-    PredictionEntropy,
-    DiscriminativeActiveLearning,
     TransformerBasedClassificationFactory,
     TransformerModelArguments,
     random_initialization_balanced
