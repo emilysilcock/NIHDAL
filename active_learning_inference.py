@@ -303,12 +303,6 @@ publications = [
     'Liverpool Echo',
 ]
 
-# 'The_Sunday_Telegraph_(London)',
-# 'The_Observer_(London)',
-# 'i_-_Independent_Print_Ltd',
-# 'The_Independent_(United_Kingdom)',
-# 'Liverpool_Echo',
-
 # Open all data
 sample_list = []
 
