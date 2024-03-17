@@ -398,10 +398,6 @@ def initialize_active_learner_balanced(active_learner, y_train):
     # simulates an initial labeling to warm-start the active learning process
 
     indices_initial = random_initialization_balanced(y_train, n_samples=100)
-    print(type(indices_initial))
-    print(len(indices_initial))
-    print(type(y_train[indices_initial]))
-    print(len(y_train[indices_initial]))
     active_learner.initialize_data(indices_initial, y_train[indices_initial])
 
     return indices_initial
@@ -578,9 +574,6 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
                 selected_descr['all']['non_seeded_target'] = len([i for i in indices_queried if i in bias])
 
         res['counts'] = selected_descr
-        print("************************")
-        print(json.dumps(selected_descr, indent=2))
-        print("************************")
 
         results.append(res)
 
