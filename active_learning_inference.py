@@ -60,13 +60,13 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
 
         # Predict target or other for unlabelled
         # preds = last_stable_model.predict(train)
-        preds = active_learner.classifier.predict(pool)
+        preds = active_learner.classifier.predict(train)
 
         target_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 1])
         other_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 0])
 
-        target_indices_labeled = np.array([i for i in indices_labeled if pool.y[i] == 1])
-        other_indices_labeled = np.array([i for i in indices_labeled if pool.y[i] == 0])
+        target_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 1])
+        other_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 0])
 
         # Describe
         print(f'There are {len(target_indices_unlabeled)} predicted target examples')
@@ -142,7 +142,7 @@ class NIHDAL_2(DiscriminativeActiveLearning_amended):
     def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
 
         # Predict target or other for unlabelled data
-        preds = active_learner.classifier.predict(pool)
+        preds = active_learner.classifier.predict(train)
 
         target_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 1])
         other_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 0])
@@ -188,7 +188,7 @@ def find_sep_token(tokenizer):
     return sep
 
 
-def set_up_active_learner(transformer_model_name, active_learning_method, pool):
+def set_up_active_learner(transformer_model_name, active_learning_method):
 
     # Set up active learner
     num_classes = 2
@@ -262,7 +262,7 @@ def set_up_active_learner(transformer_model_name, active_learning_method, pool):
     a_learner = PoolBasedActiveLearner(
         clf_factory,
         query_strategy,
-        pool,
+        train,
         reuse_model=False, # Reuses the previous model during retraining (if a previous model exists), otherwise creates a new model for each retraining
     )
 
@@ -371,7 +371,7 @@ unlabels = [small_text.base.LABEL_UNLABELED for i in range(len(texts))]
 
 lab_array = np.arange(2)
 
-pool = TransformersDataset.from_arrays(
+train = TransformersDataset.from_arrays(
     texts,
     unlabels,
     tokenizer,
@@ -380,7 +380,7 @@ pool = TransformersDataset.from_arrays(
 )
 
 ## Active Learning
-active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als, pool=pool)
+active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als)
 
 print(type(currently_labelled))
 print(len(currently_labelled))
