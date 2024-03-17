@@ -339,6 +339,7 @@ for task in labelled_data:
 texts = []
 indices_labeled = []
 labels = []
+all_labels = []
 
 tokenizer = AutoTokenizer.from_pretrained(transformer_model_name)
 sep = find_sep_token(tokenizer)
@@ -353,8 +354,13 @@ for idx, article in tqdm(enumerate(sample_list)):
         lab = parsed_labelled_data[article['ln_id']]
         if lab == 'Irrelevant':
             labels.append(0)
+            all_labels.append(0)
         else:
             labels.append(1)
+            all_labels.append(1)
+    
+    else:
+        all_labels.append(small_text.base.LABEL_UNLABELED)
 
     # Create pool 
     text = str(article['headline']) + sep + str(article['article'])
@@ -367,13 +373,11 @@ assert len(labels) == len(parsed_labelled_data)
 indices_labeled = np.array(indices_labeled)
 labels = np.array(labels)
 
-unlabels = [small_text.base.LABEL_UNLABELED for i in range(len(texts))]
-
 lab_array = np.arange(2)
 
 train = TransformersDataset.from_arrays(
     texts,
-    unlabels,
+    all_labels,
     tokenizer,
     max_length=100,
     target_labels=lab_array
