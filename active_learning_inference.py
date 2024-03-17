@@ -58,15 +58,15 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
 
         self._validate_query_input(indices_unlabeled, n)
 
-        # Predict target or other for unlabelled data
+        # Predict target or other for unlabelled 
         # preds = last_stable_model.predict(train)
-        preds = active_learner.classifier.predict(train)
+        preds = active_learner.classifier.predict(pool)
 
         target_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 1])
         other_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 0])
 
-        target_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 1])
-        other_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 0])
+        target_indices_labeled = np.array([i for i in indices_labeled if pool.y[i] == 1])
+        other_indices_labeled = np.array([i for i in indices_labeled if pool.y[i] == 0])
 
         # # Describe predicted target
         # target_indices_unlabeled_tar_count = sum(train.y[target_indices_unlabeled])
