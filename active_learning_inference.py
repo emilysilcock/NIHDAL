@@ -433,7 +433,8 @@ texts = []
 currently_labelled = []
 labels = []
 
-sep = find_sep_token(transformer_model_name)
+tokenizer = AutoTokenizer.from_pretrained(transformer_model_name)
+sep = find_sep_token(tokenizer)
 
 for idx, article in enumerate(sample_list):
 
@@ -458,8 +459,6 @@ assert len(labels) == len(parsed_labelled_data)
 
 labels = [small_text.base.LABEL_UNLABELED for i in range(len(texts))]
 
-tokenizer = AutoTokenizer.from_pretrained(transformer_model_name)
-
 lab_array = np.arange(2)
 
 pool = TransformersDataset.from_arrays(
@@ -471,10 +470,9 @@ pool = TransformersDataset.from_arrays(
 )
 
 ## Active Learning
+active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als, pool=pool)
 
-active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als)
-
-active_learner.initialize_data(currently_labelled, labels, pool)
+active_learner.initialize_data(currently_labelled, labels)
 
 indices_queried = active_learner.query(num_samples=100)
 
