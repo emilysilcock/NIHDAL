@@ -72,24 +72,24 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
         other_indices_labeled = np.array([i for i in indices_labeled if train.y[i] == 0])
 
         # Describe predicted target
-        target_indices_unlabeled_tar_count = sum(train.y[target_indices_unlabeled])
-        print(f'There are {len(target_indices_unlabeled)} predicted target examples, of which {target_indices_unlabeled_tar_count} are actually target')
-        if biased:
-            try:
-                bias_indices_unlabeled_tar_count = len([i for i in bias_indices if i in target_indices_unlabeled])
-                print(f'of these {bias_indices_unlabeled_tar_count} are in the non-seeded target')
-            except:
-                pass
+        try:
+            target_indices_unlabeled_tar_count = sum(train.y[target_indices_unlabeled])
+            print(f'There are {len(target_indices_unlabeled)} predicted target examples, of which {target_indices_unlabeled_tar_count} are actually target')
+            if biased:
+                    bias_indices_unlabeled_tar_count = len([i for i in bias_indices if i in target_indices_unlabeled])
+                    print(f'of these {bias_indices_unlabeled_tar_count} are in the non-seeded target')
+        except:
+            pass
 
         # Describe predicted other
-        other_indices_unlabeled_tar_count = sum(train.y[other_indices_unlabeled])
-        print(f'There are {len(other_indices_unlabeled)} predicted non-target examples, of which {other_indices_unlabeled_tar_count} are actually target')
-        if biased:
-            try:
-                bias_indices_unlabeled_tar_count = len([i for i in bias_indices if i in other_indices_unlabeled])
-                print(f'of these {bias_indices_unlabeled_tar_count} are in the non-seeded target')
-            except:
-                pass
+        try:
+            other_indices_unlabeled_tar_count = sum(train.y[other_indices_unlabeled])
+            print(f'There are {len(other_indices_unlabeled)} predicted non-target examples, of which {other_indices_unlabeled_tar_count} are actually target')
+            if biased:
+                    bias_indices_unlabeled_tar_count = len([i for i in bias_indices if i in other_indices_unlabeled])
+                    print(f'of these {bias_indices_unlabeled_tar_count} are in the non-seeded target')
+        except:
+            pass
 
         # If there are not enough predicted targets
         if len(target_indices_unlabeled) < n/2:
