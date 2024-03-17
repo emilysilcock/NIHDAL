@@ -455,16 +455,17 @@ for idx, article in tqdm(enumerate(sample_list)):
 
 print(f"Pool size: {len(texts)}")
 print(f"of which {len(labels)} are labelled")
+print(texts[:5])
       
 assert len(labels) == len(parsed_labelled_data)
 
-labels = [small_text.base.LABEL_UNLABELED for i in range(len(texts))]
+unlabels = [small_text.base.LABEL_UNLABELED for i in range(len(texts))]
 
 lab_array = np.arange(2)
 
 pool = TransformersDataset.from_arrays(
     texts,
-    labels,
+    unlabels,
     tokenizer,
     max_length=100,
     target_labels=lab_array
