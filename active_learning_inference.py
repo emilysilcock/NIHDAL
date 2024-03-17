@@ -384,6 +384,8 @@ active_learner = set_up_active_learner(transformer_model_name, active_learning_m
 
 active_learner.initialize_data(indices_labeled, labels)
 
+print(train.y[indices_labeled])
+
 indices_queried = active_learner.query(num_samples=100)
 
 # Format for label studio
