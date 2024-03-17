@@ -455,9 +455,10 @@ for idx, article in tqdm(enumerate(sample_list)):
 
 print(f"Pool size: {len(texts)}")
 print(f"of which {len(labels)} are labelled")
-print(texts[:5])
       
 assert len(labels) == len(parsed_labelled_data)
+currently_labelled = np.array(currently_labelled)
+labels = np.array(labels)
 
 unlabels = [small_text.base.LABEL_UNLABELED for i in range(len(texts))]
 
