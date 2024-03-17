@@ -270,128 +270,135 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
 
 
 transformer_model_name = 'roberta-large'
-als = 'NIHDAL'
 
-publications = [
-    'The Sun (England)',
-    'thesun.co.uk',
-    'Daily Star',
-    'Daily Star Online',
-    'Daily Star Sunday',
-    'The Daily Mail and Mail on Sunday (London)',
-    'mirror.co.uk',
-    'Daily Mirror',
-    'The Express',
-    'The Sunday Express',
-    'The News of the World',
-    'The Evening Standard (London)',
-    'standard.co.uk',
-    'The People',
-    'Metro (UK)',
-    'City A.M.',
-    'Cityam.com',
-    'The Times (London)',
-    'The Sunday Times (London)',
-    'thetimes.co.uk',
-    'The Daily Telegraph (London)',
-    'The Daily Telegraph Online',
-    'The Sunday Telegraph (London)',
-    'The Guardian (London)',
-    'The Observer (London)',
-    'i - Independent Print Ltd',
-    'The Independent (United Kingdom)',
-    'Liverpool Post',
-    'liverpoolecho.co.uk',
-    'Liverpool Echo',
-]
+for als in ['NIHDAL_simon', 'NIHDAL']: 
 
-# Open all data
-sample_list = []
+    publications = [
+        'The Sun (England)',
+        'thesun.co.uk',
+        'Daily Star',
+        'Daily Star Online',
+        'Daily Star Sunday',
+        'The Daily Mail and Mail on Sunday (London)',
+        'mirror.co.uk',
+        'Daily Mirror',
+        'The Express',
+        'The Sunday Express',
+        'The News of the World',
+        'The Evening Standard (London)',
+        'standard.co.uk',
+        'The People',
+        'Metro (UK)',
+        'City A.M.',
+        'Cityam.com',
+        'The Times (London)',
+        'The Sunday Times (London)',
+        'thetimes.co.uk',
+        'The Daily Telegraph (London)',
+        'The Daily Telegraph Online',
+        'The Sunday Telegraph (London)',
+        'The Guardian (London)',
+        'The Observer (London)',
+        'i - Independent Print Ltd',
+        'The Independent (United Kingdom)',
+        'Liverpool Post',
+        'liverpoolecho.co.uk',
+        'Liverpool Echo',
+    ]
 
-for publication in tqdm(publications):
+    # Open all data
+    sample_list = []
 
-    publication_fn = publication.replace(' ', '_')
+    for publication in tqdm(publications):
 
-    with open(f"Sun_data/{publication_fn}/cleaned_sample_data.json") as f:
-        clean_dat = json.load(f)
+        publication_fn = publication.replace(' ', '_')
 
-    with open(f"Sun_data/sample_indices_{publication_fn}.json") as f:
-        sample = json.load(f)
+        with open(f"Sun_data/{publication_fn}/cleaned_sample_data.json") as f:
+            clean_dat = json.load(f)
 
-    # Take sample
-    for s in sample:
-        try:
-            sample_list.append(clean_dat[str(s)])
-        except:
-            pass
+        with open(f"Sun_data/sample_indices_{publication_fn}.json") as f:
+            sample = json.load(f)
 
-# Labelled data 
-with open('Labelled_data/harmonised_sample_1.json') as f:
-    labelled_data = json.load(f)
+        # Take sample
+        for s in sample:
+            try:
+                sample_list.append(clean_dat[str(s)])
+            except:
+                pass
 
-parsed_labelled_data = {}
+    # Labelled data 
+    with open('Labelled_data/harmonised_sample_1.json') as f:
+        labelled_data = json.load(f)
 
-for task in labelled_data:
-    lab = task['annotations'][0]['result'][0]['value']['choices'][0]
-    ln_id = task['data']['ln_id']
-    parsed_labelled_data[ln_id] = lab
+    parsed_labelled_data = {}
 
-texts = []
-indices_labeled = []
-labels = []
-all_labels = []
+    for task in labelled_data:
+        lab = task['annotations'][0]['result'][0]['value']['choices'][0]
+        ln_id = task['data']['ln_id']
+        parsed_labelled_data[ln_id] = lab
 
-tokenizer = AutoTokenizer.from_pretrained(transformer_model_name)
-sep = find_sep_token(tokenizer)
-print(f"Sep: {sep}")
+    texts = []
+    indices_labeled = []
+    labels = []
+    all_labels = []
 
-for idx, article in tqdm(enumerate(sample_list)):
+    tokenizer = AutoTokenizer.from_pretrained(transformer_model_name)
+    sep = find_sep_token(tokenizer)
+    print(f"Sep: {sep}")
 
-    # Check and add to labels
-    if article['ln_id'] in parsed_labelled_data:
-        indices_labeled.append(idx)
+    for idx, article in tqdm(enumerate(sample_list)):
 
-        lab = parsed_labelled_data[article['ln_id']]
-        if lab == 'Irrelevant':
-            labels.append(0)
-            all_labels.append(0)
+        # Check and add to labels
+        if article['ln_id'] in parsed_labelled_data:
+            indices_labeled.append(idx)
+
+            lab = parsed_labelled_data[article['ln_id']]
+            if lab == 'Irrelevant':
+                labels.append(0)
+                all_labels.append(0)
+            else:
+                labels.append(1)
+                all_labels.append(1)
+        
         else:
-            labels.append(1)
-            all_labels.append(1)
-    
-    else:
-        all_labels.append(small_text.base.LABEL_UNLABELED)
+            all_labels.append(small_text.base.LABEL_UNLABELED)
 
-    # Create pool 
-    text = str(article['headline']) + sep + str(article['article'])
-    texts.append(text)
+        # Create pool 
+        text = str(article['headline']) + sep + str(article['article'])
+        texts.append(text)
 
-print(f"Pool size: {len(texts)}")
-print(f"of which {len(labels)} are labelled")
-      
-assert len(labels) == len(parsed_labelled_data)
-indices_labeled = np.array(indices_labeled)
-labels = np.array(labels)
+    print(f"Pool size: {len(texts)}")
+    print(f"of which {len(labels)} are labelled")
+        
+    assert len(labels) == len(parsed_labelled_data)
+    indices_labeled = np.array(indices_labeled)
+    labels = np.array(labels)
 
-lab_array = np.arange(2)
+    lab_array = np.arange(2)
 
-train = TransformersDataset.from_arrays(
-    texts,
-    all_labels,
-    tokenizer,
-    max_length=100,
-    target_labels=lab_array
-)
+    train = TransformersDataset.from_arrays(
+        texts,
+        all_labels,
+        tokenizer,
+        max_length=100,
+        target_labels=lab_array
+    )
 
-## Active Learning
-active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als)
+    ## Active Learning
+    active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als)
 
-active_learner.initialize_data(indices_labeled, labels)
+    active_learner.initialize_data(indices_labeled, labels)
 
-print(train.y[indices_labeled])
+    indices_queried = active_learner.query(num_samples=100)
 
-indices_queried = active_learner.query(num_samples=100)
+    # Format for label studio
+    to_label = []
 
-# Format for label studio
+    for i in indices_queried:
+        to_label.append({
+            "id": i,
+            "data": sample_list[i]
+        })
 
-print(indices_queried)
+    with open(f'data_to_label/{als}_sample_2.json', 'w') as f:
+        json.dump(to_label)
