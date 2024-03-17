@@ -68,19 +68,9 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
         target_indices_labeled = np.array([i for i in indices_labeled if pool.y[i] == 1])
         other_indices_labeled = np.array([i for i in indices_labeled if pool.y[i] == 0])
 
-        # # Describe predicted target
-        # target_indices_unlabeled_tar_count = sum(train.y[target_indices_unlabeled])
-        # print(f'There are {len(target_indices_unlabeled)} predicted target examples, of which {target_indices_unlabeled_tar_count} are actually target')
-        # if biased:
-        #     bias_indices_unlabeled_tar_count = len([i for i in bias_indices if i in target_indices_unlabeled])
-        #     print(f'of these {bias_indices_unlabeled_tar_count} are in the non-seeded target')
-
-        # # Describe predicted other
-        # other_indices_unlabeled_tar_count = sum(train.y[other_indices_unlabeled])
-        # print(f'There are {len(other_indices_unlabeled)} predicted non-target examples, of which {other_indices_unlabeled_tar_count} are actually target')
-        # if biased:
-        #     bias_indices_unlabeled_tar_count = len([i for i in bias_indices if i in other_indices_unlabeled])
-        #     print(f'of these {bias_indices_unlabeled_tar_count} are in the non-seeded target')
+        # Describe
+        print(f'There are {len(target_indices_unlabeled)} predicted target examples')
+        print(f'There are {len(other_indices_unlabeled)} predicted non-target examples')
 
         # If there are not enough predicted targets
         if len(target_indices_unlabeled) < n/2:
@@ -139,44 +129,6 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
 
         selected_indices = np.concatenate((target_indices, other_indices)).astype(int)
 
-        # Describe selected indices
-        ## From pred target
-
-        # global selected_descr
-        # selected_descr = {}
-
-        # pred_tar_actual_tar = sum(train.y[target_indices])
-        # print(f'Predicted target: Selected {len(target_indices)} samples, with {pred_tar_actual_tar} target class')
-        # selected_descr['predicted_target'] = {}
-        # selected_descr['predicted_target']['selected'] = len(target_indices)
-        # selected_descr['predicted_target']['target'] = pred_tar_actual_tar
-        # if biased:
-        #     bias_indices_selected_tar = len([i for i in target_indices if i in bias_indices])
-        #     print(f'of these {bias_indices_selected_tar} are in the non-seeded target')
-        #     selected_descr['predicted_target']['non_seeded_target'] = bias_indices_selected_tar
-
-        # ## From pred other
-        # pred_oth_actual_tar = sum(train.y[other_indices])
-        # print(f'Predicted non-target: Selected {len(other_indices)} samples, with {pred_oth_actual_tar} target class')
-        # selected_descr['predicted_other'] = {}
-        # selected_descr['predicted_other']['selected'] = len(other_indices)
-        # selected_descr['predicted_other']['target'] = pred_oth_actual_tar
-        # if biased:
-        #     bias_indices_selected_oth = len([i for i in other_indices if i in bias_indices])
-        #     print(f'of these {bias_indices_selected_oth} are in the non-seeded target')
-        #     selected_descr['predicted_other']['non_seeded_target'] = bias_indices_selected_oth
-
-        # ## Overall
-        # actual_tar = sum(train.y[selected_indices])
-        # print(f'All: Selected {len(selected_indices)} samples, with {actual_tar} target class')
-        # selected_descr['all'] = {}
-        # selected_descr['all']['selected'] = len(selected_indices)
-        # selected_descr['all']['target'] = actual_tar
-        # if biased:
-        #     bias_indices_selected_all = len([i for i in selected_indices if i in bias_indices])
-        #     print(f'of these {bias_indices_selected_all} are in the non-seeded target')
-        #     selected_descr['all']['non_seeded_target'] = bias_indices_selected_all 
-
         return selected_indices
 
 
@@ -193,19 +145,9 @@ class NIHDAL_2(DiscriminativeActiveLearning_amended):
         target_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 1])
         other_indices_unlabeled = np.array([i for i in indices_unlabeled if preds[i] == 0])
 
-        # # Describe predicted target
-        # target_indices_unlabeled_tar_count = sum(train.y[target_indices_unlabeled])
-        # print(f'There are {len(target_indices_unlabeled)} predicted target examples, of which {target_indices_unlabeled_tar_count} are actually target')
-        # if biased:
-        #     bias_indices_unlabeled_tar_count = len([i for i in bias_indices if i in target_indices_unlabeled])
-        #     print(f'of these {bias_indices_unlabeled_tar_count} are in the non-seeded target')
-
-        # # Describe predicted other
-        # other_indices_unlabeled_tar_count = sum(train.y[other_indices_unlabeled])
-        # print(f'There are {len(other_indices_unlabeled)} predicted non-target examples, of which {other_indices_unlabeled_tar_count} are actually target')
-        # if biased:
-        #     bias_indices_unlabeled_tar_count = len([i for i in bias_indices if i in other_indices_unlabeled])
-        #     print(f'of these {bias_indices_unlabeled_tar_count} are in the non-seeded target')
+        # Describe
+        print(f'There are {len(target_indices_unlabeled)} predicted target examples')
+        print(f'There are {len(other_indices_unlabeled)} predicted non-target examples')
 
         # Create balanced pool
         half_pool_size = min(len(target_indices_unlabeled), len(other_indices_unlabeled))
@@ -226,45 +168,6 @@ class NIHDAL_2(DiscriminativeActiveLearning_amended):
             indices_labeled,
             query_sizes
         )
-
-        # # Describe selected indices
-        # global selected_descr
-        # selected_descr = {}
-
-        # ## From pred target
-        # pred_tar_selected = [i for i in selected_indices if i in target_pool]
-        # pred_tar_actual_tar = sum(train.y[pred_tar_selected])
-        # print(f'Predicted target: Selected {len(pred_tar_selected)} samples, with {pred_tar_actual_tar} target class')
-        # selected_descr['predicted_target'] = {}
-        # selected_descr['predicted_target']['selected'] = len(pred_tar_selected)
-        # selected_descr['predicted_target']['target'] = pred_tar_actual_tar
-        # if biased:
-        #     bias_indices_selected_tar = len([i for i in pred_tar_selected if i in bias_indices])
-        #     print(f'of these {bias_indices_selected_tar} are in the non-seeded target')
-        #     selected_descr['predicted_target']['non_seeded_target'] = bias_indices_selected_tar
-
-        # ## From pred other
-        # pred_oth_selected = [i for i in selected_indices if i in other_pool]
-        # pred_oth_actual_tar = sum(train.y[pred_oth_selected])
-        # print(f'Predicted non-target: Selected {len(pred_oth_selected)} samples, with {pred_oth_actual_tar} target class')
-        # selected_descr['predicted_other'] = {}
-        # selected_descr['predicted_other']['selected'] = len(pred_oth_selected)
-        # selected_descr['predicted_other']['target'] = pred_oth_actual_tar
-        # if biased:
-        #     bias_indices_selected_oth = len([i for i in pred_oth_selected if i in bias_indices])
-        #     print(f'of these {bias_indices_selected_oth} are in the non-seeded target')
-        #     selected_descr['predicted_other']['non_seeded_target'] = bias_indices_selected_oth
-
-        # ## Overall
-        # actual_tar = sum(train.y[selected_indices])
-        # print(f'All: Selected {len(selected_indices)} samples, with {actual_tar} target class')
-        # selected_descr['all'] = {}
-        # selected_descr['all']['selected'] = len(selected_indices)
-        # selected_descr['all']['target'] = actual_tar
-        # if biased:
-        #     bias_indices_selected_all = len([i for i in selected_indices if i in bias_indices])
-        #     print(f'of these {bias_indices_selected_all} are in the non-seeded target')
-        #     selected_descr['all']['non_seeded_target'] = bias_indices_selected_all 
 
         return selected_indices
 
@@ -400,7 +303,13 @@ publications = [
     'Liverpool Echo',
 ]
 
-# Open all data 
+# 'The_Sunday_Telegraph_(London)',
+# 'The_Observer_(London)',
+# 'i_-_Independent_Print_Ltd',
+# 'The_Independent_(United_Kingdom)',
+# 'Liverpool_Echo',
+
+# Open all data
 sample_list = []
 
 for publication in tqdm(publications):
@@ -482,3 +391,5 @@ active_learner.initialize_data(currently_labelled, labels)
 indices_queried = active_learner.query(num_samples=100)
 
 # Format for label studio 
+
+print(indices_queried)
