@@ -58,7 +58,7 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
 
         self._validate_query_input(indices_unlabeled, n)
 
-        # Predict target or other for unlabelled 
+        # Predict target or other for unlabelled
         # preds = last_stable_model.predict(train)
         preds = active_learner.classifier.predict(pool)
 
@@ -381,6 +381,11 @@ pool = TransformersDataset.from_arrays(
 
 ## Active Learning
 active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als, pool=pool)
+
+print(type(currently_labelled))
+print(len(currently_labelled))
+print(type(labels))
+print(len(labels))
 
 active_learner.initialize_data(currently_labelled, labels)
 
