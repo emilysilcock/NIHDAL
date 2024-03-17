@@ -398,6 +398,10 @@ def initialize_active_learner_balanced(active_learner, y_train):
     # simulates an initial labeling to warm-start the active learning process
 
     indices_initial = random_initialization_balanced(y_train, n_samples=100)
+    print(type(indices_initial))
+    print(len(indices_initial))
+    print(type(y_train[indices_initial]))
+    print(len(y_train[indices_initial]))
     active_learner.initialize_data(indices_initial, y_train[indices_initial])
 
     return indices_initial
@@ -588,12 +592,12 @@ if __name__ == '__main__':
     datasets.logging.set_verbosity_error()
     datasets.logging.get_verbosity = lambda: logging.NOTSET
 
-    for biased in [True, False]:
+    for biased in [False, True]:
         transformer_model_name = 'distilroberta-base'
 
         # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", 'NIHDAL', 'NIHDAL_simon']:
         # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive"]:
-        for als in ['NIHDAL']:
+        for als in ['Random']:
 
             print(f'****************{als}**********************')
 
