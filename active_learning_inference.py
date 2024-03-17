@@ -391,6 +391,6 @@ active_learner.initialize_data(currently_labelled, labels)
 
 indices_queried = active_learner.query(num_samples=100)
 
-# Format for label studio 
+# Format for label studio
 
 print(indices_queried)
