@@ -337,7 +337,7 @@ for task in labelled_data:
     parsed_labelled_data[ln_id] = lab
 
 texts = []
-currently_labelled = []
+indices_labeled = []
 labels = []
 
 tokenizer = AutoTokenizer.from_pretrained(transformer_model_name)
@@ -348,7 +348,7 @@ for idx, article in tqdm(enumerate(sample_list)):
 
     # Check and add to labels
     if article['ln_id'] in parsed_labelled_data:
-        currently_labelled.append(idx)
+        indices_labeled.append(idx)
 
         lab = parsed_labelled_data[article['ln_id']]
         if lab == 'Irrelevant':
@@ -364,7 +364,7 @@ print(f"Pool size: {len(texts)}")
 print(f"of which {len(labels)} are labelled")
       
 assert len(labels) == len(parsed_labelled_data)
-currently_labelled = np.array(currently_labelled)
+indices_labeled = np.array(indices_labeled)
 labels = np.array(labels)
 
 unlabels = [small_text.base.LABEL_UNLABELED for i in range(len(texts))]
@@ -382,12 +382,7 @@ train = TransformersDataset.from_arrays(
 ## Active Learning
 active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als)
 
-print(type(currently_labelled))
-print(len(currently_labelled))
-print(type(labels))
-print(len(labels))
-
-active_learner.initialize_data(currently_labelled, labels)
+active_learner.initialize_data(indices_labeled, labels)
 
 indices_queried = active_learner.query(num_samples=100)
 
