@@ -75,15 +75,21 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
         target_indices_unlabeled_tar_count = sum(train.y[target_indices_unlabeled])
         print(f'There are {len(target_indices_unlabeled)} predicted target examples, of which {target_indices_unlabeled_tar_count} are actually target')
         if biased:
-            bias_indices_unlabeled_tar_count = len([i for i in bias_indices if i in target_indices_unlabeled])
-            print(f'of these {bias_indices_unlabeled_tar_count} are in the non-seeded target')
+            try:
+                bias_indices_unlabeled_tar_count = len([i for i in bias_indices if i in target_indices_unlabeled])
+                print(f'of these {bias_indices_unlabeled_tar_count} are in the non-seeded target')
+            except:
+                pass
 
         # Describe predicted other
         other_indices_unlabeled_tar_count = sum(train.y[other_indices_unlabeled])
         print(f'There are {len(other_indices_unlabeled)} predicted non-target examples, of which {other_indices_unlabeled_tar_count} are actually target')
         if biased:
-            bias_indices_unlabeled_tar_count = len([i for i in bias_indices if i in other_indices_unlabeled])
-            print(f'of these {bias_indices_unlabeled_tar_count} are in the non-seeded target')
+            try:
+                bias_indices_unlabeled_tar_count = len([i for i in bias_indices if i in other_indices_unlabeled])
+                print(f'of these {bias_indices_unlabeled_tar_count} are in the non-seeded target')
+            except:
+                pass
 
         # If there are not enough predicted targets
         if len(target_indices_unlabeled) < n/2:
@@ -586,13 +592,14 @@ if __name__ == '__main__':
         transformer_model_name = 'distilroberta-base'
 
         # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", 'NIHDAL', 'NIHDAL_simon']:
-        for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive"]:
-        # for als in ['NIHDAL']:
+        # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive"]:
+        for als in ['NIHDAL']:
 
             print(f'****************{als}**********************')
 
             # Set seed
-            for seed in [42, 12731, 65372, 97, 163]:  # 42 # 12731,
+            for seed in [12731]:
+            # for seed in [42, 12731, 65372, 97, 163]:  
 
                 print(f'#################{seed}##################')
                 torch.manual_seed(seed)
