@@ -450,7 +450,7 @@ for idx, article in tqdm(enumerate(sample_list)):
             labels.append(1)
 
     # Create pool 
-    text = article['headline'] + sep + article['article']
+    text = str(article['headline']) + sep + str(article['article'])
     texts.append(text)
 
 print(f"Pool size: {len(texts)}")
