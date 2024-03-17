@@ -401,4 +401,4 @@ for als in ['NIHDAL_simon', 'NIHDAL']:
         })
 
     with open(f'data_to_label/{als}_sample_2.json', 'w') as f:
-        json.dump(to_label)
+        json.dump(to_label, f, indent=2)
