@@ -71,6 +71,8 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
         # Describe
         print(f'There are {len(target_indices_unlabeled)} predicted target examples')
         print(f'There are {len(other_indices_unlabeled)} predicted non-target examples')
+        print(f'There are {len(target_indices_labeled)} labelled target examples')
+        print(f'There are {len(other_indices_labeled)} labelled non-target examples')
 
         # If there are not enough predicted targets
         if len(target_indices_unlabeled) < n/2:
