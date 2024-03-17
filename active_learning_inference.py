@@ -435,8 +435,9 @@ labels = []
 
 tokenizer = AutoTokenizer.from_pretrained(transformer_model_name)
 sep = find_sep_token(tokenizer)
+print(f"Sep: {sep}")
 
-for idx, article in enumerate(sample_list):
+for idx, article in tqdm(enumerate(sample_list)):
 
     # Check and add to labels
     if article['ln_id'] in parsed_labelled_data:
