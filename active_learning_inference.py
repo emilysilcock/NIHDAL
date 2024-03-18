@@ -396,7 +396,7 @@ for als in ['NIHDAL_simon', 'NIHDAL']:
 
     for i in indices_queried:
         to_label.append({
-            "id": i,
+            "id": int(i),
             "data": sample_list[i]
         })
 
