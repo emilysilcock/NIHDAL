@@ -329,7 +329,7 @@ for als in ['NIHDAL_simon', 'NIHDAL']:
     # Labelled data 
     with open('Labelled_data/harmonised_sample_1.json') as f:
         labelled_data_a = json.load(f)
-    with open(f'Labelled_data/harmonised_sample_1_{als}.json') as f:
+    with open(f'Labelled_data/harmonised_sample_2_{als}.json') as f:
         labelled_data_b = json.load(f)
     labelled_data = labelled_data_a + labelled_data_b
 
