@@ -328,7 +328,10 @@ for als in ['NIHDAL_simon', 'NIHDAL']:
 
     # Labelled data 
     with open('Labelled_data/harmonised_sample_1.json') as f:
-        labelled_data = json.load(f)
+        labelled_data_a = json.load(f)
+    with open(f'Labelled_data/harmonised_sample_1_{als}.json') as f:
+        labelled_data_b = json.load(f)
+    labelled_data = labelled_data_a + labelled_data_b
 
     parsed_labelled_data = {}
 
@@ -400,5 +403,5 @@ for als in ['NIHDAL_simon', 'NIHDAL']:
             "data": sample_list[i]
         })
 
-    with open(f'data_to_label/{als}_sample_2.json', 'w') as f:
+    with open(f'data_to_label/{als}_sample_3.json', 'w') as f:
         json.dump(to_label, f, indent=2)
