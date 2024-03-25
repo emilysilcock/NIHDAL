@@ -271,7 +271,8 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
 
 transformer_model_name = 'roberta-large'
 
-for als in ['NIHDAL_simon', 'NIHDAL']: 
+# for als in ['NIHDAL_simon', 'NIHDAL']: 
+for als in ['NIHDAL']: 
 
     publications = [
         'The Sun (England)',
@@ -331,7 +332,9 @@ for als in ['NIHDAL_simon', 'NIHDAL']:
         labelled_data_a = json.load(f)
     with open(f'Labelled_data/harmonised_sample_2_{als}.json') as f:
         labelled_data_b = json.load(f)
-    labelled_data = labelled_data_a + labelled_data_b
+    with open(f'Labelled_data/William_{als}_sample_3.json') as f:
+        labelled_data_c = json.load(f)
+    labelled_data = labelled_data_a + labelled_data_b + labelled_data_c
 
     parsed_labelled_data = {}
 
@@ -347,7 +350,6 @@ for als in ['NIHDAL_simon', 'NIHDAL']:
 
     tokenizer = AutoTokenizer.from_pretrained(transformer_model_name)
     sep = find_sep_token(tokenizer)
-    print(f"Sep: {sep}")
 
     for idx, article in tqdm(enumerate(sample_list)):
 
@@ -366,7 +368,7 @@ for als in ['NIHDAL_simon', 'NIHDAL']:
         else:
             all_labels.append(small_text.base.LABEL_UNLABELED)
 
-        # Create pool 
+        # Create pool
         text = str(article['headline']) + sep + str(article['article'])
         texts.append(text)
 
