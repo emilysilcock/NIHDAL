@@ -75,7 +75,7 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
         print(f'There are {len(other_indices_labeled)} labelled non-target examples')
 
         # If there are not enough predicted targets
-        if len(target_indices_unlabeled) < n/2:
+        if len(target_indices_unlabeled) <= n/2:
             print("Classification model predicted few targets")
 
             # Take all predicted targets
@@ -93,7 +93,7 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
             )
 
         # If there are not enough predicted others
-        elif len(other_indices_unlabeled) < n/2:
+        elif len(other_indices_unlabeled) <= n/2:
 
             print("Classification model predicted few non-targets, reverting to DAL")
 
