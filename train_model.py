@@ -62,7 +62,7 @@ def open_and_reformat_ls_data(list_of_paths, label_dict, model):
 
         texts.append(formatted_text)
         labels.append(label_dict[label_text])
-        ids.append(data['data']['id'])
+        ids.append(data['data']['ln_id'])
 
         if label_dict[label_text] == 1:
             positives += 1
