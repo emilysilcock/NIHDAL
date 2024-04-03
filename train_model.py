@@ -302,7 +302,7 @@ if __name__ == '__main__':
     sweep_configuration = {
         'method': 'bayes',
         'name': 'test_sweep',
-        'metric': {'goal': 'maximize', 'name': "F1"},
+        'metric': {'goal': 'maximize', 'name': "eval_f1"},
         'early_terminate': {'type': 'hyperband', 'min_iter': 100},    
         'parameters': 
             {
