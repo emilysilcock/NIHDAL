@@ -60,9 +60,14 @@ def open_and_reformat_ls_data(list_of_paths, label_dict, model):
 
         formatted_text = str(data['data']['headline']) + sep + str(data['data']['article'])
 
-        texts.append(formatted_text)
-        labels.append(label_dict[label_text])
-        ids.append(data['data']['ln_id'])
+        try:
+            texts.append(formatted_text)
+            labels.append(label_dict[label_text])
+            ids.append(data['data']['ln_id'])
+
+        except:
+            print(formatted_text)
+            print(data['data']['ln_id'])
 
         if label_dict[label_text] == 1:
             positives += 1
