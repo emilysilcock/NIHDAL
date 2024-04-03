@@ -319,9 +319,6 @@ if __name__ == '__main__':
 
     wandb.agent(sweep_id, project='benefits_topic', entity="stigma", function=train_wrapper, count=200)
 
-
-    ### Truncation? 
-
     # evaluate(
     #     trained_model='/mnt/data01/topic/finetuning/trained_models/political/2023-07-24_06-06-07/checkpoint-320',
     #     label_dict=label2int,
