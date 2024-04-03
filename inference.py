@@ -47,7 +47,7 @@ def basic_clean(fp, first_date, sp):
             # Get Date
             date = datetime.strptime(art["Date"], "%Y-%m-%dT%H:%M:%SZ").date()
 
-            if date < remove_before:
+            if date < remove_before.date():
                 count += 1
                 continue
 
