@@ -42,8 +42,7 @@ def basic_clean(fp, first_date, sp):
 
             content = art['Document']['Content']
 
-            # soup = BeautifulSoup(content, 'xml')
-            soup = BeautifulSoup(content, "html5lib")
+            soup = BeautifulSoup(content, 'xml')
 
             # Get Date
             date = datetime.strptime(art["Date"], "%Y-%m-%dT%H:%M:%SZ").date()
