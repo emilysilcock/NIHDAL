@@ -315,6 +315,8 @@ if __name__ == '__main__':
 
     sweep_id = wandb.sweep(sweep=sweep_configuration, project='benefits_topic',  entity="stigma")
 
+    wandb.agent.WANDB_AGENT_MAX_INITIAL_FAILURES=20
+
     wandb.agent(sweep_id, project='benefits_topic', entity="stigma", function=train_wrapper, count=200)
 
 
