@@ -146,7 +146,7 @@ def pull_positives(org_data_pattern, tokenization_model, finetuned_topic_model, 
 
 if __name__ == '__main__':
 
-    for num in [111]:
+    for num in [1]:
 
         # Get data
         basic_clean(
