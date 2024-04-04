@@ -167,7 +167,7 @@ if __name__ == '__main__':
 
     base_model='roberta-large'
 
-    for num in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
+    for num in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
     # for num in [1, 2, 4]:
 
         print(f'**{num}**')
@@ -180,7 +180,7 @@ if __name__ == '__main__':
         #     )
 
         # Format and tokenize
-        with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/") as f:
+        with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data.json") as f:
             data = json.load(f)
 
         tokenized_data = format_and_tokenize(data, tokenization_model=base_model, max_token_length=100)
