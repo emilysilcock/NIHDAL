@@ -148,6 +148,8 @@ if __name__ == '__main__':
 
     for num in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
 
+        print(f'**{num}**')
+
         # Get data
         basic_clean(
             fp = f"/mnt/data01/AL/ln_data/The_Sun_(England)/The_Sun_(England)_{num}**",
