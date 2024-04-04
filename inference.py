@@ -10,6 +10,8 @@ from datetime import datetime
 from datasets import Dataset
 from transformers import pipeline, AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
 
+os.environ['TRANSFORMERS_CACHE'] = '.cache/'
+
 
 def basic_clean(fp, first_date, sp):
 

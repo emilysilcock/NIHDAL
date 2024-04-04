@@ -15,6 +15,8 @@ from transformers import pipeline, AutoTokenizer, AutoModelForSequenceClassifica
 
 import wandb
 
+os.environ['TRANSFORMERS_CACHE'] = '.cache/'
+
 
 def find_sep_token(tokenizer):
 
