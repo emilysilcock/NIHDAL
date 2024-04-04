@@ -150,7 +150,8 @@ def pull_positives(org_data_pattern, tokenization_model, finetuned_topic_model, 
 
 if __name__ == '__main__':
 
-    for num in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
+    # for num in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
+    for num in [1, 2, 4]:
 
         print(f'**{num}**')
 
