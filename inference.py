@@ -29,58 +29,62 @@ def basic_clean(fp, first_date, sp):
             print(path)
             assert 1 == 0
 
-        with open(path) as f:
-            dat = json.load(f)
+        try:
+            with open(path) as f:
+                dat = json.load(f)
 
-        for art in dat["value"]:
+            for art in dat["value"]:
 
-            # Parse xml
-            if not art['Document']:
-                not_found_dict.append(art)
+                # Parse xml
+                if not art['Document']:
+                    not_found_dict.append(art)
+                    count += 1
+                    continue
+
+                content = art['Document']['Content']
+
+                soup = BeautifulSoup(content, 'xml')
+
+                # Get Date
+                date = datetime.strptime(art["Date"], "%Y-%m-%dT%H:%M:%SZ").date()
+
+                if date < remove_before.date():
+                    count += 1
+                    continue
+
+                check_date = datetime.strptime(soup.find('published').get_text(), "%Y-%m-%dT%H:%M:%SZ").date()
+                assert date == check_date
+
+                publication_date_day = soup.find('publicationDate').get('day')
+                publication_date_month = soup.find('publicationDate').get('month')
+                publication_date_year = soup.find('publicationDate').get('year')
+                publication_date_obj = datetime.strptime(f"{publication_date_year}-{publication_date_month}-{publication_date_day}", "%Y-%m-%d")
+                assert date == publication_date_obj.date()
+
+                date = date.strftime("%Y-%m-%d")
+
+
+                # Get article
+                try:
+                    article = soup.find('nitf:body.content').get_text(separator='\n\n')
+                except:
+                    article = ""
+
+                cleaned_data = {
+                    "int_id": count,
+                    "ln_id": art["Document"]["DocumentId"],
+                    "date": date,
+                    "headline": art["Title"],
+                    "article": article,
+                    "newspaper": art["Source"]["Name"],
+                }
+
+                data_dict[count] = cleaned_data
+
                 count += 1
-                continue
 
-            content = art['Document']['Content']
-
-            soup = BeautifulSoup(content, 'xml')
-
-            # Get Date
-            date = datetime.strptime(art["Date"], "%Y-%m-%dT%H:%M:%SZ").date()
-
-            if date < remove_before.date():
-                count += 1
-                continue
-
-            check_date = datetime.strptime(soup.find('published').get_text(), "%Y-%m-%dT%H:%M:%SZ").date()
-            assert date == check_date
-
-            publication_date_day = soup.find('publicationDate').get('day')
-            publication_date_month = soup.find('publicationDate').get('month')
-            publication_date_year = soup.find('publicationDate').get('year')
-            publication_date_obj = datetime.strptime(f"{publication_date_year}-{publication_date_month}-{publication_date_day}", "%Y-%m-%d")
-            assert date == publication_date_obj.date()
-
-            date = date.strftime("%Y-%m-%d")
-
-
-            # Get article
-            try:
-                article = soup.find('nitf:body.content').get_text(separator='\n\n')
-            except:
-                article = ""
-
-            cleaned_data = {
-                "int_id": count,
-                "ln_id": art["Document"]["DocumentId"],
-                "date": date,
-                "headline": art["Title"],
-                "article": article,
-                "newspaper": art["Source"]["Name"],
-            }
-
-            data_dict[count] = cleaned_data
-
-            count += 1
+        except:
+            print(f'{path} not found')
 
     print(f'{len(data_dict)} articles')
     print(f'{len(not_found_dict)} articles not found')
