@@ -99,32 +99,44 @@ def basic_clean(fp, first_date, sp):
         json.dump(not_found_dict, f, indent=4)
 
 
-def tokenize_data_for_inference(corpus, name, hf_model):
+def find_sep_token(tokenizer):
 
-    print("**** Tokenizing data ****")
+    """
+    Returns sep token for given tokenizer
+    """
 
-    dataset = Dataset.from_dict({name: corpus})
+    if 'eos_token' in tokenizer.special_tokens_map:
+        sep = " " + tokenizer.special_tokens_map['eos_token'] + " " + tokenizer.special_tokens_map['sep_token'] + " "
+    else:
+        sep = " " + tokenizer.special_tokens_map['sep_token'] + " "
+
+    return sep
+
+
+def format_and_tokenize(dat, tokenization_model, max_token_length):
+
+    corpus = []
+
+    sep = find_sep_token(tokenizer=AutoTokenizer.from_pretrained(tokenization_model))
+
+    for art_id, art_dict in dat.items():
+        corpus.append(str(art_dict['headline']) + sep + str(art_dict['article']))
+
+    dataset = Dataset.from_dict({'corpus': corpus})
 
     # Instantiate tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(hf_model)
+    tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
 
     # Tokenize datasets
     def tokenize_function(dataset):
-        return tokenizer(dataset[name], padding="max_length", truncation=True)
+        return tokenizer(dataset['corpus'], padding="max_length", truncation=True, max_length=max_token_length)
 
     tokenized_dataset = dataset.map(tokenize_function, batched=True)
 
     return tokenized_dataset
 
 
-def pull_positives(org_data_pattern, tokenization_model, finetuned_topic_model, batch_size):
-
-    #Todo: tweak to chain together multiple models (eg. editorials and topic)
-
-    # Load data
-    corpus, org_data = load_inference_data(org_data_pattern, tokenization_model)
-
-    tokenized_data = tokenize_data_for_inference(corpus, "inf_data", tokenization_model)
+def pull_positives(tokenized_data, org_data, finetuned_topic_model, batch_size):
 
     # Predict
     model = AutoModelForSequenceClassification.from_pretrained(finetuned_topic_model, num_labels=2)
@@ -138,40 +150,48 @@ def pull_positives(org_data_pattern, tokenization_model, finetuned_topic_model, 
     # Subset to positives only
     predictions = np.argmax(preds.predictions, axis=-1)
 
-    positive_list = []
-    for i, art in enumerate(org_data):
-        if predictions[i] == 1:
-            positive_list.append(art)
+    positive_dict = {}
 
-    print(f'{len(positive_list)} articles positive out of {len(org_data)}')
+    pred_count = 0
+    for art_id, art in org_data:
+        if predictions[pred_count] == 1:
+            positive_dict[art_id] = art
+        pred_count +=1 
 
-    return positive_list
+    print(f'{len(positive_dict)} articles positive out of {len(org_data)}')
+
+    return positive_dict
 
 
 if __name__ == '__main__':
 
-    # for num in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
-    for num in [1, 2, 4]:
+    base_model='roberta-large'
+
+    for num in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
+    # for num in [1, 2, 4]:
 
         print(f'**{num}**')
 
-        # Get data
-        basic_clean(
-            fp = f"/mnt/data01/AL/ln_data/The_Sun_(England)/The_Sun_(England)_{num}**",
-            # fp = f"/mnt/data01/AL/ln_data/The_Sun_(England)/The_Sun_(England)_{num}**",
-            first_date='01-01-2013',
-            sp=f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/"
-            )
+        # # Get data
+        # basic_clean(
+        #     fp = f"/mnt/data01/AL/ln_data/The_Sun_(England)/The_Sun_(England)_{num}**",
+        #     first_date='01-01-2013',
+        #     sp=f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/"
+        #     )
 
-        # # Run inference
-        # topic_arts = pull_positives(
-        #     data,
-        #     tokenization_model='roberta-large',
-        #     finetuned_topic_model='/mnt/data01/AL/trained_models/rl_16_12_5e-05_100/checkpoint-430',
-        #     batch_size=512
-        # )
+        # Format and tokenize
+        with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/") as f:
+            data = json.load(f)
 
-        # print(len(topic_arts), "articles found")
+        tokenized_data = format_and_tokenize(data, tokenization_model=base_model, max_token_length=100)
 
-        # with open(f'/mnt/data01/AL/preds/on_topic.json', 'w') as f:
-        #     json.dump(topic_arts, f, indent=4)
+        # Run inference
+        topic_arts = pull_positives(
+            tokenized_data,
+            org_data=data,
+            finetuned_topic_model='/mnt/data01/AL/trained_models/rl_16_12_5e-05_100/checkpoint-490',
+            batch_size=512
+        )
+
+        with open(f'/mnt/data01/AL/preds/group_{num}on_topic.json', 'w') as f:
+            json.dump(topic_arts, f, indent=4)
