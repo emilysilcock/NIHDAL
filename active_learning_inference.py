@@ -328,47 +328,8 @@ for als in ['NIHDAL']:
                 pass
 
     # Labelled data 
-    # with open('Labelled_data/harmonised_sample_1.json') as f:
-    #     labelled_data_a = json.load(f)
-    # with open(f'Labelled_data/harmonised_sample_2_{als}.json') as f:
-    #     labelled_data_b = json.load(f)
-    # with open(f'Labelled_data/William_{als}_sample_3.json') as f:
-    #     labelled_data_c = json.load(f)
-    # with open(f'Labelled_data/Josh_{als}_sample_4.json') as f:
-    #     labelled_data_d = json.load(f)
-    # with open(f'Labelled_data/William_{als}_sample_5.json') as f:
-    #     labelled_data_e = json.load(f)
-    # with open(f'Labelled_data/Josh_{als}_sample_6.json') as f:
-    #     labelled_data_f = json.load(f)
-    # with open(f'Labelled_data/William_{als}_sample_7.json') as f:
-    #     labelled_data_g = json.load(f)
-    # with open(f'Labelled_data/Josh_{als}_sample_8.json') as f:
-    #     labelled_data_h = json.load(f)
-    # with open(f'Labelled_data/Simon_{als}_sample_9.json') as f:
-    #     labelled_data_i = json.load(f)
-
-    with open(f'Labelled_data/sample_1_fixed.json') as f:
-        labelled_data_a = json.load(f)
-    with open(f'Labelled_data/sample_2_fixed.json') as f:
-        labelled_data_b = json.load(f)
-    with open(f'Labelled_data/sample_3_fixed.json') as f:
-        labelled_data_c = json.load(f)
-    with open(f'Labelled_data/sample_4_fixed.json') as f:
-        labelled_data_d = json.load(f)
-    with open(f'Labelled_data/sample_5_fixed.json') as f:
-        labelled_data_e = json.load(f)
-    with open(f'Labelled_data/sample_6_fixed.json') as f:
-        labelled_data_f = json.load(f)
-    with open(f'Labelled_data/sample_7_fixed.json') as f:
-        labelled_data_g = json.load(f)
-    with open(f'Labelled_data/sample_8_fixed.json') as f:
-        labelled_data_h = json.load(f)
-    with open(f'Labelled_data/sample_9_fixed.json') as f:
-        labelled_data_i = json.load(f)
-    with open(f'Labelled_data/sample_10_fixed.json') as f:
-        labelled_data_j = json.load(f)
-
-    labelled_data = labelled_data_a + labelled_data_b + labelled_data_c + labelled_data_d + labelled_data_e + labelled_data_f + labelled_data_g + labelled_data_h + labelled_data_i + labelled_data_j
+    with open('Labelled_data/fixed_first_1000.json') as f:
+        labelled_data = json.load(f)
 
     parsed_labelled_data = {}
 

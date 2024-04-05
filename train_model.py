@@ -285,7 +285,7 @@ if __name__ == '__main__':
 
     random.seed(42)
 
-    data_paths = glob('Labelled_data/sample_**_fixed.json') 
+    data_paths = glob('Labelled_data/fixed_first_1000.json') 
     label2int = {'Irrelevant': 0, 'On topic': 1}
 
     pretrained_model = 'roberta-large'
