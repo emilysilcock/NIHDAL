@@ -310,7 +310,7 @@ if __name__ == '__main__':
     sweep_configuration = {
         'method': 'bayes',
         'name': 'any_about_benefits_sweep',
-        'metric': {'goal': 'maximize', 'name': "f1"},
+        'metric': {'goal': 'maximize', 'name': "eval/f1"},
         'early_terminate': {'type': 'hyperband', 'min_iter': 100},    
         'parameters': 
             {
