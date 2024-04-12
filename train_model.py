@@ -309,19 +309,15 @@ if __name__ == '__main__':
     # Config hyperparameter sweep
     sweep_configuration = {
         'method': 'bayes',
-        'name': 'test_sweep',
+        'name': 'any_about_benefits_sweep',
         'metric': {'goal': 'maximize', 'name': "eval_f1"},
         'early_terminate': {'type': 'hyperband', 'min_iter': 100},    
         'parameters': 
             {
-                'batch_size': {'values': [16]},
+                'batch_size': {'values': [8, 16, 32, 64, 128]},
                 'epochs': {'min': 10, 'max': 15},                                                  
                 'lr': {'values': [5e-7, 1e-6, 5e-6, 1e-5, 5e-5, 1e-4]},
-                'max_len': {'values': [512]}
-                # 'batch_size': {'values': [16, 32, 64, 128]},
-                # 'epochs': {'min': 10, 'max': 15},                                                  
-                # 'lr': {'values': [5e-7, 1e-6, 5e-6, 1e-5, 5e-5, 1e-4]},
-                # 'max_len': {'values': [100, 256, 384, 512]}
+                'max_len': {'values': [100, 256, 384, 512]}
             }
     }
 
