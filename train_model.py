@@ -240,7 +240,7 @@ def evaluate(base_model, trained_model, label_dict, original_test_dir, print_mis
     test = tokenize_data_for_finetuning(
         directory=f"/mnt/data01/AL/final_labelled_data/test.csv",
         hf_model=base_model,
-        max_token_length=wandb.config.max_len
+        max_token_length=512
     )
 
     num_labels = len(label_dict)
