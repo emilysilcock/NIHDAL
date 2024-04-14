@@ -234,15 +234,22 @@ def train_wrapper():
     )
 
 
-def evaluate(trained_model, label_dict, predict_dataset, original_test_dir, print_mistakes=False):
+def evaluate(base_model, trained_model, label_dict, original_test_dir, print_mistakes=False):
 
-    num_labels = 2 #len(label_dict)
+    # Tokenize data
+    test = tokenize_data_for_finetuning(
+        directory=f"/mnt/data01/AL/final_labelled_data/test.csv",
+        hf_model=base_model,
+        max_token_length=wandb.config.max_len
+    )
+
+    num_labels = len(label_dict)
     model = AutoModelForSequenceClassification.from_pretrained(trained_model, num_labels=num_labels)
 
     # Instantiate Trainer
     trainer = Trainer(model=model)
 
-    predictions = trainer.predict(predict_dataset)
+    predictions = trainer.predict(test)
 
     preds = np.argmax(predictions.predictions, axis=-1)
 
@@ -283,54 +290,54 @@ def evaluate(trained_model, label_dict, predict_dataset, original_test_dir, prin
 
 if __name__ == '__main__':
 
-    random.seed(42)
+    # random.seed(42)
 
-    data_paths = ['Labelled_data/fixed_first_1000.json',
-                  'Labelled_data/sample_11_fixed.json',
-                  'Labelled_data/sample_12_fixed.json',
-                  'Labelled_data/sample_13_fixed.json',
-                  'Labelled_data/sample_14_fixed.json',
-                  'Labelled_data/sample_15_fixed.json']
+    # data_paths = ['Labelled_data/fixed_first_1000.json',
+    #               'Labelled_data/sample_11_fixed.json',
+    #               'Labelled_data/sample_12_fixed.json',
+    #               'Labelled_data/sample_13_fixed.json',
+    #               'Labelled_data/sample_14_fixed.json',
+    #               'Labelled_data/sample_15_fixed.json']
 
     label2int = {'Irrelevant': 0, 'On topic': 1}
 
     pretrained_model = 'roberta-large'
 
-    # Clean data
-    train_test_dev_split(
-        ls_data_paths=data_paths,
-        label_dict=label2int,
-        save_dir="/mnt/data01/AL/final_labelled_data/",
-        test_perc=0.15,
-        eval_perc=0.15,
-        model=pretrained_model
-    )
-
-    # Config hyperparameter sweep
-    sweep_configuration = {
-        'method': 'bayes',
-        'name': 'any_about_benefits_sweep',
-        'metric': {'goal': 'maximize', 'name': "eval/f1"},
-        'early_terminate': {'type': 'hyperband', 'min_iter': 100},    
-        'parameters': 
-            {
-                'batch_size': {'values': [8, 16, 32, 64, 128]},
-                'epochs': {'min': 10, 'max': 15},                                                  
-                'lr': {'values': [5e-7, 1e-6, 5e-6, 1e-5, 5e-5, 1e-4]},
-                'max_len': {'values': [100, 256, 384, 512]}
-            }
-    }
-
-    sweep_id = wandb.sweep(sweep=sweep_configuration, project='benefits_topic',  entity="stigma")
-
-    wandb.agent.WANDB_AGENT_MAX_INITIAL_FAILURES=20
-
-    wandb.agent(sweep_id, project='benefits_topic', entity="stigma", function=train_wrapper, count=200)
-
-    # evaluate(
-    #     trained_model='/mnt/data01/topic/finetuning/trained_models/political/2023-07-24_06-06-07/checkpoint-320',
+    # # Clean data
+    # train_test_dev_split(
+    #     ls_data_paths=data_paths,
     #     label_dict=label2int,
-    #     predict_dataset=datasets["test"],
-    #     original_test_dir='/mnt/data01/AL/final_labelled_data/test.csv',
-    #     print_mistakes=True
+    #     save_dir="/mnt/data01/AL/final_labelled_data/",
+    #     test_perc=0.15,
+    #     eval_perc=0.15,
+    #     model=pretrained_model
     # )
+
+    # # Config hyperparameter sweep
+    # sweep_configuration = {
+    #     'method': 'bayes',
+    #     'name': 'any_about_benefits_sweep',
+    #     'metric': {'goal': 'maximize', 'name': "eval/f1"},
+    #     'early_terminate': {'type': 'hyperband', 'min_iter': 100},    
+    #     'parameters': 
+    #         {
+    #             'batch_size': {'values': [8, 16, 32, 64, 128]},
+    #             'epochs': {'min': 10, 'max': 15},                                                  
+    #             'lr': {'values': [5e-7, 1e-6, 5e-6, 1e-5, 5e-5, 1e-4]},
+    #             'max_len': {'values': [100, 256, 384, 512]}
+    #         }
+    # }
+
+    # sweep_id = wandb.sweep(sweep=sweep_configuration, project='benefits_topic',  entity="stigma")
+
+    # wandb.agent.WANDB_AGENT_MAX_INITIAL_FAILURES=20
+
+    # wandb.agent(sweep_id, project='benefits_topic', entity="stigma", function=train_wrapper, count=200)
+
+    evaluate(
+        base_model=pretrained_model,
+        trained_model='/mnt/data01/AL/trained_models/rl_8_13_1e-05_512/checkpoint-420',
+        label_dict=label2int,
+        original_test_dir='/mnt/data01/AL/final_labelled_data/test.csv',
+        print_mistakes=True
+    )
