@@ -185,13 +185,13 @@ if __name__ == '__main__':
         with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data.json") as f:
             data = json.load(f)
 
-        tokenized_data = format_and_tokenize(data, tokenization_model=base_model, max_token_length=100)
+        tokenized_data = format_and_tokenize(data, tokenization_model=base_model, max_token_length=512)
 
         # Run inference
         topic_arts = pull_positives(
             tokenized_data,
             org_data=data,
-            finetuned_topic_model='/mnt/data01/AL/trained_models/rl_16_12_5e-05_100/checkpoint-490',
+            finetuned_topic_model='/mnt/data01/AL/trained_models/rl_8_13_1e-05_512/checkpoint-420',
             batch_size=512
         )
 
