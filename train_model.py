@@ -260,10 +260,14 @@ def evaluate(base_model, trained_model, label_dict, original_test_dir, print_mis
 
         fps = test_df[(test_df["label"] == 0) & (test_df["preds"] == 1)]
         fns = test_df[(test_df["label"] == 1) & (test_df["preds"] == 0)]
+        tps = test_df[(test_df["label"] == 1) & (test_df["preds"] == 1)]
+        tns = test_df[(test_df["label"] == 0) & (test_df["preds"] == 0)]
 
         print("Total mispredictions:", len(fps) + len(fns))
         print("False positives:", len(fps))
         print("False negatives:", len(fns))
+        print("True positives:", len(tps))
+        print("True negatives:", len(tns))
 
         print("\n\n")
         print("***************** FALSE POSITIVES *****************")
