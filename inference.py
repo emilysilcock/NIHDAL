@@ -155,10 +155,10 @@ def pull_positives(tokenized_data, org_data, finetuned_topic_model, batch_size):
     positive_dict = {}
 
     pred_count = 0
-    for art_id, art in org_data:
+    for art_id, art in org_data.items():
         if predictions[pred_count] == 1:
             positive_dict[art_id] = art
-        pred_count +=1 
+        pred_count +=1
 
     print(f'{len(positive_dict)} articles positive out of {len(org_data)}')
 
