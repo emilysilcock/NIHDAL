@@ -50,7 +50,7 @@ def basic_clean(fp, first_date, sp):
                 # Get Date
                 date = datetime.strptime(art["Date"], "%Y-%m-%dT%H:%M:%SZ").date()
 
-                if date < remove_before.date():
+                if date >= remove_before.date():   ### SWITCHED TO EARLIER DATES 
                     count += 1
                     continue
 
@@ -94,10 +94,10 @@ def basic_clean(fp, first_date, sp):
     # Save
     os.makedirs(sp, exist_ok=True)
 
-    with open(f"{sp}/cleaned_sample_data.json", 'w') as f:
+    with open(f"{sp}/cleaned_sample_data_earlier.json", 'w') as f:
         json.dump(data_dict, f, indent=4)
 
-    with open(f"{sp}/not_found_sample.json", 'w') as f:
+    with open(f"{sp}/not_found_sample_earlier.json", 'w') as f:
         json.dump(not_found_dict, f, indent=4)
 
 
@@ -174,16 +174,16 @@ if __name__ == '__main__':
 
         print(f'**{num}**')
 
-        # # Get data
-        # basic_clean(
-        #     fp = f"/mnt/data01/AL/ln_data/The_Sun_(England)/The_Sun_(England)_{num}**",
-        #     first_date='01-01-2013',
-        #     sp=f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/"
-        #     )
+        # Get data
+        basic_clean(
+            fp = f"/mnt/data01/AL/ln_data/The_Sun_(England)/The_Sun_(England)_{num}**",
+            first_date='01-01-2013',
+            sp=f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/"
+            )
 
         # Format and tokenize
-        with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data.json") as f:
-            data = json.load(f)
+        # with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data.json") as f:
+        #     data = json.load(f)
 
         tokenized_data = format_and_tokenize(data, tokenization_model=base_model, max_token_length=512)
 
@@ -195,5 +195,5 @@ if __name__ == '__main__':
             batch_size=512
         )
 
-        with open(f'/mnt/data01/AL/preds/group_{num}on_topic.json', 'w') as f:
+        with open(f'/mnt/data01/AL/preds/group_{num}on_topic_earlier.json', 'w') as f:
             json.dump(topic_arts, f, indent=4)
