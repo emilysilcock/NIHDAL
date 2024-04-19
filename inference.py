@@ -182,8 +182,8 @@ if __name__ == '__main__':
             )
 
         # Format and tokenize
-        # with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data.json") as f:
-        #     data = json.load(f)
+        with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data_earlier.json") as f:
+            data = json.load(f)
 
         tokenized_data = format_and_tokenize(data, tokenization_model=base_model, max_token_length=512)
 
