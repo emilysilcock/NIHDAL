@@ -18,3 +18,4 @@ if __name__ == '__main__':
             if "oap" in art_dict["headline"].lower() and "rapist" in art_dict["headline"].lower():
 
                 print(f'********************{num}*************************')
+                print(art_dict["headline"])
