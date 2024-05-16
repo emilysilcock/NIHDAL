@@ -5,7 +5,7 @@ import json
 if __name__ == '__main__':
 
 
-    for num in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
+    for num in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
     
         print(f'**{num}**')
 
@@ -15,6 +15,6 @@ if __name__ == '__main__':
 
         for art_id, art_dict in tqdm(data.items()):
 
-            if "oap a rapist" in art_dict["headline"].lower():
+            if "oap" in art_dict["headline"].lower() and "rapist" in art_dict["headline"].lower():
 
                 print(f'********************{num}*************************')
