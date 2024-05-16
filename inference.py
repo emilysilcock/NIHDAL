@@ -188,7 +188,7 @@ if __name__ == '__main__':
 
     ####################
 
-    dat = pd.from_csv('/mnt/data01/AL/not_matched_old_date_relatedbenefits.csv')
+    dat = pd.read_csv('/mnt/data01/AL/not_matched_old_date_relatedbenefits.csv')
 
     data = {}
 
