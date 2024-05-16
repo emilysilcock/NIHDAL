@@ -211,7 +211,7 @@ if __name__ == '__main__':
         batch_size=512
     )
 
-    print(json.dump(topic_arts, indent=4))
+    print(json.dumps(topic_arts, indent=4))
 
     # with open(f'/mnt/data01/AL/preds/group_{num}on_topic_earlier.json', 'w') as f:
     #     json.dump(topic_arts, f, indent=4)
