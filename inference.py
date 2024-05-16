@@ -192,7 +192,7 @@ if __name__ == '__main__':
 
     data = {}
 
-    for i in len(dat):
+    for i in range(len(dat)):
         data[i] = {
             'article': dat['body.old'][i],
             'headline': dat['title.old'][i]
