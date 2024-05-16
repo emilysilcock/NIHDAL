@@ -3,7 +3,6 @@ import json
 from glob import glob
 from tqdm import tqdm
 import numpy as np
-import pandas as pd
 
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -170,49 +169,31 @@ if __name__ == '__main__':
 
     base_model='roberta-large'
 
-    # for num in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
-    # # for num in [1, 2, 4]:
+    for num in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
+    # for num in [1, 2, 4]:
 
-    #     print(f'**{num}**')
+        print(f'**{num}**')
 
-    #     # Get data
-    #     basic_clean(
-    #         fp = f"/mnt/data01/AL/ln_data/The_Sun_(England)/The_Sun_(England)_{num}**",
-    #         first_date='01-01-2013',
-    #         sp=f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/"
-    #         )
+        # Get data
+        basic_clean(
+            fp = f"/mnt/data01/AL/ln_data/The_Sun_(England)/The_Sun_(England)_{num}**",
+            first_date='01-01-2013',
+            sp=f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/"
+            )
 
-        # with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data_earlier.json") as f:
-        #     data = json.load(f)
+        # Format and tokenize
+        with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data_earlier.json") as f:
+            data = json.load(f)
 
+        tokenized_data = format_and_tokenize(data, tokenization_model=base_model, max_token_length=512)
 
-    ####################
+        # Run inference
+        topic_arts = pull_positives(
+            tokenized_data,
+            org_data=data,
+            finetuned_topic_model='/mnt/data01/AL/trained_models/rl_8_13_1e-05_512/checkpoint-420',
+            batch_size=512
+        )
 
-    dat = pd.read_csv('/mnt/data01/AL/not_matched_old_date_relatedbenefits.csv')
-
-    data = {}
-
-    for i in range(len(dat)):
-        data[i] = {
-            'article': dat['body.old'][i],
-            'headline': dat['title.old'][i].upper()
-        }
-
-    #######################
-
-    # Format and tokenize
-    tokenized_data = format_and_tokenize(data, tokenization_model=base_model, max_token_length=512)
-
-    # Run inference
-    topic_arts = pull_positives(
-        tokenized_data,
-        org_data=data,
-        finetuned_topic_model='/mnt/data01/AL/trained_models/rl_8_13_1e-05_512/checkpoint-420',
-        batch_size=512
-    )
-
-    print(json.dumps(topic_arts, indent=4))
-
-    # with open(f'/mnt/data01/AL/preds/group_{num}on_topic_earlier.json', 'w') as f:
-    #     json.dump(topic_arts, f, indent=4)
-
+        with open(f'/mnt/data01/AL/preds/group_{num}on_topic_earlier.json', 'w') as f:
+            json.dump(topic_arts, f, indent=4)
