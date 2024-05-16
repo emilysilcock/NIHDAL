@@ -195,7 +195,7 @@ if __name__ == '__main__':
     for i in range(len(dat)):
         data[i] = {
             'article': dat['body.old'][i],
-            'headline': dat['title.old'][i]
+            'headline': dat['title.old'][i].upper()
         }
 
     #######################
