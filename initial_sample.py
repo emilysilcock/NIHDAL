@@ -8,7 +8,7 @@ from datetime import datetime
 import random
 
 import numpy as np
-from transformers import pipeline
+from transformers import pipeline, AutoTokenizer
 
 ## Clean data
 
@@ -312,6 +312,22 @@ def clean_data(publications):
             json.dump(not_found_dict, f, indent=4)
 
 
+def find_sep_token(model_name):
+
+    """
+    Returns sep token for given tokenizer
+    """
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+    if 'eos_token' in tokenizer.special_tokens_map:
+        sep = " " + tokenizer.special_tokens_map['eos_token'] + " " + tokenizer.special_tokens_map['sep_token'] + " "
+    else:
+        sep = " " + tokenizer.special_tokens_map['sep_token'] + " "
+
+    return sep
+
+
 if __name__ == '__main__':
 
     publications = [
@@ -381,6 +397,7 @@ if __name__ == '__main__':
         print(f'{len(sample_dict)} articles in sample')
 
         # Format texts
+        sep = find_sep_token('facebook/bart-large')
         texts = [str(article['headline']) + sep + str(article['article']) for article in sample_dict.values()]
 
         # Run inference
@@ -423,6 +440,8 @@ if __name__ == '__main__':
 
         with open(f'temp/{publication_fn}_zsc_extra.json', 'w') as f:
             json.dump(non_scrounger_list, f, indent=4)
+
+        ######
 
 
     #     # Sample from results
