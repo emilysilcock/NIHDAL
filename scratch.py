@@ -19,6 +19,7 @@ if __name__ == '__main__':
 
                 example = art_dict
                 print(art_id)
+                print(type(art_id))
 
     print(json.dumps(example, indent=3))
 
