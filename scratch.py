@@ -52,7 +52,7 @@ if __name__ == '__main__':
             if "scrounger" in art_dict['article'].lower() or "scrouner" in art_dict["headline"].lower():
                 scrounger_list.append(art_dict)
 
-    print(len(art_dict))
+    print(len(scrounger_list))
 
 
         
