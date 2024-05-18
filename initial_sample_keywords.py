@@ -90,9 +90,25 @@ if __name__ == '__main__':
                 take_sample_kw_list.append(art_dict)
 
         selected_articles.extend(take_all_kw_list)
-        selected_articles.extend(random.sample(take_sample_kw_list, sample_size - len(take_all_kw_list)))
-            
-    # Format for label studio 
+
+        remaining_sample_size = sample_size - len(take_all_kw_list)
+        if len(take_sample_kw_list) > remaining_sample_size
+            selected_articles.extend(random.sample(take_sample_kw_list, sample_size - len(take_all_kw_list)))
+        else:
+            selected_articles.extend(take_sample_kw_list)
+
+    # Format for label studio
+    # to_label = []
+    # for i, art in enumerate(chosen_positives + chosen_negatives):
+    #     to_label.append({
+    #         "id": i,
+    #         "data": art
+    #     })
+
+    # random.shuffle(to_label)
+
+    # with open('first_sample.json', 'w') as f:
+    #     json.dump(to_label, f, indent=4)
 
 
     with open('scrounger_list.json', 'w') as f:
