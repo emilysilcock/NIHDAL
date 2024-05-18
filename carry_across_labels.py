@@ -15,7 +15,7 @@ for p in old_labelled_data_paths:
         dat = json.load(f)
 
     for art in dat:
-        old_labelled_data[art['data']['ln_id']] = dat['annotations'][0]['result'][0]['value']['choices'][0]
+        old_labelled_data[art['data']['ln_id']] = art['annotations'][0]['result'][0]['value']['choices'][0]
 
 
 # Add labels to new data 
