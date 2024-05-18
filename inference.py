@@ -169,8 +169,9 @@ if __name__ == '__main__':
 
     base_model='roberta-large'
 
-    for num in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
+    # for num in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
     # for num in [1, 2, 4]:
+    for num in [3]:
 
         print(f'**{num}**')
 
@@ -185,6 +186,13 @@ if __name__ == '__main__':
         with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data_earlier.json") as f:
             data = json.load(f)
 
+
+        #####
+        data = [d for d in data if d["headline"] == "....AND THIS IS WHERE STANDS"]
+        print(len(data))
+        #####
+        
+
         tokenized_data = format_and_tokenize(data, tokenization_model=base_model, max_token_length=512)
 
         # Run inference
@@ -195,5 +203,5 @@ if __name__ == '__main__':
             batch_size=512
         )
 
-        with open(f'/mnt/data01/AL/preds/group_{num}on_topic_earlier.json', 'w') as f:
-            json.dump(topic_arts, f, indent=4)
+        # with open(f'/mnt/data01/AL/preds/group_{num}on_topic_earlier.json', 'w') as f:
+        #     json.dump(topic_arts, f, indent=4)
