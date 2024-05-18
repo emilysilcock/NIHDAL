@@ -119,15 +119,15 @@ def format_and_tokenize(dat, tokenization_model, max_token_length):
 
     corpus = []
 
-    # Instantiate tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
-
-    sep = find_sep_token(tokenizer)
+    sep = find_sep_token(tokenizer=AutoTokenizer.from_pretrained(tokenization_model))
 
     for art_id, art_dict in dat.items():
         corpus.append(str(art_dict['headline']) + sep + str(art_dict['article']))
 
     dataset = Dataset.from_dict({'corpus': corpus})
+
+    # Instantiate tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
 
     # Tokenize datasets
     def tokenize_function(dataset):
@@ -169,41 +169,21 @@ if __name__ == '__main__':
 
     base_model='roberta-large'
 
-    # for num in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
+    for num in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
     # for num in [1, 2, 4]:
-    for num in [3]:
 
         print(f'**{num}**')
 
-        # # Get data
-        # basic_clean(
-        #     fp = f"/mnt/data01/AL/ln_data/The_Sun_(England)/The_Sun_(England)_{num}**",
-        #     first_date='01-01-2013',
-        #     sp=f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/"
-        #     )
+        # Get data
+        basic_clean(
+            fp = f"/mnt/data01/AL/ln_data/The_Sun_(England)/The_Sun_(England)_{num}**",
+            first_date='01-01-2013',
+            sp=f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/"
+            )
 
         # Format and tokenize
         with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data.json") as f:
             data = json.load(f)
-
-        #####
-        subset_data = {"358251": data["358251"]}
-        data = subset_data
-
-        tokenizer = AutoTokenizer.from_pretrained(base_model)
-
-        sep = find_sep_token(tokenizer)
-        text = str(data["358251"]['headline']) + sep + str(data["358251"]['article'])
-
-        encoded_input = tokenizer(text, return_tensors='pt', padding="max_length", truncation=True, max_length=512)
-
-        output_text = tokenizer.decode(encoded_input['input_ids'][0], skip_special_tokens=False)
-
-        print(output_text)
-
-
-        #####
-
 
         tokenized_data = format_and_tokenize(data, tokenization_model=base_model, max_token_length=512)
 
@@ -215,5 +195,5 @@ if __name__ == '__main__':
             batch_size=512
         )
 
-        # with open(f'/mnt/data01/AL/preds/group_{num}on_topic_earlier.json', 'w') as f:
-        #     json.dump(topic_arts, f, indent=4)
+        with open(f'/mnt/data01/AL/preds/group_{num}on_topic_earlier.json', 'w') as f:
+            json.dump(topic_arts, f, indent=4)
