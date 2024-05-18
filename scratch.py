@@ -18,6 +18,10 @@ if __name__ == '__main__':
             if "....and this is where stands" in art_dict["headline"].lower():
 
                 example = art_dict
+                print(art_id)
 
     print(json.dumps(example, indent=3))
+
+    
+
 
