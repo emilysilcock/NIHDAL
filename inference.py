@@ -175,12 +175,12 @@ if __name__ == '__main__':
 
         print(f'**{num}**')
 
-        # Get data
-        basic_clean(
-            fp = f"/mnt/data01/AL/ln_data/The_Sun_(England)/The_Sun_(England)_{num}**",
-            first_date='01-01-2013',
-            sp=f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/"
-            )
+        # # Get data
+        # basic_clean(
+        #     fp = f"/mnt/data01/AL/ln_data/The_Sun_(England)/The_Sun_(England)_{num}**",
+        #     first_date='01-01-2013',
+        #     sp=f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/"
+        #     )
 
         # Format and tokenize
         with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data_earlier.json") as f:
