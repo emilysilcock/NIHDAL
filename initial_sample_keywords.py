@@ -44,9 +44,9 @@ if __name__ == '__main__':
                     'skiver', 'workshy', 'work-shy', 'something for nothing', 'underclass', 'benefit tourism', 'benefit tourist']
 
     # Open all data
-    sample_list = []
-
     for publication in tqdm(publications):
+
+        sample_list = []
 
         print(f'**{ publication}')
 
@@ -65,16 +65,16 @@ if __name__ == '__main__':
             except:
                 pass
 
-    for kw in keyword_list:
-        kw_list = []
-        for art_dict in sample_list:
-            if kw in str(art_dict['article']).lower()  or kw in str(art_dict['headline']).lower() :
-            # if any(kw in str(art_dict['article']).lower() for kw in keyword_list) or any(kw in str(art_dict['headline']).lower() for kw in keyword_list):
-                kw_list.append(art_dict)
+        for kw in keyword_list:
+            kw_list = []
+            for art_dict in sample_list:
+                if kw in str(art_dict['article']).lower()  or kw in str(art_dict['headline']).lower() :
+                # if any(kw in str(art_dict['article']).lower() for kw in keyword_list) or any(kw in str(art_dict['headline']).lower() for kw in keyword_list):
+                    kw_list.append(art_dict)
 
-        print(f'{kw}: {len(kw_list)}')
+            print(f'{kw}: {len(kw_list)}')
 
-    with open('scrounger_list.json', 'w') as f:
-        json.dump(kw_list, f, indent=4)
+    # with open('scrounger_list.json', 'w') as f:
+    #     json.dump(kw_list, f, indent=4)
 
-    print(len(kw_list))
+    # print(len(kw_list))
