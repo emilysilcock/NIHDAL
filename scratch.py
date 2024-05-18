@@ -65,7 +65,7 @@ if __name__ == '__main__':
             except:
                 pass
 
-    for art_id, art_dict in sample_list:
+    for art_dict in sample_list:
         if any(kw in str(art_dict['article']).lower() for kw in keyword_list) or any(kw in str(art_dict['headline']).lower() for kw in keyword_list):
             scrounger_list.append(art_dict)
 
