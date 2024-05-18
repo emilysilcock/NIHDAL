@@ -183,7 +183,7 @@ if __name__ == '__main__':
         #     )
 
         # Format and tokenize
-        with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data_earlier.json") as f:
+        with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data.json") as f:
             data = json.load(f)
 
         #####
