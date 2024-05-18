@@ -195,7 +195,7 @@ if __name__ == '__main__':
 
         tokenized_data = format_and_tokenize(data, tokenization_model=base_model, max_token_length=512)
 
-        print(tokenized_data)
+        print(tokenized_data['corpus'])
 
         # Run inference
         topic_arts = pull_positives(
