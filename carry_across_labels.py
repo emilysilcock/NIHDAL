@@ -27,6 +27,11 @@ with open(f'data_to_label/kw_initialisation/{name_bit}.json') as f:
 count = 0
 for f in new_dat:
     if f["id"] in old_labelled_data:
-        count +=1 
+        count += 1
 
-print(count)
+        f['annotations'] = [{'result': [{'value':{'choices': [old_labelled_data[f["id"]]]}}]}]
+
+print(f'{count} already labelled')
+
+with open(f'data_to_label/kw_initialisation/{name_bit}_with_old_labels.json', 'w') as f:
+    json.dump(new_dat, f, indent=4)
