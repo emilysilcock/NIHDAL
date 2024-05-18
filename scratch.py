@@ -52,9 +52,5 @@ if __name__ == '__main__':
             if "scrounger" in str(art_dict['article']).lower() or "scrouner" in str(art_dict["headline"]).lower():
                 scrounger_list.append(art_dict)
 
-    print(len(scrounger_list))
-
-
-        
-
-    
+    with open('scrounger_list.json', 'w') as f:
+        json.dump(scrounger_list, f, indent=4)
