@@ -24,4 +24,9 @@ name_bit = "first_sample"
 with open(f'data_to_label/kw_initialisation/{name_bit}.json') as f:
     new_dat = json.load(f)
 
-print(len([f for f in new_dat if f in old_labelled_data]))
+count = 0
+for f in new_dat:
+    if f in old_labelled_data:
+        count +=1 
+
+print(count)
