@@ -98,20 +98,14 @@ if __name__ == '__main__':
             selected_articles.extend(take_sample_kw_list)
 
     # Format for label studio
-    # to_label = []
-    # for i, art in enumerate(chosen_positives + chosen_negatives):
-    #     to_label.append({
-    #         "id": i,
-    #         "data": art
-    #     })
+    to_label = []
+    for art in selected_articles:
+        to_label.append({
+            "id": art["ln_id"],
+            "data": art
+        })
 
-    # random.shuffle(to_label)
+    random.shuffle(to_label)
 
-    # with open('first_sample.json', 'w') as f:
-    #     json.dump(to_label, f, indent=4)
-
-
-    with open('scrounger_list.json', 'w') as f:
-        json.dump(selected_articles, f, indent=4)
-
-    print(len(selected_articles))
+    with open('data_to_label/kw_initialisation/first_sample.json', 'w') as f:
+        json.dump(to_label, f, indent=4)
