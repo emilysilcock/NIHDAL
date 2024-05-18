@@ -40,11 +40,8 @@ if __name__ == '__main__':
 
     # Open all data
 
-    # keyword_list = ['benefits', 'welfare', 'social security', 'dole', 'benefit fraud', 'scrounger', 'shirker', 'sponger',
-    #                 'skiver', 'workshy', 'work-shy', 'something for nothing', 'underclass', 'benefit tourism', 'benefit tourist']
-    keyword_list = ['scrounger']
-
-    scrounger_list = []
+    keyword_list = ['benefits', 'welfare', 'social security', 'dole', 'benefit fraud', 'scrounger', 'shirker', 'sponger',
+                    'skiver', 'workshy', 'work-shy', 'something for nothing', 'underclass', 'benefit tourism', 'benefit tourist']
 
     # Open all data
     sample_list = []
@@ -66,11 +63,16 @@ if __name__ == '__main__':
             except:
                 pass
 
-    for art_dict in sample_list:
-        if any(kw in str(art_dict['article']).lower() for kw in keyword_list) or any(kw in str(art_dict['headline']).lower() for kw in keyword_list):
-            scrounger_list.append(art_dict)
+    for kw in keyword_list:
+        kw_list = []
+        for art_dict in sample_list:
+            if kw in str(art_dict['article']).lower()  or kw in str(art_dict['headline']).lower() :
+            # if any(kw in str(art_dict['article']).lower() for kw in keyword_list) or any(kw in str(art_dict['headline']).lower() for kw in keyword_list):
+                kw_list.append(art_dict)
 
-    with open('scrounger_list.json', 'w') as f:
-        json.dump(scrounger_list, f, indent=4)
+        print(f'{kw}: {len(kw_list)}')
 
-    print(len(scrounger_list))
+    # with open('scrounger_list.json', 'w') as f:
+    #     json.dump(scrounger_list, f, indent=4)
+
+    # print(len(scrounger_list))
