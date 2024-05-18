@@ -119,15 +119,15 @@ def format_and_tokenize(dat, tokenization_model, max_token_length):
 
     corpus = []
 
-    sep = find_sep_token(tokenizer=AutoTokenizer.from_pretrained(tokenization_model))
+    # Instantiate tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
+
+    sep = find_sep_token(tokenizer)
 
     for art_id, art_dict in dat.items():
         corpus.append(str(art_dict['headline']) + sep + str(art_dict['article']))
 
     dataset = Dataset.from_dict({'corpus': corpus})
-
-    # Instantiate tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
 
     # Tokenize datasets
     def tokenize_function(dataset):
@@ -190,10 +190,10 @@ if __name__ == '__main__':
         subset_data = {"358251": data["358251"]}
         data = subset_data
 
-        sep = find_sep_token(base_model)
-        text = str(data["358251"]['headline']) + sep + str(data["358251"]['article'])
-
         tokenizer = AutoTokenizer.from_pretrained(base_model)
+
+        sep = find_sep_token(tokenizer)
+        text = str(data["358251"]['headline']) + sep + str(data["358251"]['article'])
 
         encoded_input = tokenizer(text, return_tensors='pt', padding="max_length", truncation=True, max_length=512)
 
