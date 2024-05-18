@@ -53,7 +53,7 @@ if __name__ == '__main__':
             clean_dat = json.load(f)
 
         for art_id, art_dict in clean_dat.items():
-            if any(kw in art_dict['article'].lower() for kw in keyword_list) or any(kw in art_dict['article'].lower() for kw in keyword_list):
+            if any(kw in str(art_dict['article']).lower() for kw in keyword_list) or any(kw in str(art_dict['headline']).lower() for kw in keyword_list):
                 scrounger_list.append(art_dict)
 
     with open('scrounger_list.json', 'w') as f:
