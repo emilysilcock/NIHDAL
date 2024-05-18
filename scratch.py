@@ -49,7 +49,7 @@ if __name__ == '__main__':
             clean_dat = json.load(f)
 
         for art_id, art_dict in clean_dat.items():
-            if "scrounger" in art_dict['article'].lower() or "scrouner" in art_dict["headline"].lower():
+            if "scrounger" in str(art_dict['article']).lower() or "scrouner" in str(art_dict["headline"]).lower():
                 scrounger_list.append(art_dict)
 
     print(len(scrounger_list))
