@@ -186,12 +186,12 @@ if __name__ == '__main__':
         with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data_earlier.json") as f:
             data = json.load(f)
 
-
         #####
-        data = {"1": [d for aid, d in data.items() if d["headline"] == "....AND THIS IS WHERE STANDS"][0]}
+        subset_data = {358251: data[358251]}
+        data = subset_data
         print(json.dumps(data, indent=2))
         #####
-        
+
 
         tokenized_data = format_and_tokenize(data, tokenization_model=base_model, max_token_length=512)
 
