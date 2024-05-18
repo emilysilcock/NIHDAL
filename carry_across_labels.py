@@ -26,7 +26,7 @@ with open(f'data_to_label/kw_initialisation/{name_bit}.json') as f:
 
 count = 0
 for f in new_dat:
-    if f in old_labelled_data:
+    if f["id"] in old_labelled_data:
         count +=1 
 
 print(count)
