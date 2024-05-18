@@ -187,7 +187,7 @@ if __name__ == '__main__':
             data = json.load(f)
 
         #####
-        subset_data = {358251: data[358251]}
+        subset_data = {"358251": data["358251"]}
         data = subset_data
         print(json.dumps(data, indent=2))
         #####
