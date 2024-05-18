@@ -188,8 +188,8 @@ if __name__ == '__main__':
 
 
         #####
-        data = [d for d in data if d["headline"] == "....AND THIS IS WHERE STANDS"]
-        print(len(data))
+        data = {"1": [d for aid, d in data.items() if d["headline"] == "....AND THIS IS WHERE STANDS"][0]}
+        print(json.dumps(data, indent=2))
         #####
         
 
