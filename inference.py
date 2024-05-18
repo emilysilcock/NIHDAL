@@ -189,13 +189,23 @@ if __name__ == '__main__':
         #####
         subset_data = {"358251": data["358251"]}
         data = subset_data
-        print(json.dumps(data, indent=2))
+
+        sep = find_sep_token(base_model)
+        text = str(data["358251"]['headline']) + sep + str(data["358251"]['article'])
+
+        tokenizer = AutoTokenizer.from_pretrained(base_model)
+
+        encoded_input = tokenizer(text, return_tensors='pt', padding="max_length", truncation=True, max_length=512)
+
+        output_text = tokenizer.decode(encoded_input['input_ids'][0], skip_special_tokens=False)
+
+        print(output_text)
+
+
         #####
 
 
         tokenized_data = format_and_tokenize(data, tokenization_model=base_model, max_token_length=512)
-
-        print(tokenized_data['corpus'])
 
         # Run inference
         topic_arts = pull_positives(
