@@ -2,6 +2,7 @@
 from tqdm import tqdm
 import json
 import re
+import random
 
 if __name__ == '__main__':
 
@@ -39,8 +40,6 @@ if __name__ == '__main__':
         'Liverpool Echo',
     ]
 
-    # Open all data
-
     keyword_list_1 = ['social security', 'benefit fraud', 'scrounger', 'shirker', 'sponger',
                     'skiver', 'workshy', 'work-shy', 'something for nothing', 'underclass', 'benefit tourism', 'benefit tourist']
 
@@ -48,7 +47,12 @@ if __name__ == '__main__':
 
     keyword_list_3 = ['benefits', 'welfare']
 
-    # Open all data
+
+    sample_size = 10
+
+    selected_articles = []
+
+    # Open all data   
     for publication in tqdm(publications):
         sample_list = []
 
@@ -85,11 +89,13 @@ if __name__ == '__main__':
             elif any(kw in text for kw in keyword_list_3):
                 take_sample_kw_list.append(art_dict)
 
-        print(len(take_all_kw_list))
-        print(len(take_sample_kw_list))
+        selected_articles.extend(take_all_kw_list)
+        selected_articles.extend(random.sample(take_sample_kw_list, sample_size - len(take_all_kw_list)))
             
+    # Format for label studio 
 
-    # with open('scrounger_list.json', 'w') as f:
-    #     json.dump(kw_list, f, indent=4)
 
-    # print(len(kw_list))
+    with open('scrounger_list.json', 'w') as f:
+        json.dump(selected_articles, f, indent=4)
+
+    print(len(selected_articles))
