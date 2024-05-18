@@ -1,6 +1,7 @@
 
 from tqdm import tqdm
 import json
+import re
 
 if __name__ == '__main__':
 
@@ -40,13 +41,16 @@ if __name__ == '__main__':
 
     # Open all data
 
-    keyword_list = ['benefits', 'welfare', 'social security', 'dole', 'benefit fraud', 'scrounger', 'shirker', 'sponger',
+    keyword_list_1 = ['social security', 'benefit fraud', 'scrounger', 'shirker', 'sponger',
                     'skiver', 'workshy', 'work-shy', 'something for nothing', 'underclass', 'benefit tourism', 'benefit tourist']
 
-    sample_list = []
+    keyword_list_2 = ['dole']
+
+    keyword_list_3 = ['benefits', 'welfare']
 
     # Open all data
     for publication in tqdm(publications):
+        sample_list = []
 
         print(f'**{ publication}')
 
@@ -65,14 +69,25 @@ if __name__ == '__main__':
             except:
                 pass
 
-    for kw in keyword_list:
-        kw_list = []
+        # Look for keywords
+        take_all_kw_list = []
+        take_sample_kw_list = []
         for art_dict in sample_list:
-            if kw in str(art_dict['article']).lower()  or kw in str(art_dict['headline']).lower() :
-            # if any(kw in str(art_dict['article']).lower() for kw in keyword_list) or any(kw in str(art_dict['headline']).lower() for kw in keyword_list):
-                kw_list.append(art_dict)
 
-        print(f'{kw}: {len(kw_list)}')
+            text = str(art_dict['article']).lower() + " " + str(art_dict['headline']).lower()
+
+            if any(kw in text for kw in keyword_list_1):
+                take_all_kw_list.append(art_dict)
+
+            elif any(re.search(r'\b' + re.escape(kw) + r'\b', text) for kw in keyword_list_2):
+                take_all_kw_list.append(art_dict)
+
+            elif any(kw in text for kw in keyword_list_3):
+                take_sample_kw_list.append(art_dict)
+
+        print(len(take_all_kw_list))
+        print(len(take_sample_kw_list))
+            
 
     # with open('scrounger_list.json', 'w') as f:
     #     json.dump(kw_list, f, indent=4)
