@@ -39,6 +39,10 @@ if __name__ == '__main__':
     ]
 
     # Open all data
+
+    keyword_list = ['benefits', 'welfare', 'social security', 'dole', 'benefit fraud', 'scrounger', 'shirker', 'sponger', 
+                    'skiver', 'workshy', 'work-shy', 'something for nothing', 'underclass', 'benefit tourism', 'benefit tourist']
+
     scrounger_list = []
 
     for publication in tqdm(publications):
@@ -49,8 +53,10 @@ if __name__ == '__main__':
             clean_dat = json.load(f)
 
         for art_id, art_dict in clean_dat.items():
-            if "scrounger" in str(art_dict['article']).lower() or "scrouner" in str(art_dict["headline"]).lower():
+            if any(kw in art_dict['article'].lower() for kw in keyword_list) or any(kw in art_dict['article'].lower() for kw in keyword_list):
                 scrounger_list.append(art_dict)
 
     with open('scrounger_list.json', 'w') as f:
         json.dump(scrounger_list, f, indent=4)
+
+    print(len(scrounger_list))
