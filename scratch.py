@@ -40,10 +40,13 @@ if __name__ == '__main__':
 
     # Open all data
 
-    keyword_list = ['benefits', 'welfare', 'social security', 'dole', 'benefit fraud', 'scrounger', 'shirker', 'sponger', 
+    keyword_list = ['benefits', 'welfare', 'social security', 'dole', 'benefit fraud', 'scrounger', 'shirker', 'sponger',
                     'skiver', 'workshy', 'work-shy', 'something for nothing', 'underclass', 'benefit tourism', 'benefit tourist']
 
     scrounger_list = []
+
+    # Open all data
+    sample_list = []
 
     for publication in tqdm(publications):
 
@@ -52,9 +55,19 @@ if __name__ == '__main__':
         with open(f"Sun_data/{publication_fn}/cleaned_sample_data.json") as f:
             clean_dat = json.load(f)
 
-        for art_id, art_dict in clean_dat.items():
-            if any(kw in str(art_dict['article']).lower() for kw in keyword_list) or any(kw in str(art_dict['headline']).lower() for kw in keyword_list):
-                scrounger_list.append(art_dict)
+        with open(f"Sun_data/sample_indices_{publication_fn}.json") as f:
+            sample = json.load(f)
+
+        # Take sample
+        for s in sample:
+            try:
+                sample_list.append(clean_dat[str(s)])
+            except:
+                pass
+
+    for art_id, art_dict in sample_list:
+        if any(kw in str(art_dict['article']).lower() for kw in keyword_list) or any(kw in str(art_dict['headline']).lower() for kw in keyword_list):
+            scrounger_list.append(art_dict)
 
     with open('scrounger_list.json', 'w') as f:
         json.dump(scrounger_list, f, indent=4)
