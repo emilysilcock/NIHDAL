@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
         for art_id, art_dict in tqdm(data.items()):
 
-            if "oap" in art_dict["headline"].lower() and "rapist" in art_dict["headline"].lower():
+            if "....and this is where stands" in art_dict["headline"].lower():
 
                 print(f'********************{num}*************************')
                 print(art_dict["headline"])
