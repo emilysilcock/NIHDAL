@@ -167,6 +167,7 @@ def chunk(art_dict, tokenizer, max_length=512):
         num_chunks = math.ceil(art_length/chunk_max_length)
 
         paragraphs = art_dict["article"].split("\n\n")
+        print(paragraphs)
         para_lengths = [len(tokenizer.tokenize(para)) + 2  for para in paragraphs]
         print(para_lengths)
         print(sum(para_lengths))
