@@ -166,6 +166,8 @@ def chunk(art_dict, tokenizer, max_length=512):
 
         paragraphs = art_dict["article"].split("\n\n")
         para_lengths = [len(tokenizer.tokenize(para)) for para in paragraphs]
+        print(para_lengths)
+        print(chunk_max_length)
 
         possible_partitions = partition_list(para_lengths, n_sublists=num_chunks, max_len=chunk_max_length)
 
