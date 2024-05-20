@@ -75,8 +75,7 @@ if __name__ == '__main__':
     tokenization_model = 'roberta-large'
     tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
 
-
-    for art in selected_articles:
+    for art in tqdm(selected_articles):
 
         chunked_art = chunk(art, tokenizer, max_length=512)
 
