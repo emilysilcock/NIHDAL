@@ -150,10 +150,8 @@ def basic_clean(fp, first_date, sp):
 def chunk(art_dict, tokenizer, max_length=512):
 
     headline_length = len(tokenizer.tokenize(art_dict["headline"]))
-    print(headline_length)
 
     art_length = len(tokenizer.tokenize(art_dict["article"]))
-    print(art_length)
 
     # If short enough to be one chunk
     if headline_length + art_length + 3 < max_length:
@@ -168,6 +166,7 @@ def chunk(art_dict, tokenizer, max_length=512):
 
         paragraphs = art_dict["article"].split("/n/n")
         para_lengths = [len(tokenizer.tokenize(para)) for para in paragraphs]
+        print(para_lengths)
 
         possible_partitions = partition_list(para_lengths, n_sublists=num_chunks, max_len=chunk_max_lenth)
 
