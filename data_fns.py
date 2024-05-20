@@ -171,9 +171,6 @@ def chunk(art_dict, tokenizer, max_length=512):
         for i, para in enumerate(paragraphs):
             if para_lengths[i] > chunk_max_length:
 
-                print(para)
-                print(para_lengths)
-
                 p_num_chunks = math.ceil(para_lengths[i]/chunk_max_length)
                 p_chunk_length = para_lengths[i]//p_num_chunks
 
@@ -194,21 +191,24 @@ def chunk(art_dict, tokenizer, max_length=512):
 
                 para_lengths[i:i+1] = p_lengths
 
-                print(para_lengths)
-                print("*****************************")
-
+        print(datetime.now())
         possible_partitions = partition_list(para_lengths, n_sublists=num_chunks, max_len=chunk_max_length)
 
         if len(possible_partitions) == 0:
             num_chunks += 1
             possible_partitions = partition_list(para_lengths, n_sublists=num_chunks, max_len=chunk_max_length)
 
+        print(datetime.now())
         best_partition = find_partition_with_lowest_variance(possible_partitions)
 
         # Add overlaps
+        print(datetime.now())
         overlapped_partition = expand_overlaps(best_partition, para_lengths, chunk_max_length)
 
         art_dict['chunks'] = ["\n\n".join([paragraphs[i] for i in part]) for part in overlapped_partition]
+        print(datetime.now())
+        print("**")
+
 
     return art_dict
                 
