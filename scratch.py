@@ -11,8 +11,6 @@ publications = get_pub_list()
 for publication in tqdm(publications):
     sample_list = []
 
-    print(f'**{ publication}')
-
     publication_fn = publication.replace(' ', '_')
 
     with open(f"Sun_data/{publication_fn}/cleaned_sample_data.json") as f:

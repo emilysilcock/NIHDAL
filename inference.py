@@ -1,118 +1,13 @@
 import os
 import json
-from glob import glob
-from tqdm import tqdm
 import numpy as np
 
-from bs4 import BeautifulSoup
-from datetime import datetime
-
 from datasets import Dataset
-from transformers import pipeline, AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
+
+from data_fns import find_sep_token, basic_clean
 
 os.environ['TRANSFORMERS_CACHE'] = '.cache/'
-
-
-def basic_clean(fp, first_date, sp):
-
-    data_dict = {}
-    not_found_dict = []
-
-    remove_before = datetime.strptime(first_date, '%d-%m-%Y')
-
-    paths = glob(fp)
-    print(f'{len(paths)} paths to process')
-
-    for path in tqdm(paths):
-
-        try:
-            count = int(path.split("_")[-1].split(".")[0])
-        except:
-            print(path)
-            assert 1 == 0
-
-        try:
-            with open(path) as f:
-                dat = json.load(f)
-
-            for art in dat["value"]:
-
-                # Parse xml
-                if not art['Document']:
-                    not_found_dict.append(art)
-                    count += 1
-                    continue
-
-                content = art['Document']['Content']
-
-                soup = BeautifulSoup(content, 'xml')
-
-                # Get Date
-                date = datetime.strptime(art["Date"], "%Y-%m-%dT%H:%M:%SZ").date()
-
-                if date >= remove_before.date():   ### SWITCHED TO EARLIER DATES 
-                    count += 1
-                    continue
-
-                check_date = datetime.strptime(soup.find('published').get_text(), "%Y-%m-%dT%H:%M:%SZ").date()
-                assert date == check_date
-
-                publication_date_day = soup.find('publicationDate').get('day')
-                publication_date_month = soup.find('publicationDate').get('month')
-                publication_date_year = soup.find('publicationDate').get('year')
-                publication_date_obj = datetime.strptime(f"{publication_date_year}-{publication_date_month}-{publication_date_day}", "%Y-%m-%d")
-                assert date == publication_date_obj.date()
-
-                date = date.strftime("%Y-%m-%d")
-
-
-                # Get article
-                try:
-                    article = soup.find('nitf:body.content').get_text(separator='\n\n')
-                except:
-                    article = ""
-
-                cleaned_data = {
-                    "int_id": count,
-                    "ln_id": art["Document"]["DocumentId"],
-                    "date": date,
-                    "headline": art["Title"],
-                    "article": article,
-                    "newspaper": art["Source"]["Name"],
-                }
-
-                data_dict[count] = cleaned_data
-
-                count += 1
-
-        except:
-            print(f'{path} not found')
-
-    print(f'{len(data_dict)} articles')
-    print(f'{len(not_found_dict)} articles not found')
-
-    # Save
-    os.makedirs(sp, exist_ok=True)
-
-    with open(f"{sp}/cleaned_sample_data_earlier.json", 'w') as f:
-        json.dump(data_dict, f, indent=4)
-
-    with open(f"{sp}/not_found_sample_earlier.json", 'w') as f:
-        json.dump(not_found_dict, f, indent=4)
-
-
-def find_sep_token(tokenizer):
-
-    """
-    Returns sep token for given tokenizer
-    """
-
-    if 'eos_token' in tokenizer.special_tokens_map:
-        sep = " " + tokenizer.special_tokens_map['eos_token'] + " " + tokenizer.special_tokens_map['sep_token'] + " "
-    else:
-        sep = " " + tokenizer.special_tokens_map['sep_token'] + " "
-
-    return sep
 
 
 def format_and_tokenize(dat, tokenization_model, max_token_length):
