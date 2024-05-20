@@ -168,6 +168,7 @@ def chunk(art_dict, tokenizer, max_length=512):
         para_lengths = [len(tokenizer.tokenize(para)) + 2  for para in paragraphs]
         print(para_lengths)
         print(len(para_lengths))
+        print(json.dumps(paragraphs, indent=2))
 
         # Deal with long paragraphs - mostly TV schedules and lists
         for i, para in enumerate(paragraphs):
