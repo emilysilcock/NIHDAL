@@ -26,8 +26,6 @@ if __name__ == '__main__':
     for publication in tqdm(publications):
         sample_list = []
 
-        print(f'**{ publication}')
-
         publication_fn = publication.replace(' ', '_')
 
         with open(f"Sun_data/{publication_fn}/cleaned_sample_data.json") as f:
@@ -87,7 +85,7 @@ if __name__ == '__main__':
             })
 
         else:
-            for i, chunk in chunked_art['chunks']:
+            for i, chunk in enumerate(chunked_art['chunks']):
 
                 art['article'] = chunk
 
