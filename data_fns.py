@@ -161,23 +161,23 @@ def chunk(art_dict, tokenizer, max_length=512):
     # Otherwise partition
     else:
 
-        chunk_max_lenth = max_length - headline_length - 1
-        num_chunks = math.ceil(art_length/chunk_max_lenth)
+        chunk_max_length = max_length - headline_length - 1
+        num_chunks = math.ceil(art_length/chunk_max_length)
 
         paragraphs = art_dict["article"].split("\n\n")
         para_lengths = [len(tokenizer.tokenize(para)) for para in paragraphs]
 
-        possible_partitions = partition_list(para_lengths, n_sublists=num_chunks, max_len=chunk_max_lenth)
+        possible_partitions = partition_list(para_lengths, n_sublists=num_chunks, max_len=chunk_max_length)
 
         if len(possible_partitions) == 0:
             num_chunks += 1
-            possible_partitions = partition_list(para_lengths, n_sublists=num_chunks, max_len=chunk_max_lenth)
+            possible_partitions = partition_list(para_lengths, n_sublists=num_chunks, max_len=chunk_max_length)
 
         best_partition = find_partition_with_lowest_variance(possible_partitions)
         print(best_partition)
 
         # Add overlaps
-        overlapped_partition = expand_overlaps(best_partition, para_lengths, max_length)
+        overlapped_partition = expand_overlaps(best_partition, para_lengths, chunk_max_length)
         print(overlapped_partition)
 
         art_dict['chunks'] = ["\n\n".join([paragraphs[i] for i in part]) for part in overlapped_partition]
