@@ -150,15 +150,17 @@ def basic_clean(fp, first_date, sp):
 def chunk(art_dict, tokenizer, max_length=512):
 
     headline_length = len(tokenizer.tokenize(art_dict["headline"]))
+    print(headline_length)
 
     art_length = len(tokenizer.tokenize(art_dict["article"]))
+    print(art_length)
 
     # If short enough to be one chunk
     if headline_length + art_length + 3 < max_length:
 
         art_dict['chunks'] = [art_dict["article"]]
 
-    # Otherwise partition 
+    # Otherwise partition
     else:
 
         chunk_max_lenth = max_length - headline_length - 1
@@ -172,6 +174,8 @@ def chunk(art_dict, tokenizer, max_length=512):
         if len(possible_partitions) == 0:
             num_chunks += 1
             possible_partitions = partition_list(para_lengths, n_sublists=num_chunks, max_len=chunk_max_lenth)
+
+        print(possible_partitions)
 
         best_partition = find_partition_with_lowest_variance(possible_partitions)
 
