@@ -191,11 +191,9 @@ def chunk(art_dict, tokenizer, max_length=512):
 
                 para_lengths[i:i+1] = p_lengths
 
-        print(len(paragraphs))
         possible_partitions = partition_list(para_lengths, n_sublists=num_chunks, max_len=chunk_max_length)
 
         if len(possible_partitions) == 0:
-            print('hit')
             num_chunks += 1
             possible_partitions = partition_list(para_lengths, n_sublists=num_chunks, max_len=chunk_max_length)
 

@@ -85,9 +85,9 @@ if __name__ == '__main__':
             })
 
         else:
-            for i, chunk in enumerate(chunked_art['chunks']):
+            for i, ch in enumerate(chunked_art['chunks']):
 
-                art['article'] = chunk
+                art['article'] = ch
 
                 to_label.append({
                     "id": f'{art["ln_id"]}_{i}',
