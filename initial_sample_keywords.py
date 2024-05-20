@@ -4,7 +4,9 @@ import json
 import re
 import random
 
-from data_fns import get_pub_list
+from transformers import AutoTokenizer
+
+from data_fns import get_pub_list, chunk
 
 if __name__ == '__main__':
 
@@ -65,15 +67,37 @@ if __name__ == '__main__':
         else:
             selected_articles.extend(take_sample_kw_list)
 
+    random.shuffle(selected_articles)
+
     # Format for label studio
     to_label = []
-    for art in selected_articles:
-        to_label.append({
-            "id": art["ln_id"],
-            "data": art
-        })
 
-    random.shuffle(to_label)
+    tokenization_model = 'roberta-large'
+    tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
+
+
+    for art in selected_articles:
+
+        chunked_art = chunk(art, tokenizer, max_length=512)
+
+        if len(chunked_art['chunks']) == 1:
+
+            to_label.append({
+                "id": art["ln_id"],
+                "data": art
+            })
+
+        else:
+            for i, chunk in chunked_art['chunks']:
+
+                art['article'] = chunk
+
+                to_label.append({
+                    "id": f'{art["ln_id"]}_{i}',
+                    "data": art
+                })
+
+    print(len(to_label))
 
     with open('data_to_label/kw_initialisation/first_sample.json', 'w') as f:
         json.dump(to_label, f, indent=4)
