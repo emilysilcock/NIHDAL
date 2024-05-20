@@ -34,4 +34,7 @@ tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
 
 for s in tqdm(sample_list):
 
+    print(type(s))
+    print(json.dumps(s, indent=4))
+
     chunked_s = chunk(s, tokenizer, max_length=512)
