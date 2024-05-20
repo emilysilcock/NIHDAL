@@ -150,10 +150,8 @@ def basic_clean(fp, first_date, sp):
 def chunk(art_dict, tokenizer, max_length=512):
 
     headline_length = len(tokenizer.tokenize(art_dict["headline"]))
-    print(headline_length)
 
     art_length = len(tokenizer.tokenize(art_dict["article"]))
-    print(art_length)
 
     # If short enough to be one chunk
     if headline_length + art_length + 3 < max_length:
@@ -173,6 +171,9 @@ def chunk(art_dict, tokenizer, max_length=512):
         for i, para in enumerate(paragraphs):
             if para_lengths[i] > chunk_max_length:
 
+                print(para)
+                print(para_lengths)
+
                 p_num_chunks = math.ceil(para_lengths[i]/chunk_max_length)
                 p_chunk_length = para_lengths[i]//p_num_chunks
 
@@ -185,9 +186,16 @@ def chunk(art_dict, tokenizer, max_length=512):
 
                 p_texts = [tokenizer.convert_tokens_to_string(chunk) for chunk in p_chunks]
 
-                print(json.dumps(p_texts, indent=2))
+                paragraphs[i:i+1] = p_texts
+                
+                p_lengths = [p_chunk_length] * p_num_chunks
+                if para_lengths[i] % p_num_chunks != 0:
+                    p_lengths[-1] += para_lengths[i] - (p_num_chunks * p_chunk_length)
 
+                para_lengths[i:i+1] = p_lengths
 
+                print(para_lengths)
+                print("*****************************")
 
         possible_partitions = partition_list(para_lengths, n_sublists=num_chunks, max_len=chunk_max_length)
 
