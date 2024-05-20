@@ -167,11 +167,27 @@ def chunk(art_dict, tokenizer, max_length=512):
         num_chunks = math.ceil(art_length/chunk_max_length)
 
         paragraphs = art_dict["article"].split("\n\n")
-        print(paragraphs)
         para_lengths = [len(tokenizer.tokenize(para)) + 2  for para in paragraphs]
-        print(para_lengths)
-        print(sum(para_lengths))
-        print(chunk_max_length)
+
+        # Deal with long paragraphs - mostly TV schedules and lists
+        for i, para in enumerate(paragraphs):
+            if para_lengths[i] > chunk_max_length:
+
+                p_num_chunks = math.ceil(para_lengths[i]/chunk_max_length)
+                p_chunk_length = para_lengths[i]//p_num_chunks
+
+                p_tokens = tokenizer.tokenize(para)
+
+                p_chunks = [p_tokens[i * p_chunk_length:(i + 1) * p_chunk_length] for i in range(p_num_chunks)]
+
+                if para_lengths[i] % p_num_chunks != 0:
+                    p_chunks[-1].extend(p_tokens[p_num_chunks * p_chunk_length:])
+
+                p_texts = [tokenizer.convert_tokens_to_string(chunk) for chunk in p_chunks]
+
+                print(json.dumps(p_texts, indent=2))
+
+
 
         possible_partitions = partition_list(para_lengths, n_sublists=num_chunks, max_len=chunk_max_length)
 
@@ -180,11 +196,9 @@ def chunk(art_dict, tokenizer, max_length=512):
             possible_partitions = partition_list(para_lengths, n_sublists=num_chunks, max_len=chunk_max_length)
 
         best_partition = find_partition_with_lowest_variance(possible_partitions)
-        # print(best_partition)
 
         # Add overlaps
         overlapped_partition = expand_overlaps(best_partition, para_lengths, chunk_max_length)
-        # print(overlapped_partition)
 
         art_dict['chunks'] = ["\n\n".join([paragraphs[i] for i in part]) for part in overlapped_partition]
 
