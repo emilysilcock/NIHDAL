@@ -177,9 +177,9 @@ def chunk(art_dict, tokenizer, max_length=512):
         print(best_partition)
 
         # Add overlaps 
-        overlapped_partition = expand_overlaps(best_partition)
+        overlapped_partition = expand_overlaps(best_partition, para_lengths, max_length)
 
-        art_dict['chunks'] = ["/n/n".join([paragraphs[i] for i in part]) for part in overlapped_partition]
+        art_dict['chunks'] = ["\n\n".join([paragraphs[i] for i in part]) for part in overlapped_partition]
 
     return art_dict
                 
