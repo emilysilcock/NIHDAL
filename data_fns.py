@@ -170,7 +170,8 @@ def chunk(art_dict, tokenizer, max_length=512):
         print(len(para_lengths))
         print(sum(para_lengths))
         print(chunk_max_length)
-        print(json.dumps(paragraphs, indent=2))
+        # print(json.dumps(paragraphs, indent=2))
+        print(art_dict['headline'])
 
         # Deal with long paragraphs - mostly TV schedules and lists
         for i, para in enumerate(paragraphs):
