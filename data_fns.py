@@ -166,12 +166,6 @@ def chunk(art_dict, tokenizer, max_length=512):
 
         paragraphs = art_dict["article"].split("\n\n")
         para_lengths = [len(tokenizer.tokenize(para)) + 2  for para in paragraphs]
-        print(para_lengths)
-        print(len(para_lengths))
-        print(sum(para_lengths))
-        print(chunk_max_length)
-        # print(json.dumps(paragraphs, indent=2))
-        print(art_dict['headline'])
 
         # Deal with long paragraphs - mostly TV schedules and lists
         for i, para in enumerate(paragraphs):
@@ -197,22 +191,40 @@ def chunk(art_dict, tokenizer, max_length=512):
 
                 para_lengths[i:i+1] = p_lengths
 
-        possible_partitions = partition_list(para_lengths, n_sublists=num_chunks, max_len=chunk_max_length)
+        # Chunk
+        all_chunks = []
+        para_dict = {i: para_lengths[i] for i in range(len(para_lengths))}
+        while len(para_dict) > 0:
+            running_sum = 0
+            ch = []
+            for i, para_len in para_dict.items():
+                if running_sum + para_len > chunk_max_length:
+                    break
+                ch.append(i)
+                running_sum += para_len
 
-        if len(possible_partitions) == 0:
-            num_chunks += 1
-            possible_partitions = partition_list(para_lengths, n_sublists=num_chunks, max_len=chunk_max_length)
+            all_chunks.append(ch)
 
-        best_partition = find_partition_with_lowest_variance(possible_partitions)
+            # Stop if reached end
+            if ch[-1] == len(para_lengths) - 1:
+                for j in ch:
+                    del para_dict[j]
 
-        # Add overlaps
-        overlapped_partition = expand_overlaps(best_partition, para_lengths, chunk_max_length)
+            # Create overlap
+            elif para_lengths[ch[-1]] + para_lengths[ch[-1] + 1] > chunk_max_length:
+                for j in ch:
+                    del para_dict[j]
+            elif (para_lengths[ch[-1]] < 10) and (para_lengths[ch[-2]] + para_lengths[ch[-1]] + para_lengths[ch[-1] + 1] <= chunk_max_length):
+                for j in ch[:-2]:
+                    del para_dict[j]
+            else:
+                for j in ch[:-1]:
+                    del para_dict[j]
 
-        art_dict['chunks'] = ["\n\n".join([paragraphs[i] for i in part]) for part in overlapped_partition]
-
+        art_dict['chunks'] = ["\n\n".join([paragraphs[i] for i in ch]) for ch in all_chunks]
 
     return art_dict
-                
+
 
 def partition_list(input_list, n_sublists, max_len=512):
     def is_valid_partition(partition):
