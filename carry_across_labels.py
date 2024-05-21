@@ -29,21 +29,39 @@ for f in new_dat:
     if f["id"] in old_labelled_data:
         count += 1
 
-        f["annotations"] = [
+        f['annotations'] = [
             {
-                "id":f["id"],
-                "completed_by":1,
-                "result":[
-                    {
-                        "value":{"choices":[old_labelled_data[f["id"]]]},
-                        "id":f["id"],
-                        "from_name":"topic",
-                        "to_name":"text",
-                        "type":"choices",
-                    }
-                    ],
+                'completed_by':1,
+                'result': [{'value':{'choices': [old_labelled_data[f["id"]]]}}]
             }
-            ],
+        ]
+
+        # f["annotations"] = [
+        #     {
+        #         "id":f["id"],
+        #         "completed_by":1,
+        #         "result":[
+        #             {
+        #                 "value":{"choices":["Irrelevant"]},
+        #                 "id":"tV21suftTv",
+        #                 "from_name":"topic",
+        #                 "to_name":"text",
+        #                 "type":"choices",
+        #                 "origin":"manual"
+        #             }
+        #             ],
+        #         "was_cancelled":false,
+        #         "ground_truth":false,
+        #         "created_at":"2024-05-16T21:46:38.224312Z",
+        #         "updated_at":"2024-05-16T21:46:38.224312Z",
+        #         "lead_time":58.739,
+        #         "prediction":{},
+        #         "result_count":0,
+        #         "task":118648,
+        #         "parent_prediction":null,
+        #         "parent_annotation":null
+        #     }
+        #     ],
 
 print(f'{count} already labelled')
 
