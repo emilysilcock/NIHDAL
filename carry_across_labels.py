@@ -31,12 +31,15 @@ for f in new_dat:
 
         f['annotations'] = [
             {
+                'id': count,
                 'completed_by':1,
                 'result': [
                     {
                         'value':{'choices': [old_labelled_data[f["id"]]]},
+                        'id': 1,
                         'from_name': 'topic',
-                        'to_name':'text'
+                        'to_name':'text',
+                        'type': 'choices'
                     }
                 ]
             }
