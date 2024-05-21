@@ -149,14 +149,9 @@ def basic_clean(fp, first_date, sp):
 
 def chunk(art_dict, tokenizer, max_length=512):
 
-    headline_length = len(tokenizer.tokenize(art_dict["headline"]))
+    headline_length = len(tokenizer.tokenize(str(art_dict["headline"])))
 
-    try:
-        art_length = len(tokenizer.tokenize(art_dict["article"]))
-    except:
-        print("*************************")
-        print(art_dict["article"])
-        print("*************************")
+    art_length = len(tokenizer.tokenize(str(art_dict["article"])))
 
     # If short enough to be one chunk
     if headline_length + art_length + 3 < max_length:
