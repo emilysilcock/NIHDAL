@@ -166,6 +166,7 @@ def chunk(art_dict, tokenizer, max_length=512):
         paragraphs = art_dict["article"].split("\n\n")
         para_lengths = [len(tokenizer.tokenize(para)) + 2  for para in paragraphs]
         print(len(para_lengths))
+        print(sum(para_lengths))
         print(para_lengths)
 
         # Deal with long paragraphs - mostly TV schedules and lists
@@ -228,103 +229,3 @@ def chunk(art_dict, tokenizer, max_length=512):
         print("*************")
 
     return art_dict
-
-
-def partition_list(input_list, n_sublists, max_len=512):
-    def is_valid_partition(partition):
-        return all(sum(sublist) <= max_len for sublist in partition)
-    
-    def get_partitions(lst, n):
-        if n == 1:
-            yield [lst]
-        else:
-            for i in range(1, len(lst)):
-                for p in get_partitions(lst[i:], n - 1):
-                    yield [lst[:i]] + p
-
-    valid_partitions = []
-    for partition in get_partitions(input_list, n_sublists):
-        if is_valid_partition(partition):
-            valid_partitions.append(partition)
-    
-    return valid_partitions
-
-
-def calculate_variance_of_partition(partition):
-    sums = [sum(sublist) for sublist in partition]
-
-    return variance(sums)
-
-
-def find_partition_with_lowest_variance(partitions):
-    min_variance = float('inf')
-    best_partition = None
-    for partition in partitions:
-        current_variance = calculate_variance_of_partition(partition)
-        if current_variance < min_variance:
-            min_variance = current_variance
-            best_partition = partition
-
-    # Return indices
-    current_index = 0
-    result = []
-
-    for sublist in best_partition:
-        new_sublist = []
-        for _ in sublist:
-            new_sublist.append(current_index)
-            current_index += 1
-        result.append(new_sublist)
-
-    return result 
-
-
-def expand_overlaps(partition, length_list, max_len):
-
-    # Expand first partition
-    first_partition = partition[0]
-
-    current_sum = sum([length_list[i] for i in first_partition])
-    next_para = first_partition[-1] + 1
-
-    while current_sum + length_list[next_para] <= max_len:
-
-        first_partition.append(next_para)
-        current_sum = sum([length_list[i] for i in first_partition])
-        next_para = first_partition[-1] + 1
-
-    # Expand last partition 
-    last_partition = partition[-1]
-
-    current_sum = sum([length_list[i] for i in last_partition])
-    next_para = last_partition[0] -1
-
-    while current_sum + length_list[next_para] <= max_len:
-
-        last_partition.insert(0, next_para)
-        current_sum = sum([length_list[i] for i in last_partition])
-        next_para = last_partition[0] -1
-    
-    # Expand middle partitions
-    middle_partitions = partition[1:-1]
-
-    for middle_partition in middle_partitions:
-
-
-        current_sum = sum([length_list[i] for i in middle_partition])
-        next_para_forward = middle_partition[-1] + 1
-        next_para_backward = middle_partition[0] - 1
-
-        while current_sum + length_list[next_para_forward] <= max_len or current_sum + length_list[next_para_backward] <= max_len:
-
-            if current_sum + length_list[next_para_forward] <= max_len:
-                middle_partition.append(next_para_forward)
-                current_sum = sum([length_list[i] for i in middle_partition])
-                next_para_forward = middle_partition[-1] + 1
-            
-            if current_sum + length_list[next_para_backward] <= max_len:
-                middle_partition.insert(0, next_para_backward)
-                current_sum = sum([length_list[i] for i in middle_partition])
-                next_para_backward = middle_partition[0] - 1
-            
-    return partition
