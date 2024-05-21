@@ -45,6 +45,24 @@ for f in new_dat:
             }
         ]
 
+    elif f["id"].split("_")[0] in old_labelled_data and old_labelled_data[f["id"].split("_")[0]] == "Irrelevant":
+        count += 1
+
+        f['annotations'] = [
+            {
+                'id': count,
+                'completed_by':1,
+                'result': [
+                    {
+                        'value':{'choices': [old_labelled_data[f["id"].split("_")[0]]]},
+                        'id': 1,
+                        'from_name': 'topic',
+                        'to_name':'text',
+                        'type': 'choices'
+                    }
+                ]
+            }
+        ]
         # f["annotations"] = [
         #     {
         #         "id":f["id"],
