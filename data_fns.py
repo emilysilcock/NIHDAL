@@ -165,6 +165,7 @@ def chunk(art_dict, tokenizer, max_length=512):
 
         paragraphs = art_dict["article"].split("\n\n")
         para_lengths = [len(tokenizer.tokenize(para)) + 2  for para in paragraphs]
+        print(len(para_lengths))
 
         # Deal with long paragraphs - mostly TV schedules and lists
         for i, para in enumerate(paragraphs):
@@ -221,6 +222,9 @@ def chunk(art_dict, tokenizer, max_length=512):
                     del para_dict[j]
 
         art_dict['chunks'] = ["\n\n".join([paragraphs[i] for i in ch]) for ch in all_chunks]
+
+        print(all_chunks)
+        print("*************")
 
     return art_dict
 
