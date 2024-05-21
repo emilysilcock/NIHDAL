@@ -154,7 +154,9 @@ def chunk(art_dict, tokenizer, max_length=512):
     try:
         art_length = len(tokenizer.tokenize(art_dict["article"]))
     except:
+        print("*************************")
         print(art_dict["article"])
+        print("*************************")
 
     # If short enough to be one chunk
     if headline_length + art_length + 3 < max_length:
