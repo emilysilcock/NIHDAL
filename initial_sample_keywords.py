@@ -10,6 +10,7 @@ from data_fns import get_pub_list, chunk
 
 if __name__ == '__main__':
 
+    random.seed(42)
 
     publications = get_pub_list()
 
