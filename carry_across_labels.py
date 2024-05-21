@@ -32,7 +32,13 @@ for f in new_dat:
         f['annotations'] = [
             {
                 'completed_by':1,
-                'result': [{'value':{'choices': [old_labelled_data[f["id"]]]}}]
+                'result': [
+                    {
+                        'value':{'choices': [old_labelled_data[f["id"]]]},
+                        'from_name': 'topic',
+                        'to_name':'text'
+                    }
+                ]
             }
         ]
 
