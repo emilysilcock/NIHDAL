@@ -3,6 +3,7 @@ from tqdm import tqdm
 import json
 import re
 import random
+import copy
 
 from transformers import AutoTokenizer
 
@@ -88,11 +89,13 @@ if __name__ == '__main__':
         else:
             for i, ch in enumerate(chunked_art['chunks']):
 
-                art['article'] = ch
+                art_copy = copy.deepcopy(art)
+
+                art_copy['article'] = ch
 
                 to_label.append({
-                    "id": f'{art["ln_id"]}_{i}',
-                    "data": art
+                    "id": f'{art_copy["ln_id"]}_{i}',
+                    "data": art_copy
                 })
 
     print(len(to_label))
