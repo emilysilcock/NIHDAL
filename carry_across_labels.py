@@ -29,7 +29,20 @@ for f in new_dat:
     if f["id"] in old_labelled_data:
         count += 1
 
-        f['annotations'] = [{'result': [{'value':{'choices': [old_labelled_data[f["id"]]]}}]}]
+        f["annotations"] = [
+            {
+                "id":f["id"],
+                "result":[
+                    {
+                        "value":{"choices":[old_labelled_data[f["id"]]]},
+                        "id":f["id"],
+                        "from_name":"topic",
+                        "to_name":"text",
+                        "type":"choices",
+                    }
+                    ],
+            }
+            ],
 
 print(f'{count} already labelled')
 
