@@ -151,7 +151,10 @@ def chunk(art_dict, tokenizer, max_length=512):
 
     headline_length = len(tokenizer.tokenize(art_dict["headline"]))
 
-    art_length = len(tokenizer.tokenize(art_dict["article"]))
+    try:
+        art_length = len(tokenizer.tokenize(art_dict["article"]))
+    except:
+        print(art_dict["article"])
 
     # If short enough to be one chunk
     if headline_length + art_length + 3 < max_length:
@@ -162,7 +165,6 @@ def chunk(art_dict, tokenizer, max_length=512):
     else:
 
         chunk_max_length = max_length - headline_length - 3
-        num_chunks = math.ceil(art_length/chunk_max_length)
 
         paragraphs = art_dict["article"].split("\n\n")
         para_lengths = [len(tokenizer.tokenize(para)) + 2  for para in paragraphs]
