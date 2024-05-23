@@ -317,6 +317,8 @@ if __name__ == '__main__':
     #     model=pretrained_model
     # )
 
+    ############ Make sure chunked articles are all in the same split 
+
     # # Config hyperparameter sweep
     # sweep_configuration = {
     #     'method': 'bayes',
