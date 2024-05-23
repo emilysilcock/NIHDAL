@@ -6,7 +6,7 @@ with open('Labelled_data/kw_initialisation/sample_1.json') as f:
 
 new_labelled_data = []
 
-for art in enumerate(dat):
+for art in dat:
 
     chunk_id = art['data']['chunks'].index(art['data']['article'])
 
