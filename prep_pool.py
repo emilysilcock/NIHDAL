@@ -30,9 +30,13 @@ for publication in tqdm(publications):
 # Split into chunks
 
 tokenization_model = 'roberta-large'
-
 tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
+
+chunked_sample = []
 
 for s in tqdm(sample_list):
 
-    chunked_s = chunk(s, tokenizer, max_length=512)
+    chunked_sample.append(chunk(s, tokenizer, max_length=512))
+
+with open('Sun_data/chunked_sample.json', 'w') as f:
+    json.dump(chunked_sample, f, indent=4)
