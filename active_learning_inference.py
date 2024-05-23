@@ -208,7 +208,7 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
                                                         num_classes,
                                                         kwargs=dict({'device': 'cuda',
                                                                     'mini_batch_size': 8,
-                                                                    'num_epochs': 20,    ########
+                                                                    'num_epochs': 10,    ########
                                                                     'lr': 5e-5,    #######
                                                                     'class_weight': 'balanced'
                                                                     }))
@@ -217,7 +217,7 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
                                                         num_classes,
                                                         kwargs=dict({'device': 'cuda',
                                                                     'mini_batch_size': 8,
-                                                                    'num_epochs': 20,    ########
+                                                                    'num_epochs': 10,    ########
                                                                     'lr': 5e-5,    #######
                                                                     'class_weight': 'balanced'
                                                                     }))
