@@ -206,7 +206,7 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
     clf_factory = TransformerBasedClassificationFactory(transformer_model,
                                                         num_classes,
                                                         kwargs=dict({'device': 'cuda',
-                                                                    'mini_batch_size': 32,
+                                                                    'mini_batch_size': 16,
                                                                     'num_epochs': 20,    ########
                                                                     'lr': 5e-5,    #######
                                                                     'class_weight': 'balanced'
@@ -215,7 +215,7 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
     clf_factory_2 = TransformerBasedClassificationFactory(transformer_model,
                                                         num_classes,
                                                         kwargs=dict({'device': 'cuda',
-                                                                    'mini_batch_size': 32,
+                                                                    'mini_batch_size': 16,
                                                                     'num_epochs': 20,    ########
                                                                     'lr': 5e-5,    #######
                                                                     'class_weight': 'balanced'
