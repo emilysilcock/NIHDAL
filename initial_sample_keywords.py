@@ -91,14 +91,16 @@ if __name__ == '__main__':
 
                 art_copy = copy.deepcopy(art)
 
+                new_id = f'{art_copy["ln_id"]}_{i}'
                 art_copy['article'] = ch
+                art_copy['ln_id'] = new_id
 
                 to_label.append({
-                    "id": f'{art_copy["ln_id"]}_{i}',
+                    "id": new_id,
                     "data": art_copy
                 })
 
     print(len(to_label))
 
-    with open('data_to_label/kw_initialisation/first_sample.json', 'w') as f:
+    with open('data_to_label/kw_initialisation/first_sample_with_correct_ids.json', 'w') as f:
         json.dump(to_label, f, indent=4)
