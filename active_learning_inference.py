@@ -1,6 +1,7 @@
 import os
 import json
 from tqdm import tqdm
+import copy
 
 os.environ['TRANSFORMERS_CACHE'] = '.cache/'
 import numpy as np
@@ -269,84 +270,53 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
     return a_learner
 
 
-transformer_model_name = 'roberta-large'
+def open_pool(fp):
+    
+    # Open pool 
+    with open(fp) as f:
+        pool = json.load(f)
 
-# for als in ['NIHDAL_simon', 'NIHDAL']: 
-for als in ['NIHDAL']: 
+    pool_list = []
+    for art in pool:
+        for n, ch in enumerate(art['chunks']):
 
-    publications = [
-        'The Sun (England)',
-        'thesun.co.uk',
-        'Daily Star',
-        'Daily Star Online',
-        'Daily Star Sunday',
-        'The Daily Mail and Mail on Sunday (London)',
-        'mirror.co.uk',
-        'Daily Mirror',
-        'The Express',
-        'The Sunday Express',
-        'The News of the World',
-        'The Evening Standard (London)',
-        'standard.co.uk',
-        'The People',
-        'Metro (UK)',
-        'City A.M.',
-        'Cityam.com',
-        'The Times (London)',
-        'The Sunday Times (London)',
-        'thetimes.co.uk',
-        'The Daily Telegraph (London)',
-        'The Daily Telegraph Online',
-        'The Sunday Telegraph (London)',
-        'The Guardian (London)',
-        'The Observer (London)',
-        'i - Independent Print Ltd',
-        'The Independent (United Kingdom)',
-        'Liverpool Post',
-        'liverpoolecho.co.uk',
-        'Liverpool Echo',
-    ]
+            art_copy = copy.deepcopy(art)
 
-    # Open all data
-    sample_list = []
+            art_copy['ln_id'] = f'{art_copy["ln_id"]}_{n}'
+            art_copy['article'] = ch
 
-    for publication in tqdm(publications):
+            pool_list.append(art_copy)
 
-        publication_fn = publication.replace(' ', '_')
+    print(f'{len(pool_list)} articles in the pool')
 
-        with open(f"Sun_data/{publication_fn}/cleaned_sample_data.json") as f:
-            clean_dat = json.load(f)
+    return pool_list
 
-        with open(f"Sun_data/sample_indices_{publication_fn}.json") as f:
-            sample = json.load(f)
 
-        # Take sample
-        for s in sample:
-            try:
-                sample_list.append(clean_dat[str(s)])
-            except:
-                pass
+def open_labelled_data(fp_list):
 
-    # Labelled data 
-    with open('Labelled_data/fixed_first_1000.json') as f:
-        labelled_data = json.load(f)
-    with open('Labelled_data/sample_11_fixed.json') as f:
-        labelled_data += json.load(f)
-    with open('Labelled_data/sample_12_fixed.json') as f:
-        labelled_data += json.load(f)
-    with open('Labelled_data/sample_13_fixed.json') as f:
-        labelled_data += json.load(f)
-    with open('Labelled_data/sample_14_fixed.json') as f:
-        labelled_data += json.load(f)
-    with open('Labelled_data/sample_15_fixed.json') as f:
-        labelled_data += json.load(f)
+    labelled_data = []
+    for fp in fp_list:
+        with open(fp) as f:
+            labelled_data.extend(json.load(f))
 
     parsed_labelled_data = {}
-
     for task in labelled_data:
         lab = task['annotations'][0]['result'][0]['value']['choices'][0]
         ln_id = task['data']['ln_id']
         parsed_labelled_data[ln_id] = lab
+
+    return parsed_labelled_data
+
+
+if __name__ == '__main__':
+
+    transformer_model_name = 'roberta-large'
+    als = 'NIHDAL'
+
+    sample_list = open_pool('Sun_data/chunked_sample.json')
+    parsed_labelled_data = open_labelled_data([
+        'Labelled_data/kw_initialisation/sample_1_with_correct_ids.json'
+        ])
 
     texts = []
     indices_labeled = []
@@ -369,7 +339,7 @@ for als in ['NIHDAL']:
             else:
                 labels.append(1)
                 all_labels.append(1)
-        
+
         else:
             all_labels.append(small_text.base.LABEL_UNLABELED)
 
@@ -390,7 +360,7 @@ for als in ['NIHDAL']:
         texts,
         all_labels,
         tokenizer,
-        max_length=100,
+        max_length=512,
         target_labels=lab_array
     )
 
@@ -410,5 +380,5 @@ for als in ['NIHDAL']:
             "data": sample_list[i]
         })
 
-    with open(f'data_to_label/{als}_sample_16.json', 'w') as f:
+    with open(f'data_to_label/kw_initialisation/sample_2.json', 'w') as f:
         json.dump(to_label, f, indent=2)
