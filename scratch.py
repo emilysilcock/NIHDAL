@@ -6,7 +6,7 @@ with open('Labelled_data/kw_initialisation/sample_1.json') as f:
 old_labelled_data = {}
 
 counter = 0
-for i, art in dat:
+for i, art in enumerate(dat):
 
     if i != 0:
         if art['data']['ln_id'] == dat[i-1]['data']['ln_id']:
