@@ -135,7 +135,7 @@ if __name__ == '__main__':
     random.shuffle(to_label)
 
     with open('/mnt/data01/AL/NIHDAL/data_to_label/mainly_about/mainly_about_congruence_sample.json', 'w') as f:
-        json.dump(to_label[:100])
+        json.dump(to_label[:100], f, indent=4)
 
     with open('/mnt/data01/AL/NIHDAL/data_to_label/mainly_about/mainly_about_rest.json', 'w') as f:
-        json.dump(to_label[100:])
+        json.dump(to_label[100:], f, indent=4)
