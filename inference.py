@@ -98,8 +98,7 @@ if __name__ == '__main__':
 
     # Take sample 
     sample_articles = {}
-    for k in random.sample(all_articles.keys(), 1000):
-    # for k in random.sample(all_articles.keys(), 100000):
+    for k in random.sample(all_articles.keys(), 100000):
         sample_articles[k] = all_articles[k]
     del all_articles
 
