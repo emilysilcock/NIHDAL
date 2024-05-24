@@ -1,6 +1,7 @@
 import os
 import json
 import numpy as np
+import random 
 
 from datasets import Dataset
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
@@ -63,32 +64,48 @@ def pull_positives(tokenized_data, org_data, finetuned_topic_model, batch_size):
 if __name__ == '__main__':
 
     base_model='roberta-large'
+    random.seed(42)
 
+    # for num in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
+    # # for num in [1, 2, 4]:
+
+        # print(f'**{num}**')
+
+        # # Get data
+        # basic_clean(
+        #     fp = f"/mnt/data01/AL/ln_data/The_Sun_(England)/The_Sun_(England)_{num}**",
+        #     first_date='01-01-2013',
+        #     sp=f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/"
+        #     )
+
+    # Open data 
+    all_articles = {}
     for num in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
-    # for num in [1, 2, 4]:
-
-        print(f'**{num}**')
-
-        # Get data
-        basic_clean(
-            fp = f"/mnt/data01/AL/ln_data/The_Sun_(England)/The_Sun_(England)_{num}**",
-            first_date='01-01-2013',
-            sp=f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/"
-            )
-
-        # Format and tokenize
         with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data.json") as f:
-            data = json.load(f)
+            dat = json.load(f)
+            for k, v in dat.items():
+                all_articles[k] = v
+        with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data_earlier.json") as f:
+            dat = json.load(f)
+            for k, v in dat.items():
+                all_articles[k] = v
 
-        tokenized_data = format_and_tokenize(data, tokenization_model=base_model, max_token_length=512)
+    # Take sample 
+    sample_aricles = {}
+    for k in random.sample(all_articles.keys(), 100000):
+        sample_aricles[k] = all_articles[k]
+    del all_articles
 
-        # Run inference
-        topic_arts = pull_positives(
-            tokenized_data,
-            org_data=data,
-            finetuned_topic_model='/mnt/data01/AL/trained_models/rl_8_13_1e-05_512/checkpoint-420',
-            batch_size=512
-        )
+    # # Chunk, format and tokenize
+    # tokenized_data = format_and_tokenize(data, tokenization_model=base_model, max_token_length=512)
 
-        with open(f'/mnt/data01/AL/preds/group_{num}on_topic_earlier.json', 'w') as f:
-            json.dump(topic_arts, f, indent=4)
+    # # Run inference
+    # topic_arts = pull_positives(
+    #     tokenized_data,
+    #     org_data=data,
+    #     finetuned_topic_model='/mnt/data01/AL/trained_models/rl_8_13_1e-05_512/checkpoint-420',
+    #     batch_size=512
+    # )
+
+    # with open(f'/mnt/data01/AL/preds/group_{num}on_topic_earlier.json', 'w') as f:
+    #     json.dump(topic_arts, f, indent=4)
