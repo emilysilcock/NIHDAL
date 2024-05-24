@@ -25,45 +25,33 @@ name_bit = "sample_2"
 with open(f'data_to_label/kw_initialisation/{name_bit}.json') as f:
     new_dat = json.load(f)
 
+all_new_ids = [f["data"]["ln_id"] for f in new_dat]
+
 count = 0
 for f in new_dat:
-    if f["id"] in old_labelled_data:
-        count += 1
 
-        f['annotations'] = [
-            {
-                'id': count,
-                'completed_by':1,
-                'result': [
-                    {
-                        'value':{'choices': [old_labelled_data[f["id"]]]},
-                        'id': 1,
-                        'from_name': 'topic',
-                        'to_name':'text',
-                        'type': 'choices'
-                    }
-                ]
-            }
-        ]
+    if f["data"]["ln_id"].split("_")[0] in old_labelled_data:
+        
+        if len(f["data"]["chunks"]) == 1 or old_labelled_data[f["data"]["ln_id"].split("_")[0]] == "Irrelevant":
 
-    elif f["id"].split("_")[0] in old_labelled_data and old_labelled_data[f["id"].split("_")[0]] == "Irrelevant":
-        count += 1
+            count += 1
 
-        f['annotations'] = [
-            {
-                'id': count,
-                'completed_by':1,
-                'result': [
-                    {
-                        'value':{'choices': [old_labelled_data[f["id"].split("_")[0]]]},
-                        'id': 1,
-                        'from_name': 'topic',
-                        'to_name':'text',
-                        'type': 'choices'
-                    }
-                ]
-            }
-        ]
+            f['annotations'] = [
+                {
+                    'id': count,
+                    'completed_by':1,
+                    'result': [
+                        {
+                            'value':{'choices': [old_labelled_data[f["data"]["ln_id"].split("_")[0]]]},
+                            'id': 1,
+                            'from_name': 'topic',
+                            'to_name':'text',
+                            'type': 'choices'
+                        }
+                    ]
+                }
+            ]
+
 
 print(f'{count} already labelled')
 
