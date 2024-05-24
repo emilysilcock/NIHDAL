@@ -1,12 +1,13 @@
 import os
 import json
 import numpy as np
-import random 
+import random
+from tqdm import tqdm
 
 from datasets import Dataset
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
 
-from data_fns import find_sep_token, basic_clean
+from data_fns import find_sep_token, basic_clean, chunk 
 
 os.environ['TRANSFORMERS_CACHE'] = '.cache/'
 
@@ -14,16 +15,24 @@ os.environ['TRANSFORMERS_CACHE'] = '.cache/'
 def format_and_tokenize(dat, tokenization_model, max_token_length):
 
     corpus = []
-
-    sep = find_sep_token(tokenizer=AutoTokenizer.from_pretrained(tokenization_model))
-
-    for art_id, art_dict in dat.items():
-        corpus.append(str(art_dict['headline']) + sep + str(art_dict['article']))
-
-    dataset = Dataset.from_dict({'corpus': corpus})
+    chunk_map = {}
 
     # Instantiate tokenizer
     tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
+
+    sep = find_sep_token(tokenizer)
+
+    counter = 0
+    for art_id, art_dict in dat.items():
+        chunk_map[art_id] = []
+        chunked_dict = chunk(art_dict, tokenizer, max_token_length)
+        for chunk in chunked_dict["chunks"]:
+            corpus.append(str(art_dict['headline']) + sep + str(chunk))
+            
+            chunk_map[art_id].append(counter)
+            counter += 1
+            
+    dataset = Dataset.from_dict({'corpus': corpus})
 
     # Tokenize datasets
     def tokenize_function(dataset):
@@ -31,10 +40,10 @@ def format_and_tokenize(dat, tokenization_model, max_token_length):
 
     tokenized_dataset = dataset.map(tokenize_function, batched=True)
 
-    return tokenized_dataset
+    return tokenized_dataset, chunk_map
 
 
-def pull_positives(tokenized_data, org_data, finetuned_topic_model, batch_size):
+def pull_positives(tokenized_data, org_data, chunk_map, finetuned_topic_model, batch_size):
 
     # Predict
     model = AutoModelForSequenceClassification.from_pretrained(finetuned_topic_model, num_labels=2)
@@ -45,16 +54,13 @@ def pull_positives(tokenized_data, org_data, finetuned_topic_model, batch_size):
 
     preds = trainer.predict(tokenized_data)
 
-    # Subset to positives only
     predictions = np.argmax(preds.predictions, axis=-1)
 
+    # Subset to positives only 
     positive_dict = {}
-
-    pred_count = 0
-    for art_id, art in org_data.items():
-        if predictions[pred_count] == 1:
-            positive_dict[art_id] = art
-        pred_count +=1
+    for art_id, chunk_list in chunk_map.items():
+        if max([predictions[c] for c in chunk_list]) == 1: 
+            positive_dict[art_id] = org_data[art_id]
 
     print(f'{len(positive_dict)} articles positive out of {len(org_data)}')
 
@@ -80,7 +86,7 @@ if __name__ == '__main__':
 
     # Open data 
     all_articles = {}
-    for num in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
+    for num in tqdm([1, 2, 3, 4, 5, 6, 7, 8, 9]):
         with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data.json") as f:
             dat = json.load(f)
             for k, v in dat.items():
@@ -91,21 +97,23 @@ if __name__ == '__main__':
                 all_articles[k] = v
 
     # Take sample 
-    sample_aricles = {}
-    for k in random.sample(all_articles.keys(), 100000):
-        sample_aricles[k] = all_articles[k]
+    sample_articles = {}
+    for k in random.sample(all_articles.keys(), 1000):
+    # for k in random.sample(all_articles.keys(), 100000):
+        sample_articles[k] = all_articles[k]
     del all_articles
 
-    # # Chunk, format and tokenize
-    # tokenized_data = format_and_tokenize(data, tokenization_model=base_model, max_token_length=512)
+    # Chunk, format and tokenize
+    tokenized_data, chunk_map = format_and_tokenize(sample_articles, tokenization_model=base_model, max_token_length=512)
 
-    # # Run inference
-    # topic_arts = pull_positives(
-    #     tokenized_data,
-    #     org_data=data,
-    #     finetuned_topic_model='/mnt/data01/AL/trained_models/rl_8_13_1e-05_512/checkpoint-420',
-    #     batch_size=512
-    # )
+    # Run inference
+    topic_arts = pull_positives(
+        tokenized_data,
+        org_data=sample_articles,
+        chunk_map=chunk_map,
+        finetuned_topic_model='/mnt/data01/AL/trained_models/rl_8_13_1e-05_512/checkpoint-420',
+        batch_size=512
+    )
 
-    # with open(f'/mnt/data01/AL/preds/group_{num}on_topic_earlier.json', 'w') as f:
-    #     json.dump(topic_arts, f, indent=4)
+    with open(f'/mnt/data01/AL/preds/on_topic_sample_chunked.json', 'w') as f:
+        json.dump(topic_arts, f, indent=4)
