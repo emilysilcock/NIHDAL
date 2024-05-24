@@ -7,7 +7,7 @@ from tqdm import tqdm
 from datasets import Dataset
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
 
-from data_fns import find_sep_token, basic_clean, chunk 
+from data_fns import find_sep_token, basic_clean, chunk
 
 os.environ['TRANSFORMERS_CACHE'] = '.cache/'
 
@@ -26,8 +26,8 @@ def format_and_tokenize(dat, tokenization_model, max_token_length):
     for art_id, art_dict in dat.items():
         chunk_map[art_id] = []
         chunked_dict = chunk(art_dict, tokenizer, max_token_length)
-        for chunk in chunked_dict["chunks"]:
-            corpus.append(str(art_dict['headline']) + sep + str(chunk))
+        for ch in chunked_dict["chunks"]:
+            corpus.append(str(art_dict['headline']) + sep + str(ch))
             
             chunk_map[art_id].append(counter)
             counter += 1
