@@ -312,7 +312,8 @@ def open_labelled_data(fp_list):
 
 if __name__ == '__main__':
 
-    transformer_model_name = 'roberta-large'
+    # transformer_model_name = 'roberta-large'
+    transformer_model_name = 'FacebookAI/roberta-base'
     als = 'NIHDAL'
 
     sample_list = open_pool('Sun_data/chunked_sample.json')
