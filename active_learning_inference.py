@@ -4,7 +4,7 @@ from tqdm import tqdm
 import copy
 
 os.environ['CACHE'] = '/scratch/.cache/'
-os.environ['TRANSFORMERS_CACHE'] = '/scratch/.cache/'
+os.environ['HF_HOME'] = '/scratch/.cache/huggingface'
 
 import numpy as np
 from transformers import AutoTokenizer
