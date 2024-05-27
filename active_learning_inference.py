@@ -3,8 +3,8 @@ import json
 from tqdm import tqdm
 import copy
 
-os.environ['CACHE'] = '.cache/'
-os.environ['TRANSFORMERS_CACHE'] = '.cache/'
+# os.environ['CACHE'] = '.cache/'
+# os.environ['TRANSFORMERS_CACHE'] = '.cache/'
 import numpy as np
 from transformers import AutoTokenizer
 
