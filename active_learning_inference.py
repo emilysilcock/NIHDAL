@@ -208,7 +208,7 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
     clf_factory = TransformerBasedClassificationFactory(transformer_model,
                                                         num_classes,
                                                         kwargs=dict({'device': 'cuda',
-                                                                    'mini_batch_size': 16,
+                                                                    'mini_batch_size': 32,
                                                                     'num_epochs': 10,    ########
                                                                     'lr': 5e-5,    #######
                                                                     'class_weight': 'balanced'
@@ -217,7 +217,7 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
     clf_factory_2 = TransformerBasedClassificationFactory(transformer_model,
                                                         num_classes,
                                                         kwargs=dict({'device': 'cuda',
-                                                                    'mini_batch_size': 16,
+                                                                    'mini_batch_size': 32,
                                                                     'num_epochs': 10,    ########
                                                                     'lr': 5e-5,    #######
                                                                     'class_weight': 'balanced'
@@ -313,14 +313,14 @@ def open_labelled_data(fp_list):
 if __name__ == '__main__':
 
     # transformer_model_name = 'roberta-large'
-    transformer_model_name = 'FacebookAI/roberta-large'
-    # transformer_model_name = 'FacebookAI/roberta-base'
+    # transformer_model_name = 'FacebookAI/roberta-large'
+    transformer_model_name = 'FacebookAI/roberta-base'
     als = 'NIHDAL'
 
     sample_list = open_pool('Sun_data/chunked_sample.json')
     parsed_labelled_data = open_labelled_data([
         'Labelled_data/kw_initialisation/sample_1_with_correct_ids.json',
-        'Labelled_data/kw_initialisation/sample_2.json',
+        # 'Labelled_data/kw_initialisation/sample_2.json',
         ])
 
     texts = []
@@ -385,5 +385,5 @@ if __name__ == '__main__':
             "data": sample_list[i]
         })
 
-    with open(f'data_to_label/kw_initialisation/sample_3.json', 'w') as f:
+    with open(f'data_to_label/kw_initialisation/sample_2.json', 'w') as f:
         json.dump(to_label, f, indent=2)
