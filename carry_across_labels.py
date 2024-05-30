@@ -20,7 +20,7 @@ for p in old_labelled_data_paths:
 
 
 # Add labels to new data 
-name_bit = "sample_7"
+name_bit = "sample_8"
 
 with open(f'data_to_label/kw_initialisation/{name_bit}.json') as f:
     new_dat = json.load(f)
