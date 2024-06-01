@@ -604,12 +604,12 @@ if __name__ == '__main__':
 
         # for als in ["DAL", "Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", 'NIHDAL', 'NIHDAL_simon']:
         # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive"]:
-        for als in ['Random']:
+        for als in ['DAL']:
 
             print(f'****************{als}**********************')
 
             # Set seed
-            for seed in [12731]:
+            for seed in [42]:
             # for seed in [42, 12731, 65372, 97, 163]:
 
                 print(f'#################{seed}##################')
