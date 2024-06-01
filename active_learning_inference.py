@@ -332,6 +332,7 @@ if __name__ == '__main__':
         'Labelled_data/kw_initialisation/sample_11.json',
         'Labelled_data/kw_initialisation/sample_12.json',
         'Labelled_data/kw_initialisation/sample_13.json',
+        'Labelled_data/kw_initialisation/sample_14.json',
         ])
 
     texts = []
@@ -396,5 +397,5 @@ if __name__ == '__main__':
             "data": sample_list[i]
         })
 
-    with open(f'data_to_label/kw_initialisation/sample_14.json', 'w') as f:
+    with open(f'data_to_label/kw_initialisation/sample_15.json', 'w') as f:
         json.dump(to_label, f, indent=2)
