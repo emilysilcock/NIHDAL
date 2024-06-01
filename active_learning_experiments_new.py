@@ -389,7 +389,7 @@ def initialize_active_learner_biased(active_learner, y_train, biased_indices):
     # simulates an initial labeling to warm-start the active learning process
 
     indices_initial = random_initialization_biased(y_train, n_samples=100, non_sample=biased_indices)
-    active_learner.initialize_data(indices_initial, y_train[indices_initial])
+    active_learner.initialize(indices_initial, y_train[indices_initial])
 
     return indices_initial
 
@@ -399,7 +399,7 @@ def initialize_active_learner_balanced(active_learner, y_train):
     # simulates an initial labeling to warm-start the active learning process
 
     indices_initial = random_initialization_balanced(y_train, n_samples=100)
-    active_learner.initialize_data(indices_initial, y_train[indices_initial])
+    active_learner.initialize(indices_initial, y_train[indices_initial])
 
     return indices_initial
 
