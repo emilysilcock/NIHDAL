@@ -602,9 +602,9 @@ if __name__ == '__main__':
     for biased in [False, True]:
         transformer_model_name = 'distilroberta-base'
 
-        for als in ["DAL", "Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", 'NIHDAL', 'NIHDAL_simon']:
+        # for als in ["DAL", "Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", 'NIHDAL', 'NIHDAL_simon']:
         # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive"]:
-        # for als in ['Random']:
+        for als in ['Random']:
 
             print(f'****************{als}**********************')
 
