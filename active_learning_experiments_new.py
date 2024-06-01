@@ -563,6 +563,8 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
         # Query samples to label
         indices_queried = active_learner.query(num_samples=100)
 
+        print(indices_queried)
+
         # Simulate labelling
         y = train.y[indices_queried]
 
