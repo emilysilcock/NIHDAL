@@ -465,7 +465,7 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
                                                         num_classes,
                                                         kwargs=dict({'device': 'cuda',
                                                                     'mini_batch_size': 32,
-                                                                    'num_epochs': 20,    ########
+                                                                    'num_epochs': 10,    ########
                                                                     'lr': 5e-5,    #######
                                                                     'class_weight': 'balanced'
                                                                     }))
@@ -474,13 +474,23 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
                                                         num_classes,
                                                         kwargs=dict({'device': 'cuda',
                                                                     'mini_batch_size': 32,
-                                                                    'num_epochs': 20,    ########
+                                                                    'num_epochs': 10,    ########
                                                                     'lr': 5e-5,    #######
                                                                     'class_weight': 'balanced'
                                                                     }))
 
     if active_learning_method == "DAL":
-        query_strategy = DiscriminativeRepresentationLearning(classifier_factory=clf_factory_2, num_iterations=10, selection='greedy')
+        query_strategy = DiscriminativeRepresentationLearning(
+        num_iterations=10,
+        selection='greedy',
+        device='cuda',
+        mini_batch_size=32,
+        train_kwargs=dict({
+            'num_epochs': 10,
+            'lr': 5e-5,
+            # 'class_weight': 'balanced'
+        })
+    )
     elif active_learning_method == "NIHDAL":
         query_strategy = NIHDAL(classifier_factory=clf_factory_2, num_iterations=10)
     elif active_learning_method == "NIHDAL_simon":
