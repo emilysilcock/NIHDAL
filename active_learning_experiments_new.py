@@ -546,9 +546,6 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
     else:
         indices_labeled = initialize_active_learner_balanced(active_learner, train.y)
 
-    print(indices_labeled)
-    print(len(indices_labeled))
-
     print(f'Initial sample contains {sum(train.y[indices_labeled])} target class')
     if bias:
         in_bias = [i for i in indices_labeled if i in bias]
@@ -591,6 +588,8 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
         res['counts'] = selected_descr
 
         results.append(res)
+
+    print(results)
 
     return results
 
