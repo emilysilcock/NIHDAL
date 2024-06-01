@@ -14,47 +14,48 @@ from small_text import (
     PoolBasedActiveLearner,
     TransformerBasedClassificationFactory,
     TransformerModelArguments,
-    DiscriminativeActiveLearning,
+    DiscriminativeRepresentationLearning,
     random_initialization_balanced
 )
 
 
-class DiscriminativeActiveLearning_amended(DiscriminativeActiveLearning):
+# class DiscriminativeActiveLearning_amended(DiscriminativeActiveLearning):
 
-    # Amended to use the most recent topic classifier as per the DAL paper
+#     # Amended to use the most recent topic classifier as per the DAL paper
 
-    def _train_and_get_most_confident(self, ds, indices_unlabeled, indices_labeled, q):
+#     def _train_and_get_most_confident(self, ds, indices_unlabeled, indices_labeled, q):
 
-        if self.clf_ is not None:
-            del self.clf_
+#         if self.clf_ is not None:
+#             del self.clf_
 
-        clf = active_learner._clf
-        # clf = deepcopy(last_stable_model)
+#         clf = active_learner._clf
+#         # clf = deepcopy(last_stable_model)
 
-        num_unlabeled = min(indices_labeled.shape[0] * self.unlabeled_factor,
-                            indices_unlabeled.shape[0])
+#         num_unlabeled = min(indices_labeled.shape[0] * self.unlabeled_factor,
+#                             indices_unlabeled.shape[0])
 
-        indices_unlabeled_sub = np.random.choice(indices_unlabeled,
-                                                num_unlabeled,
-                                                replace=False)
+#         indices_unlabeled_sub = np.random.choice(indices_unlabeled,
+#                                                 num_unlabeled,
+#                                                 replace=False)
 
-        ds_discr = DiscriminativeActiveLearning_amended.get_relabeled_copy(ds,
-                                                                indices_unlabeled_sub,
-                                                                indices_labeled)
+#         ds_discr = DiscriminativeActiveLearning_amended.get_relabeled_copy(ds,
+#                                                                 indices_unlabeled_sub,
+#                                                                 indices_labeled)
 
-        self.clf_ = clf.fit(ds_discr)
+#         self.clf_ = clf.fit(ds_discr)
 
-        proba = clf.predict_proba(ds[indices_unlabeled])
-        proba = proba[:, self.LABEL_UNLABELED_POOL]
+#         proba = clf.predict_proba(ds[indices_unlabeled])
+#         proba = proba[:, self.LABEL_UNLABELED_POOL]
 
-        # return instances which most likely belong to the "unlabeled" class (higher is better)
-        return np.argpartition(-proba, q)[:q]
+#         # return instances which most likely belong to the "unlabeled" class (higher is better)
+#         return np.argpartition(-proba, q)[:q]
 
 
-class NIHDAL(DiscriminativeActiveLearning_amended):
+class NIHDAL(DiscriminativeRepresentationLearning):
 
-    """Similar to Discriminative Active Learning, but applied on the predicted target and 
-     others separately. 
+    """
+    Similar to Discriminative Active Learning, but applied on the predicted target and 
+    others separately. 
     """
 
     def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
@@ -189,7 +190,7 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
         return selected_indices
 
 
-class NIHDAL_2(DiscriminativeActiveLearning_amended):
+class NIHDAL_2(DiscriminativeRepresentationLearning):
 
     """Similar to Discriminative Active Learning, but applied reweighting the pool.
     """
@@ -460,7 +461,6 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
     #     'model_selection': model_selection
     # }
 
-
     clf_factory = TransformerBasedClassificationFactory(transformer_model,
                                                         num_classes,
                                                         kwargs=dict({'device': 'cuda',
@@ -480,7 +480,7 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
                                                                     }))
 
     if active_learning_method == "DAL":
-        query_strategy = DiscriminativeActiveLearning_amended(classifier_factory=clf_factory_2, num_iterations=10)
+        query_strategy = DiscriminativeRepresentationLearning(classifier_factory=clf_factory_2, num_iterations=10, selection='greedy')
     elif active_learning_method == "NIHDAL":
         query_strategy = NIHDAL(classifier_factory=clf_factory_2, num_iterations=10)
     elif active_learning_method == "NIHDAL_simon":
@@ -588,7 +588,7 @@ if __name__ == '__main__':
     for biased in [False, True]:
         transformer_model_name = 'distilroberta-base'
 
-        for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", 'NIHDAL', 'NIHDAL_simon']:
+        for als in ["DAL", "Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", 'NIHDAL', 'NIHDAL_simon']:
         # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive"]:
         # for als in ['Random']:
 
@@ -631,5 +631,5 @@ if __name__ == '__main__':
                         json.dump(results, f, indent=4)
 
                 else:
-                    with open(f'results/{als}_results_{seed}_new.json', 'w') as f:
+                    with open(f'results/{als}_results_{seed}.json', 'w') as f:
                         json.dump(results, f, indent=4)
