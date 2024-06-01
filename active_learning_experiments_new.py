@@ -587,7 +587,7 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
 
         results.append(res)
 
-    print(results)
+        print(res)
 
     return results
 
