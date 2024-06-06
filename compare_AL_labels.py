@@ -57,12 +57,12 @@ for p in new_labelled_data_paths:
         dat = json.load(f)
 
     for art in dat:
-        if art['annotations'][0]['result'][0]['value']['choices'][0] == "On topic":
-            new_positives.append(art["data"]["ln_id"].split("_")[0])
+        # if art['annotations'][0]['result'][0]['value']['choices'][0] == "On topic":
+        new_positives.append(art["data"]["ln_id"].split("_")[0])
 
-    if art["data"]["ln_id"].split("_")[0] not in new_dict:
-        new_dict[art["data"]["ln_id"].split("_")[0]] = {}
-    new_dict[art["data"]["ln_id"].split("_")[0]][art["data"]["ln_id"]] = art["data"]["article"]
+    # if art["data"]["ln_id"].split("_")[0] not in new_dict:
+    #     new_dict[art["data"]["ln_id"].split("_")[0]] = {}
+    # new_dict[art["data"]["ln_id"].split("_")[0]][art["data"]["ln_id"]] = art["data"]["article"]
 
 new_positives = list(set(new_positives))
 
@@ -72,8 +72,8 @@ count = 0
 for art_id, text in old_positives.items():
     if art_id not in new_positives:
         print('missing')
-        if art_id in new_dict:
-            print('labelled some')
-        print(art_id)
-        # print(text)
-        print("***************")
+        # if art_id in new_dict:
+        #     print('labelled some')
+        # print(art_id)
+        # # print(text)
+        # print("***************")
