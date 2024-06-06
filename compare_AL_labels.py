@@ -9,7 +9,7 @@ old_labelled_data_paths = ['Labelled_data/fixed_first_1000.json',
                   'Labelled_data/sample_14_fixed.json',
                   'Labelled_data/sample_15_fixed.json']
 
-old_positives = []
+old_positives = {}
 for p in old_labelled_data_paths:
 
     with open(p) as f:
@@ -17,7 +17,7 @@ for p in old_labelled_data_paths:
 
     for art in dat:
         if art['annotations'][0]['result'][0]['value']['choices'][0] == "On topic":
-            old_positives.append(art['data']['ln_id'])
+            old_positives[art['data']['ln_id']] = art['data']['text']
 
 
 # New data 
@@ -60,4 +60,11 @@ for p in new_labelled_data_paths:
 
 new_positives = list(set(new_positives))
 
-print(len([i for i in old_positives if i not in new_positives]))
+print(len(old_positives))
+count = 0
+
+for art_id, text in old_positives.items():
+    if art_id not in new_positives:
+        print(art_id)
+        print(text)
+        print("***************")
