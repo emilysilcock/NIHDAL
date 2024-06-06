@@ -231,7 +231,7 @@ def train(
 def train_wrapper():
 
     run = wandb.init()
-    name = f'rl_{wandb.config.batch_size}_{wandb.config.epochs}_{wandb.config.lr}_{wandb.config.max_len}'
+    name = f'rl_{wandb.config.batch_size}_{wandb.config.lr}'
 
     # Tokenize data
     datasets = {}
