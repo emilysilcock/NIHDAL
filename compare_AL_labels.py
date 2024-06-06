@@ -61,7 +61,7 @@ for p in new_labelled_data_paths:
             new_positives.append(art["data"]["ln_id"].split("_")[0])
 
     if art["data"]["ln_id"].split("_")[0] not in new_dict:
-        new_dict[art["data"]["ln_id"].split("_")[0]]: {}
+        new_dict[art["data"]["ln_id"].split("_")[0]] = {}
     new_dict[art["data"]["ln_id"].split("_")[0]][art["data"]["ln_id"]] = art["data"]["article"]
 
 new_positives = list(set(new_positives))
