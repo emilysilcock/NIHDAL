@@ -355,8 +355,8 @@ if __name__ == '__main__':
                 hf_model=pretrained_model,
                 num_labels=2,
                 eval_steps=10,
-                batch_size=wandb.config.batch_size,
-                lr=wandb.config.lr,
+                batch_size=batch_size,
+                lr=lr,
                 epochs=20,
                 save_dir=f'/mnt/data01/AL/trained_models/kw_initialisation/{name}'
             )
