@@ -90,7 +90,7 @@ def open_and_reformat_ls_data(list_of_paths, label_dict, model):
     return pd_data
 
 
-def train_test_dev_split(ls_data_paths, label_dict, save_dir, model, test_perc=0.15, eval_perc=0.15, train_only_data_paths=[], split_by_scan=False, multi_lab=False):
+def train_test_dev_split(ls_data_paths, label_dict, save_dir, model, test_perc=0.15, eval_perc=0.15):
 
     """
     Takes a list of label studio datapaths, reformats according to open_and_reformat_ls_data().
@@ -228,34 +228,6 @@ def train(
     return best_model_path, best_metric
 
 
-def train_wrapper():
-
-    run = wandb.init()
-    name = f'rl_{wandb.config.batch_size}_{wandb.config.lr}'
-
-    # Tokenize data
-    datasets = {}
-    for dataset in ["train", "eval", "test"]:
-        datasets[dataset] = tokenize_data_for_finetuning(
-            directory=f"/mnt/data01/AL/final_labelled_data/{dataset}.csv",
-            hf_model=pretrained_model,
-            max_token_length=512
-        )
-
-    # Train model
-    train(
-        datasets["train"],
-        datasets["eval"],
-        hf_model=pretrained_model,
-        num_labels=2,
-        eval_steps=10,
-        batch_size=wandb.config.batch_size,
-        lr=wandb.config.lr,
-        epochs=20,
-        save_dir=f'/mnt/data01/AL/trained_models/kw_initialisation/{name}'
-    )
-
-
 def evaluate(base_model, trained_model, label_dict, original_test_dir, print_mistakes=False):
 
     # Tokenize data
@@ -359,24 +331,38 @@ if __name__ == '__main__':
         model=pretrained_model
     )
 
+    # Tokenize data
+    datasets = {}
+    for dataset in ["train", "eval", "test"]:
+        datasets[dataset] = tokenize_data_for_finetuning(
+            directory=f"/mnt/data01/AL/final_labelled_data/{dataset}.csv",
+            hf_model=pretrained_model,
+            max_token_length=512
+        )
+
+
     # Config hyperparameter sweep
-    sweep_configuration = {
-        'method': 'bayes',
-        'name': 'any_about_benefits_sweep',
-        'metric': {'goal': 'maximize', 'name': "eval/f1"},
-        'early_terminate': {'type': 'hyperband', 'min_iter': 100},
-        'parameters':
-            {
-                'batch_size': {'values': [8, 16, 32, 64, 128]},
-                'lr': {'values': [5e-7, 1e-6, 2e-06, 5e-6, 1e-5, 5e-5, 1e-4]},
-            }
-    }
+    for batch_size in [8, 16, 32, 64, 128]:
+        for lr in [5e-7, 1e-6, 2e-06, 5e-6, 1e-5, 5e-5, 1e-4]:
 
-    sweep_id = wandb.sweep(sweep=sweep_configuration, project='benefits_topic',  entity="stigma")
+            name = f'{batch_size}_{lr}'
+            run = wandb.init(project = 'benefits_topic', entity = 'stigma', name = name, reinit=True)
 
-    wandb.agent.WANDB_AGENT_MAX_INITIAL_FAILURES=20
+            # Train model
+            train(
+                datasets["train"],
+                datasets["eval"],
+                hf_model=pretrained_model,
+                num_labels=2,
+                eval_steps=10,
+                batch_size=wandb.config.batch_size,
+                lr=wandb.config.lr,
+                epochs=20,
+                save_dir=f'/mnt/data01/AL/trained_models/kw_initialisation/{name}'
+            )
 
-    wandb.agent(sweep_id, project='benefits_topic', entity="stigma", function=train_wrapper, count=200)
+
+
 
     # evaluate(
     #     base_model=pretrained_model,
