@@ -74,6 +74,7 @@ for art_id, text in old_positives.items():
         print('missing')
         if art_id in new_dict:
             print('labelled some')
-        print(art_id)
-        # print(text)
-        print("***************")
+            print(text)
+            print("***********************")
+            print(json.dumps(new_dict['art_id']))
+        print('######################################')
