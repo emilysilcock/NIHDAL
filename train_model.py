@@ -53,6 +53,7 @@ def open_and_reformat_ls_data(list_of_paths, label_dict, model):
         sep = find_sep_token(tokenizer=AutoTokenizer.from_pretrained(model))
 
     ids = []
+    full_article_ids = []
     texts = []
     labels = []
     positives = 0
@@ -66,6 +67,7 @@ def open_and_reformat_ls_data(list_of_paths, label_dict, model):
             texts.append(formatted_text)
             labels.append(label_dict[label_text])
             ids.append(data['data']['ln_id'])
+            full_article_ids.append(data["data"]["ln_id"].split("_")[0])
 
         except:
             print(formatted_text)
@@ -81,6 +83,7 @@ def open_and_reformat_ls_data(list_of_paths, label_dict, model):
             'id': ids,
             'article': texts,
             'label': labels,
+            'fa_id': full_article_ids
         }
     )
 
@@ -97,12 +100,31 @@ def train_test_dev_split(ls_data_paths, label_dict, save_dir, model, test_perc=0
 
     pd_data = open_and_reformat_ls_data(ls_data_paths, label_dict, model)
 
-    # Split into test and train sets
-    test_size = int(test_perc * len(pd_data))
-    eval_size = int(eval_perc * len(pd_data))
+    full_article_ids = list(set(pd_data['fa_id']))
+    random.shuffle(full_article_ids)
 
-    train_eval, test = sklearn.model_selection.train_test_split(pd_data, test_size=test_size, random_state=22)
-    train, eval = sklearn.model_selection.train_test_split(train_eval, test_size=eval_size, random_state=17)
+    # Split into test and train sets keeping chunks from same article in same split
+    test_size = int(len(full_article_ids)*test_perc)
+    eval_size = int(len(full_article_ids)*eval_perc)
+
+    test_scans = full_article_ids[:test_size]
+    eval_scans = full_article_ids[test_size:test_size + eval_size]
+    train_scans = full_article_ids[test_size + eval_size:]
+
+    print(f'{len(full_article_ids)} total full articles')
+    print(f'{len(test_scans)} in test set')
+    print(f'{len(eval_scans)} in eval set')
+    print(f'{len(train_scans)} in train set')
+
+    train = pd_data[pd_data['scan'].isin(train_scans)]
+    test = pd_data[pd_data['scan'].isin(test_scans)]
+    eval = pd_data[pd_data['scan'].isin(eval_scans)]
+
+    # test_size = int(test_perc * len(pd_data))
+    # eval_size = int(eval_perc * len(pd_data))
+
+    # train_eval, test = sklearn.model_selection.train_test_split(pd_data, test_size=test_size, random_state=22)
+    # train, eval = sklearn.model_selection.train_test_split(train_eval, test_size=eval_size, random_state=17)
 
     # Save
     os.makedirs(save_dir, exist_ok=True)
@@ -217,7 +239,7 @@ def train_wrapper():
         datasets[dataset] = tokenize_data_for_finetuning(
             directory=f"/mnt/data01/AL/final_labelled_data/{dataset}.csv",
             hf_model=pretrained_model,
-            max_token_length=wandb.config.max_len
+            max_token_length=512
         )
 
     # Train model
@@ -225,12 +247,12 @@ def train_wrapper():
         datasets["train"],
         datasets["eval"],
         hf_model=pretrained_model,
-        num_labels=2, 
+        num_labels=2,
         eval_steps=10,
         batch_size=wandb.config.batch_size,
         lr=wandb.config.lr,
-        epochs=wandb.config.epochs,
-        save_dir=f'/mnt/data01/AL/trained_models/{name}'
+        epochs=20,
+        save_dir=f'/mnt/data01/AL/trained_models/kw_initialisation/{name}'
     )
 
 
@@ -294,56 +316,72 @@ def evaluate(base_model, trained_model, label_dict, original_test_dir, print_mis
 
 if __name__ == '__main__':
 
-    # random.seed(42)
+    random.seed(42)
 
-    # data_paths = ['Labelled_data/fixed_first_1000.json',
-    #               'Labelled_data/sample_11_fixed.json',
-    #               'Labelled_data/sample_12_fixed.json',
-    #               'Labelled_data/sample_13_fixed.json',
-    #               'Labelled_data/sample_14_fixed.json',
-    #               'Labelled_data/sample_15_fixed.json']
+    data_paths = [
+        'Labelled_data/kw_initialisation/sample_1_with_correct_ids.json',
+        'Labelled_data/kw_initialisation/sample_2.json',
+        'Labelled_data/kw_initialisation/sample_3.json',
+        'Labelled_data/kw_initialisation/sample_4.json',
+        'Labelled_data/kw_initialisation/sample_5.json',
+        'Labelled_data/kw_initialisation/sample_6.json',
+        'Labelled_data/kw_initialisation/sample_7.json',
+        'Labelled_data/kw_initialisation/sample_8.json',
+        'Labelled_data/kw_initialisation/sample_9.json',
+        'Labelled_data/kw_initialisation/sample_10.json',
+        'Labelled_data/kw_initialisation/sample_11.json',
+        'Labelled_data/kw_initialisation/sample_12.json',
+        'Labelled_data/kw_initialisation/sample_13.json',
+        'Labelled_data/kw_initialisation/sample_14.json',
+        'Labelled_data/kw_initialisation/sample_15.json',
+        'Labelled_data/kw_initialisation/sample_16.json',
+        'Labelled_data/kw_initialisation/sample_17.json',
+        'Labelled_data/kw_initialisation/sample_18.json',
+        'Labelled_data/kw_initialisation/sample_19.json',
+        'Labelled_data/kw_initialisation/sample_20.json',
+        'Labelled_data/kw_initialisation/sample_21.json',
+        'Labelled_data/kw_initialisation/sample_22.json',
+        'Labelled_data/kw_initialisation/sample_23.json',
+        'Labelled_data/kw_initialisation/sample_24.json',
+        ]
 
     label2int = {'Irrelevant': 0, 'On topic': 1}
 
     pretrained_model = 'roberta-large'
 
-    # # Clean data
-    # train_test_dev_split(
-    #     ls_data_paths=data_paths,
-    #     label_dict=label2int,
-    #     save_dir="/mnt/data01/AL/final_labelled_data/",
-    #     test_perc=0.15,
-    #     eval_perc=0.15,
-    #     model=pretrained_model
-    # )
-
-    ############ Make sure chunked articles are all in the same split 
-
-    # # Config hyperparameter sweep
-    # sweep_configuration = {
-    #     'method': 'bayes',
-    #     'name': 'any_about_benefits_sweep',
-    #     'metric': {'goal': 'maximize', 'name': "eval/f1"},
-    #     'early_terminate': {'type': 'hyperband', 'min_iter': 100},    
-    #     'parameters': 
-    #         {
-    #             'batch_size': {'values': [8, 16, 32, 64, 128]},
-    #             'epochs': {'min': 10, 'max': 15},                                                  
-    #             'lr': {'values': [5e-7, 1e-6, 5e-6, 1e-5, 5e-5, 1e-4]},
-    #             'max_len': {'values': [100, 256, 384, 512]}
-    #         }
-    # }
-
-    # sweep_id = wandb.sweep(sweep=sweep_configuration, project='benefits_topic',  entity="stigma")
-
-    # wandb.agent.WANDB_AGENT_MAX_INITIAL_FAILURES=20
-
-    # wandb.agent(sweep_id, project='benefits_topic', entity="stigma", function=train_wrapper, count=200)
-
-    evaluate(
-        base_model=pretrained_model,
-        trained_model='/mnt/data01/AL/trained_models/rl_8_13_1e-05_512/checkpoint-420',
+    # Clean data
+    train_test_dev_split(
+        ls_data_paths=data_paths,
         label_dict=label2int,
-        original_test_dir='/mnt/data01/AL/final_labelled_data/test.csv',
-        print_mistakes=True
+        save_dir="/mnt/data01/AL/final_labelled_data/",
+        test_perc=0.15,
+        eval_perc=0.15,
+        model=pretrained_model
     )
+
+    # Config hyperparameter sweep
+    sweep_configuration = {
+        'method': 'bayes',
+        'name': 'any_about_benefits_sweep',
+        'metric': {'goal': 'maximize', 'name': "eval/f1"},
+        'early_terminate': {'type': 'hyperband', 'min_iter': 100},
+        'parameters':
+            {
+                'batch_size': {'values': [8, 16, 32, 64, 128]},
+                'lr': {'values': [5e-7, 1e-6, 2e-06, 5e-6, 1e-5, 5e-5, 1e-4]},
+            }
+    }
+
+    sweep_id = wandb.sweep(sweep=sweep_configuration, project='benefits_topic',  entity="stigma")
+
+    wandb.agent.WANDB_AGENT_MAX_INITIAL_FAILURES=20
+
+    wandb.agent(sweep_id, project='benefits_topic', entity="stigma", function=train_wrapper, count=200)
+
+    # evaluate(
+    #     base_model=pretrained_model,
+    #     trained_model='/mnt/data01/AL/trained_models/rl_8_13_1e-05_512/checkpoint-420',
+    #     label_dict=label2int,
+    #     original_test_dir='/mnt/data01/AL/final_labelled_data/test.csv',
+    #     print_mistakes=True
+    # )
