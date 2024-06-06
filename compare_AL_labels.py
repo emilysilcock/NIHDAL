@@ -73,7 +73,7 @@ for art_id, text in old_positives.items():
         print('missing')
         if art_id in new_dict:
             count += 1
-            if count ==3 :
+            if count ==4 :
                 print('labelled some')
                 print(text)
                 print("***********************")
