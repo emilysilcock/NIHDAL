@@ -116,9 +116,9 @@ def train_test_dev_split(ls_data_paths, label_dict, save_dir, model, test_perc=0
     print(f'{len(eval_scans)} in eval set')
     print(f'{len(train_scans)} in train set')
 
-    train = pd_data[pd_data['scan'].isin(train_scans)]
-    test = pd_data[pd_data['scan'].isin(test_scans)]
-    eval = pd_data[pd_data['scan'].isin(eval_scans)]
+    train = pd_data[pd_data['fa_id'].isin(train_scans)]
+    test = pd_data[pd_data['fa_id'].isin(test_scans)]
+    eval = pd_data[pd_data['fa_id'].isin(eval_scans)]
 
     # test_size = int(test_perc * len(pd_data))
     # eval_size = int(eval_perc * len(pd_data))
