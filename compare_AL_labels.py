@@ -17,7 +17,7 @@ for p in old_labelled_data_paths:
 
     for art in dat:
         if art['annotations'][0]['result'][0]['value']['choices'][0] == "On topic":
-            old_positives[art['data']['ln_id']] = art['data']['text']
+            old_positives[art['data']['ln_id']] = art['data']['article']
 
 
 # New data 
