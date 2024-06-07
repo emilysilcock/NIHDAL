@@ -71,56 +71,56 @@ def pull_positives(tokenized_data, org_data, chunk_map, finetuned_topic_model, b
 
 if __name__ == '__main__':
 
-    # base_model='roberta-large'
-    # random.seed(42)
+    base_model='roberta-large'
+    random.seed(42)
 
-    # # for num in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
-    # # # for num in [1, 2, 4]:
+    # for num in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
+    # # for num in [1, 2, 4]:
 
-    #     # print(f'**{num}**')
+        # print(f'**{num}**')
 
-    #     # # Get data
-    #     # basic_clean(
-    #     #     fp = f"/mnt/data01/AL/ln_data/The_Sun_(England)/The_Sun_(England)_{num}**",
-    #     #     first_date='01-01-2013',
-    #     #     sp=f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/"
-    #     #     )
+        # # Get data
+        # basic_clean(
+        #     fp = f"/mnt/data01/AL/ln_data/The_Sun_(England)/The_Sun_(England)_{num}**",
+        #     first_date='01-01-2013',
+        #     sp=f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/"
+        #     )
 
-    # # Open data 
-    # print("Loading data ...")
-    # all_articles = {}
-    # for num in tqdm([1, 2, 3, 4, 5, 6, 7, 8, 9]):
-    #     with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data.json") as f:
-    #         dat = json.load(f)
-    #         for k, v in dat.items():
-    #             all_articles[k] = v
-    #     with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data_earlier.json") as f:
-    #         dat = json.load(f)
-    #         for k, v in dat.items():
-    #             all_articles[k] = v
+    # Open data 
+    print("Loading data ...")
+    all_articles = {}
+    for num in tqdm([1, 2, 3, 4, 5, 6, 7, 8, 9]):
+        with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data.json") as f:
+            dat = json.load(f)
+            for k, v in dat.items():
+                all_articles[k] = v
+        with open(f"/mnt/data01/AL/clean_data/'The_Sun_(England)'/group_{num}/cleaned_sample_data_earlier.json") as f:
+            dat = json.load(f)
+            for k, v in dat.items():
+                all_articles[k] = v
 
-    # # Take sample 
-    # sample_articles = {}
-    # for k in random.sample(all_articles.keys(), 100000):
-    #     sample_articles[k] = all_articles[k]
-    # del all_articles
+    # Take sample 
+    sample_articles = {}
+    for k in random.sample(all_articles.keys(), 100000):
+        sample_articles[k] = all_articles[k]
+    del all_articles
 
-    # # Chunk, format and tokenize
-    # tokenized_data, chunk_map = format_and_tokenize(sample_articles, tokenization_model=base_model, max_token_length=512)
+    # Chunk, format and tokenize
+    tokenized_data, chunk_map = format_and_tokenize(sample_articles, tokenization_model=base_model, max_token_length=512)
 
-    # # Run inference
-    # topic_arts = pull_positives(
-    #     tokenized_data,
-    #     org_data=sample_articles,
-    #     chunk_map=chunk_map,
-    #     finetuned_topic_model='/mnt/data01/AL/trained_models/rl_8_13_1e-05_512/checkpoint-420',
-    #     batch_size=512
-    # )
+    # Run inference
+    topic_arts = pull_positives(
+        tokenized_data,
+        org_data=sample_articles,
+        chunk_map=chunk_map,
+        finetuned_topic_model='/mnt/data01/AL/trained_models/kw_initialisation/rl_16_2e-06/checkpoint-1000',
+        batch_size=512
+    )
 
-    # with open(f'/mnt/data01/AL/preds/on_topic_sample_chunked.json', 'w') as f:
-    #     json.dump(topic_arts, f, indent=4)
+    with open(f'/mnt/data01/AL/preds/on_topic_sample_chunked_2.json', 'w') as f:
+        json.dump(topic_arts, f, indent=4)
 
-    with open(f'/mnt/data01/AL/preds/on_topic_sample_chunked.json') as f:
+    with open(f'/mnt/data01/AL/preds/on_topic_sample_chunked_2.json') as f:
         dat = json.load(f)
 
     to_label = []
@@ -134,8 +134,5 @@ if __name__ == '__main__':
 
     random.shuffle(to_label)
 
-    with open('/mnt/data01/AL/NIHDAL/data_to_label/mainly_about/mainly_about_congruence_sample.json', 'w') as f:
-        json.dump(to_label[:100], f, indent=4)
-
-    with open('/mnt/data01/AL/NIHDAL/data_to_label/mainly_about/mainly_about_rest.json', 'w') as f:
-        json.dump(to_label[100:], f, indent=4)
+    with open('/mnt/data01/AL/NIHDAL/data_to_label/mainly_about/mainly_about_full.json', 'w') as f:
+        json.dump(to_label, f, indent=4)
