@@ -355,8 +355,8 @@ def evaluate(active_learner, train, test):
         'Test recall': recall_score(y_pred_test, test.y),
         'Test predictions': y_pred_test, 
         'Test ground truth': test.y, 
-        'Test embeddings': , 
-        'Labelled data embeddings': , 
+        'Test embeddings': '', 
+        'Labelled data embeddings': '', 
     }
 
     return r
