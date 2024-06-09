@@ -580,6 +580,8 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
                 }
             }
 
+            print(int(sum(y)))
+
             if biased:
                 selected_descr['all']['non_seeded_target'] = len([i for i in indices_queried if i in bias])
 
@@ -640,5 +642,3 @@ if __name__ == '__main__':
                 else:
                     with open(f'results/{als}_results_{seed}_unbiased.pkl', 'wb') as f:
                         pickle.dump(results, f)
-
-                print(results)
