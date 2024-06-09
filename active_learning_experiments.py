@@ -643,3 +643,5 @@ if __name__ == '__main__':
                 else:
                     with open(f'results/{als}_results_{seed}_new.pkl', 'wb') as f:
                         pickle.dump(results, f, indent=4)
+
+                print(results)
