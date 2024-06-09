@@ -1,5 +1,5 @@
 import logging
-import json
+import pickle
 
 import random
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
@@ -637,9 +637,9 @@ if __name__ == '__main__':
                 results = active_learning_loop(active_learner, train, test, num_queries=10, bias=bias_indices, selected_descr=selected_descr)
 
                 if biased:
-                    with open(f'results/{als}_results_{seed}_biased_new.json', 'w') as f:
-                        json.dump(results, f, indent=4)
+                    with open(f'results/{als}_results_{seed}_biased_new.pkl', 'wb') as f:
+                        pickle.dump(results, f, indent=4)
 
                 else:
-                    with open(f'results/{als}_results_{seed}_new.json', 'w') as f:
-                        json.dump(results, f, indent=4)
+                    with open(f'results/{als}_results_{seed}_new.pkl', 'wb') as f:
+                        pickle.dump(results, f, indent=4)
