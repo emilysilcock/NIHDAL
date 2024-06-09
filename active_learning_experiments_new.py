@@ -15,7 +15,8 @@ from small_text import (
     TransformerBasedClassificationFactory,
     TransformerModelArguments,
     DiscriminativeRepresentationLearning,
-    random_initialization_balanced
+    random_initialization_balanced,
+    DiscriminativeActiveLearning
 )
 
 
@@ -480,16 +481,19 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
                                                                     }))
 
     if active_learning_method == "DAL":
-        query_strategy = DiscriminativeRepresentationLearning(
+        # query_strategy = DiscriminativeRepresentationLearning(
+        # num_iterations=10,
+        # selection='greedy',
+        # device='cuda',
+        # mini_batch_size=32,
+        # train_kwargs=dict({
+        #     'num_epochs': 10,
+        #     'lr': 5e-5,
+        #     # 'class_weight': 'balanced'
+        # })
+        query_strategy = DiscriminativeActiveLearning(
         num_iterations=10,
-        selection='greedy',
-        device='cuda',
-        mini_batch_size=32,
-        train_kwargs=dict({
-            'num_epochs': 10,
-            'lr': 5e-5,
-            # 'class_weight': 'balanced'
-        })
+        classifier_factory = clf_factory_2
     )
     elif active_learning_method == "NIHDAL":
         query_strategy = NIHDAL(classifier_factory=clf_factory_2, num_iterations=10)
@@ -572,15 +576,16 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
         print(f'Iteration #{i} ({len(indices_labeled)} samples)')
         res = evaluate(active_learner, train[indices_labeled], test)
 
-        selected_descr = {
-            'all': {
-                'selected': len(indices_queried),
-                'target': int(sum(y))
+        if als not in ['NIHDAL', 'NIHDAL_simon']:
+            selected_descr = {
+                'all': {
+                    'selected': len(indices_queried),
+                    'target': int(sum(y))
+                }
             }
-        }
 
-        if biased:
-            selected_descr['all']['non_seeded_target'] = len([i for i in indices_queried if i in bias])
+            if biased:
+                selected_descr['all']['non_seeded_target'] = len([i for i in indices_queried if i in bias])
 
         res['counts'] = selected_descr
 
