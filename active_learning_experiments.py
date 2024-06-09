@@ -340,7 +340,7 @@ def evaluate(active_learner, train, test):
     y_pred = active_learner.classifier.predict(train)
     y_pred_test = active_learner.classifier.predict(test)
 
-    embeddings = active_learner.classifier._create_embeddings(test)
+    embeddings = active_learner.classifier.embed(test)
 
     print(len(embeddings))
 
