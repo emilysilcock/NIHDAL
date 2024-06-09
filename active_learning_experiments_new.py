@@ -574,16 +574,15 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
         print(f'Iteration #{i} ({len(indices_labeled)} samples)')
         res = evaluate(active_learner, train[indices_labeled], test)
 
-        if not selected_descr:
-            selected_descr = {
-                'all': {
-                    'selected': len(indices_queried),
-                    'target': int(sum(y))
-                }
+        selected_descr = {
+            'all': {
+                'selected': len(indices_queried),
+                'target': int(sum(y))
             }
+        }
 
-            if biased:
-                selected_descr['all']['non_seeded_target'] = len([i for i in indices_queried if i in bias])
+        if biased:
+            selected_descr['all']['non_seeded_target'] = len([i for i in indices_queried if i in bias])
 
         res['counts'] = selected_descr
 
