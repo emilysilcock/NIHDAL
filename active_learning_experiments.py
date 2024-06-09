@@ -340,9 +340,10 @@ def evaluate(active_learner, train, test):
     y_pred = active_learner.classifier.predict(train)
     y_pred_test = active_learner.classifier.predict(test)
 
+    labelled_embeddings = active_learner.classifier.embed(train)
     test_embeddings = active_learner.classifier.embed(test)
 
-    print(test_embeddings.shape)
+    print(labelled_embeddings.shape)
 
     r = {
         'Train accuracy': accuracy_score(y_pred, train.y),
@@ -353,10 +354,11 @@ def evaluate(active_learner, train, test):
         'Test precision': precision_score(y_pred_test, test.y),
         'Train recall': recall_score(y_pred, train.y),
         'Test recall': recall_score(y_pred_test, test.y),
-        'Test predictions': y_pred_test, 
+        'Test predictions': y_pred_test,
         'Test ground truth': test.y, 
         'Test embeddings': test_embeddings, 
-        'Labelled data embeddings': '', 
+        'Labelled data embeddings': labelled_embeddings,
+        'Labelled data labels': train.y
     }
 
     return r
@@ -582,7 +584,6 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
                 selected_descr['all']['non_seeded_target'] = len([i for i in indices_queried if i in bias])
 
         res['counts'] = selected_descr
-        res['counts']['Labelled data labels'] = train.y[indices_labeled]
 
         results.append(res)
 
