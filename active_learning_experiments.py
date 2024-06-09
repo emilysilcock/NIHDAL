@@ -340,9 +340,9 @@ def evaluate(active_learner, train, test):
     y_pred = active_learner.classifier.predict(train)
     y_pred_test = active_learner.classifier.predict(test)
 
-    embeddings = active_learner.classifier.embed(test)
+    test_embeddings = active_learner.classifier.embed(test)
 
-    print(len(embeddings))
+    print(test_embeddings.shape)
 
     r = {
         'Train accuracy': accuracy_score(y_pred, train.y),
@@ -355,7 +355,7 @@ def evaluate(active_learner, train, test):
         'Test recall': recall_score(y_pred_test, test.y),
         'Test predictions': y_pred_test, 
         'Test ground truth': test.y, 
-        'Test embeddings': '', 
+        'Test embeddings': test_embeddings, 
         'Labelled data embeddings': '', 
     }
 
