@@ -595,18 +595,15 @@ if __name__ == '__main__':
     datasets.logging.set_verbosity_error()
     datasets.logging.get_verbosity = lambda: logging.NOTSET
 
-    for biased in [False, True]:
-        transformer_model_name = 'distilroberta-base'
+    transformer_model_name = 'distilroberta-base'
 
-        # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", 'NIHDAL', 'NIHDAL_simon']:
-        # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive"]:
-        for als in ['Random']:
+    for biased in [False, True]:
+        for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", 'NIHDAL', 'NIHDAL_simon']:
 
             print(f'****************{als}**********************')
 
             # Set seed
-            for seed in [12731]:
-            # for seed in [42, 12731, 65372, 97, 163]:
+            for seed in [42, 12731, 65372, 97, 163]:
 
                 print(f'#################{seed}##################')
                 torch.manual_seed(seed)
@@ -638,10 +635,10 @@ if __name__ == '__main__':
 
                 if biased:
                     with open(f'results/{als}_results_{seed}_biased_new.pkl', 'wb') as f:
-                        pickle.dump(results, f, indent=4)
+                        pickle.dump(results, f)
 
                 else:
-                    with open(f'results/{als}_results_{seed}_new.pkl', 'wb') as f:
-                        pickle.dump(results, f, indent=4)
+                    with open(f'results/{als}_results_{seed}_unbiased.pkl', 'wb') as f:
+                        pickle.dump(results, f)
 
                 print(results)
