@@ -340,6 +340,10 @@ def evaluate(active_learner, train, test):
     y_pred = active_learner.classifier.predict(train)
     y_pred_test = active_learner.classifier.predict(test)
 
+    embeddings = active_learner.classifier._create_embeddings(test)
+
+    print(len(embeddings))
+
     r = {
         'Train accuracy': accuracy_score(y_pred, train.y),
         'Test accuracy': accuracy_score(y_pred_test, test.y),
@@ -348,7 +352,11 @@ def evaluate(active_learner, train, test):
         'Train precision': precision_score(y_pred, train.y),
         'Test precision': precision_score(y_pred_test, test.y),
         'Train recall': recall_score(y_pred, train.y),
-        'Test recall': recall_score(y_pred_test, test.y)
+        'Test recall': recall_score(y_pred_test, test.y),
+        'Test predictions': y_pred_test, 
+        'Test ground truth': test.y, 
+        'Test embeddings': , 
+        'Labelled data embeddings': , 
     }
 
     return r
@@ -574,6 +582,7 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
                 selected_descr['all']['non_seeded_target'] = len([i for i in indices_queried if i in bias])
 
         res['counts'] = selected_descr
+        res['counts']['Labelled data labels'] = train.y[indices_labeled]
 
         results.append(res)
 
@@ -588,9 +597,9 @@ if __name__ == '__main__':
     for biased in [False, True]:
         transformer_model_name = 'distilroberta-base'
 
-        for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", 'NIHDAL', 'NIHDAL_simon']:
+        # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", 'NIHDAL', 'NIHDAL_simon']:
         # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive"]:
-        # for als in ['Random']:
+        for als in ['Random']:
 
             print(f'****************{als}**********************')
 
