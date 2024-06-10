@@ -78,7 +78,7 @@ for art_id, text in old_positives.items():
         if art_id in new_dict:
             print("found")
         count += 1
-        if count ==2 :
+        if count ==3 :
             print(text)
             print("***********************")
             # print(json.dumps(new_dict[art_id], indent=2))
