@@ -481,20 +481,22 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
                                                                     }))
 
     if active_learning_method == "DAL":
-        # query_strategy = DiscriminativeRepresentationLearning(
-        # num_iterations=10,
-        # selection='greedy',
-        # device='cuda',
-        # mini_batch_size=32,
-        # train_kwargs=dict({
-        #     'num_epochs': 10,
-        #     'lr': 5e-5,
-        #     # 'class_weight': 'balanced'
-        # })
-        query_strategy = DiscriminativeActiveLearning(
+        query_strategy = DiscriminativeRepresentationLearning(
         num_iterations=10,
-        classifier_factory = clf_factory_2
-    )
+        selection='greedy',
+        device='cuda',
+        mini_batch_size=32,
+        train_kwargs=dict({
+            # 'num_epochs': 10,
+            'num_epochs': 0,
+            'lr': 5e-5,
+            # 'class_weight': 'balanced'
+        })
+        )
+    #     query_strategy = DiscriminativeActiveLearning(
+        #     num_iterations=10,
+        #     classifier_factory = clf_factory_2
+        # )
     elif active_learning_method == "NIHDAL":
         query_strategy = NIHDAL(classifier_factory=clf_factory_2, num_iterations=10)
     elif active_learning_method == "NIHDAL_simon":
