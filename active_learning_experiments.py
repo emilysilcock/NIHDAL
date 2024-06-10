@@ -605,7 +605,9 @@ if __name__ == '__main__':
                 print(f'****************{als}**********************')
 
                 # Set seed
-                for seed in [163]:  # 42, 12731, 65372, 97, 163
+                for seed in [97]:  # 42, 12731, 65372, 97, 163
+
+                    ## 97 not done 
 
                     print(f'#################{seed}##################')
                     torch.manual_seed(seed)
