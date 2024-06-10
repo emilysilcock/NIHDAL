@@ -82,4 +82,4 @@ for art_id, text in old_positives.items():
             print(text)
             print("***********************")
             print(json.dumps(new_dict[art_id], indent=2))
-    print('######################################')
+        print('######################################')
