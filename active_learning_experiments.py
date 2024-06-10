@@ -354,11 +354,11 @@ def evaluate(active_learner, train, test):
         'Test precision': precision_score(y_pred_test, test.y),
         'Train recall': recall_score(y_pred, train.y),
         'Test recall': recall_score(y_pred_test, test.y),
-        # 'Test predictions': y_pred_test,
-        # 'Test ground truth': test.y, 
-        # 'Test embeddings': test_embeddings, 
-        # 'Labelled data embeddings': labelled_embeddings,
-        # 'Labelled data labels': train.y
+        'Test predictions': y_pred_test,
+        'Test ground truth': test.y,
+        'Test embeddings': test_embeddings,
+        'Labelled data embeddings': labelled_embeddings,
+        'Labelled data labels': train.y
     }
 
     return r
@@ -572,24 +572,21 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
         print(f'Iteration #{i} ({len(indices_labeled)} samples)')
         res = evaluate(active_learner, train[indices_labeled], test)
 
+        if als not in ['NIHDAL', 'NIHDAL_simon']:
 
-        selected_descr = {
-            'all': {
-                'selected': len(indices_queried),
-                'target': int(sum(y))
+            selected_descr = {
+                'all': {
+                    'selected': len(indices_queried),
+                    'target': int(sum(y))
+                }
             }
-        }
 
-        print(int(sum(y)))
-
-        if biased:
-            selected_descr['all']['non_seeded_target'] = len([i for i in indices_queried if i in bias])
+            if biased:
+                selected_descr['all']['non_seeded_target'] = len([i for i in indices_queried if i in bias])
 
         res['counts'] = selected_descr
 
         results.append(res)
-
-        print(res)
 
     return results
 
