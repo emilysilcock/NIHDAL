@@ -46,6 +46,10 @@ new_labelled_data_paths = [
         'Labelled_data/kw_initialisation/sample_22.json',
         'Labelled_data/kw_initialisation/sample_23.json',
         'Labelled_data/kw_initialisation/sample_24.json',
+        'Labelled_data/kw_initialisation/sample_25.json',
+        'Labelled_data/kw_initialisation/sample_26.json',
+        'Labelled_data/kw_initialisation/sample_27.json',
+        'Labelled_data/kw_initialisation/sample_28.json'
         ]
 
 new_positives = []
@@ -71,11 +75,11 @@ count = 0
 for art_id, text in old_positives.items():
     if art_id not in new_positives:
         print('missing')
-        if art_id in new_dict:
-            count += 1
-            if count ==5 :
-                print('labelled some')
-                print(text)
-                print("***********************")
-                print(json.dumps(new_dict[art_id], indent=2))
-        print('######################################')
+        # if art_id in new_dict:
+        #     count += 1
+        #     if count ==5 :
+        #         print('labelled some')
+        #         print(text)
+        #         print("***********************")
+        #         print(json.dumps(new_dict[art_id], indent=2))
+        # print('######################################')
