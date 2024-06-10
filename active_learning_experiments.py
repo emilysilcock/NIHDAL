@@ -598,46 +598,47 @@ if __name__ == '__main__':
 
     transformer_model_name = 'distilroberta-base'
 
-    for biased in [False, True]:
-        for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", "Contrastive", 'NIHDAL', 'NIHDAL_simon']:
+    for ds in ['ag_news']:
+        for biased in [False, True]:
+            for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
 
-            print(f'****************{als}**********************')
+                print(f'****************{als}**********************')
 
-            # Set seed
-            for seed in [42, 12731, 65372, 97, 163]:
+                # Set seed
+                for seed in [42]:  # 12731, 65372, 97, 163
 
-                print(f'#################{seed}##################')
-                torch.manual_seed(seed)
-                np.random.seed(seed)
-                random.seed(seed)
+                    print(f'#################{seed}##################')
+                    torch.manual_seed(seed)
+                    np.random.seed(seed)
+                    random.seed(seed)
 
-                selected_descr = None
+                    selected_descr = None
 
-                # Load data
-                if biased:
-                    train, test, bias_indices = load_and_format_dataset(
-                        dataset_name='ag_news',
-                        tokenization_model=transformer_model_name,
-                        target_labels=[0, 2],
-                        biased=True
-                    )
+                    # Load data
+                    if biased:
+                        train, test, bias_indices = load_and_format_dataset(
+                            dataset_name='ag_news',
+                            tokenization_model=transformer_model_name,
+                            target_labels=[0, 1],
+                            biased=True
+                        )
 
-                else:
-                    train, test = load_and_format_dataset(
-                        dataset_name='ag_news',
-                        tokenization_model=transformer_model_name,
-                        target_labels=[0]
-                    )
-                    bias_indices = None
+                    else:
+                        train, test = load_and_format_dataset(
+                            dataset_name=ds,
+                            tokenization_model=transformer_model_name,
+                            target_labels=[0]
+                        )
+                        bias_indices = None
 
-                active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als)
+                    active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als)
 
-                results = active_learning_loop(active_learner, train, test, num_queries=10, bias=bias_indices, selected_descr=selected_descr)
+                    results = active_learning_loop(active_learner, train, test, num_queries=10, bias=bias_indices, selected_descr=selected_descr)
 
-                if biased:
-                    with open(f'results/{als}_results_{seed}_biased_new.pkl', 'wb') as f:
-                        pickle.dump(results, f)
+                    if biased:
+                        with open(f'results/{ds}_{als}_results_{seed}_biased_new.pkl', 'wb') as f:
+                            pickle.dump(results, f)
 
-                else:
-                    with open(f'results/{als}_results_{seed}_unbiased.pkl', 'wb') as f:
-                        pickle.dump(results, f)
+                    else:
+                        with open(f'results/{ds}_{als}_results_{seed}_unbiased.pkl', 'wb') as f:
+                            pickle.dump(results, f)
