@@ -423,7 +423,7 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
                 'text_name': 'Text',
                 'label_name': 'Emotion'
             },
-        'agnews': 
+        'ag_news': 
             {
                 'hf_name': 'agnews',
                 'text_name': 'text',
