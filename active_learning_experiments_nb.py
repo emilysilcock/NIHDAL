@@ -439,7 +439,7 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
 
     # Reduce to two classes
     raw_dataset['train'] = make_binary(raw_dataset['train'], target_labels, datasets_dict, dataset_name)
-    raw_dataset['test'] = make_binary(raw_dataset['test'], target_labels), datasets_dict, dataset_name)
+    raw_dataset['test'] = make_binary(raw_dataset['test'], target_labels, datasets_dict, dataset_name)
 
     # Make target class 1% of the data
     if biased:
