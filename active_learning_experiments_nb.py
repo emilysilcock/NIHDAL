@@ -434,7 +434,10 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
     raw_dataset = datasets.load_dataset(datasets_dict[dataset_name]['hf_name'])
 
     # Rename text column
-    dataset = dataset.rename_column(datasets_dict[dataset_name]['text_name'], 'text')
+    if dataset_name == "isear":
+        dataset = dataset.remove_columns('text')
+
+    raw_dataset = raw_dataset.rename_column(datasets_dict[dataset_name]['text_name'], 'text')
 
     # Make label column into ints 
     if dataset_name == "isear":
