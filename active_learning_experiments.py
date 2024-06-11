@@ -462,6 +462,8 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
     raw_dataset['train'] = make_binary(raw_dataset['train'], target_labels)
     raw_dataset['test'] = make_binary(raw_dataset['test'], target_labels)
 
+    print(raw_dataset.keys())
+
     # Make target class 1% of the data
     if biased:
         raw_dataset['train'], bias_indices = make_imbalanced(raw_dataset['train'], indices_to_track=unsampled_train_indices)
@@ -639,7 +641,7 @@ if __name__ == '__main__':
     for ds in ['isear']:
         for biased in [False, True]:
             # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
-            for als in ["DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: 
+            for als in ["DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']:
 
                 print(f'****************{als}**********************')
 
