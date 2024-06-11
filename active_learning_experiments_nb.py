@@ -439,7 +439,7 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
 
     raw_dataset = raw_dataset.rename_column(datasets_dict[dataset_name]['text_name'], 'text')
 
-    # Make label column into ints 
+    # Make label column into ints
     if dataset_name == "isear":
         unique_labs = raw_dataset['train'].unique(datasets_dict[dataset_name]['label_name'])
         str_to_int = {emotion: idx for idx, emotion in enumerate(unique_labs)}
@@ -451,7 +451,7 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
         # Apply the encoding to both train and test splits
         raw_dataset = raw_dataset.map(encode_string_labels, batched=False)
 
-        print(raw_dataset['train'].features)
+    print(raw_dataset['train'].features)
 
     if biased:
         unsampled_train_indices = [i for i, lab in enumerate(raw_dataset['train']['label']) if lab == target_labels[1]]
@@ -632,7 +632,7 @@ if __name__ == '__main__':
 
     transformer_model_name = 'distilroberta-base'
 
-    for ds in ['isear']:
+    for ds in ['agnews']:
         for biased in [False, True]:
             # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
             for als in ['NIHDAL']: 
