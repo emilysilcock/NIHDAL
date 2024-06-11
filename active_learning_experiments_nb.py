@@ -436,6 +436,7 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
     # Rename text column
     if dataset_name == "isear":
         raw_dataset = raw_dataset.remove_columns('text')
+        raw_dataset = raw_dataset.remove_columns('Text_processed')
         raw_dataset = raw_dataset.rename_column(datasets_dict[dataset_name]['text_name'], 'text')
 
     # Make label column into ints
@@ -450,6 +451,9 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
         raw_dataset = raw_dataset.map(encode_string_labels, batched=False)
 
         raw_dataset = raw_dataset.cast_column('label', class_labels)
+
+        raw_dataset = raw_dataset.remove_columns(datasets_dict[dataset_name]['label_name'])
+
 
     print(raw_dataset['train'].features)
 
