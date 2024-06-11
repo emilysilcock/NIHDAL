@@ -433,6 +433,10 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
 
     raw_dataset = datasets.load_dataset(datasets_dict[dataset_name]['hf_name'])
 
+    if dataset_name == "isear":
+
+        print(raw_dataset.features)
+
 
     if biased:
         unsampled_train_indices = [i for i, lab in enumerate(raw_dataset['train'][datasets_dict[dataset_name]['label_name']]) if lab == target_labels[1]]
