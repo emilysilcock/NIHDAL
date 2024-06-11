@@ -417,11 +417,43 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
 
     # Load data
     datasets_dict = {
-        'isear': 'dalopeza98/isear-cleaned-dataset',
-        'agnews': 'agnews'
+        'isear': 
+            {
+                'hf_name': 'RikoteMaster/isear_rauw',
+                'text_name': 'Text',
+                'label_name': 'Emotion'
+            },
+        'ag_news': 
+            {
+                'hf_name': 'ag_news',
+                'text_name': 'text',
+                'label_name': 'label'
+            }
     }
 
-    raw_dataset = datasets.load_dataset(datasets_dict[dataset_name])
+    raw_dataset = datasets.load_dataset(datasets_dict[dataset_name]['hf_name'])
+
+    # Rename text column
+    if dataset_name == "isear":
+        raw_dataset = raw_dataset.remove_columns('text')
+        raw_dataset = raw_dataset.remove_columns('Text_processed')
+        raw_dataset = raw_dataset.rename_column(datasets_dict[dataset_name]['text_name'], 'text')
+
+    # Make label column into ints
+    if dataset_name == "isear":
+        unique_labs = raw_dataset['train'].unique(datasets_dict[dataset_name]['label_name'])
+        class_labels = datasets.ClassLabel(names=unique_labs)
+
+        def encode_string_labels(example):
+            example['label'] = class_labels.str2int(example[datasets_dict[dataset_name]['label_name']])
+            return example
+
+        raw_dataset = raw_dataset.map(encode_string_labels, batched=False)
+
+        raw_dataset = raw_dataset.cast_column('label', class_labels)
+
+        raw_dataset = raw_dataset.remove_columns(datasets_dict[dataset_name]['label_name'])
+
 
     if biased:
         unsampled_train_indices = [i for i, lab in enumerate(raw_dataset['train']['label']) if lab == target_labels[1]]
@@ -605,8 +637,7 @@ if __name__ == '__main__':
 
     # for ds in ['ag_news']:
     for ds in ['isear']:
-        # for biased in [False, True]:
-        for biased in [False]:
+        for biased in [False, True]:
             # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
             for als in ["DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: 
 
