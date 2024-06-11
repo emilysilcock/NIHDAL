@@ -599,13 +599,15 @@ if __name__ == '__main__':
     transformer_model_name = 'distilroberta-base'
 
     for ds in ['ag_news']:
-        for biased in [False, True]:
-            for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
+        # for biased in [False, True]:
+        for biased in [True]:
+            # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
+            for als in ['NIHDAL', 'NIHDAL_simon']: #"Contrastive",
 
                 print(f'****************{als}**********************')
 
                 # Set seed
-                for seed in [97]:  # 42, 12731, 65372, 97, 163
+                for seed in [163]:  # 42, 12731, 65372, 97, 163
 
                     ## 97 not done 
 
