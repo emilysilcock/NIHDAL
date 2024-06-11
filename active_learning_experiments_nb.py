@@ -435,7 +435,7 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
 
     # Rename text column
     if dataset_name == "isear":
-        dataset = dataset.remove_columns('text')
+        raw_dataset = raw_dataset.remove_columns('text')
 
     raw_dataset = raw_dataset.rename_column(datasets_dict[dataset_name]['text_name'], 'text')
 
