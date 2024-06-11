@@ -347,6 +347,7 @@ if __name__ == '__main__':
         'Labelled_data/kw_initialisation/sample_26.json',
         'Labelled_data/kw_initialisation/sample_27.json',
         'Labelled_data/kw_initialisation/sample_28.json',
+        'Labelled_data/kw_initialisation/sample_29.json',
         ])
 
     texts = []
