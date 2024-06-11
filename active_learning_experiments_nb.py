@@ -444,7 +444,7 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
         class_labels = datasets.ClassLabel(names=unique_labs)
 
         def encode_string_labels(example):
-            example['label'] = class_labels.str2int(example['emotion'])
+            example['label'] = class_labels.str2int(example[datasets_dict[dataset_name]['label_name']])
             return example
 
         raw_dataset = raw_dataset.map(encode_string_labels, batched=False)
