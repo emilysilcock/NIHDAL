@@ -602,7 +602,7 @@ if __name__ == '__main__':
         # for biased in [False, True]:
         for biased in [False]:
             # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
-            for als in ["DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
+            for als in ["DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: 
 
                 print(f'****************{als}**********************')
 
