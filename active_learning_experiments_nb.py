@@ -421,7 +421,7 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
             {
                 'hf_name': 'RikoteMaster/isear_rauw',
                 'text_name': 'Text',
-                'label_name': 'emotion'
+                'label_name': 'Emotion'
             },
         'agnews': 
             {
