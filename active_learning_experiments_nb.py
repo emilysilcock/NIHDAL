@@ -435,7 +435,7 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
 
     if dataset_name == "isear":
 
-        print(raw_dataset.features)
+        print(raw_dataset['train'].features)
 
 
     if biased:
