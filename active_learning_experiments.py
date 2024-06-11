@@ -600,14 +600,14 @@ if __name__ == '__main__':
 
     for ds in ['ag_news']:
         # for biased in [False, True]:
-        for biased in [65372]:
+        for biased in [False]:
             # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
             for als in ['NIHDAL', 'NIHDAL_simon']: #"Contrastive",
 
                 print(f'****************{als}**********************')
 
                 # Set seed
-                for seed in [42]:  # 42, 12731, 65372, 97, 163
+                for seed in [65372]:  # 42, 12731, 65372, 97, 163
 
                     ## 97 not done 
 
