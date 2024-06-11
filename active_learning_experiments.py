@@ -416,7 +416,12 @@ def initialize_active_learner_balanced(active_learner, y_train):
 def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0], biased=False):
 
     # Load data
-    raw_dataset = datasets.load_dataset(dataset_name)
+    datasets_dict = {
+        'isear': 'dalopeza98/isear-cleaned-dataset',
+        'agnews': 'agnews'
+    }
+
+    raw_dataset = datasets.load_dataset(datasets_dict[dataset_name])
 
     if biased:
         unsampled_train_indices = [i for i, lab in enumerate(raw_dataset['train']['label']) if lab == target_labels[1]]
@@ -598,7 +603,8 @@ if __name__ == '__main__':
 
     transformer_model_name = 'distilroberta-base'
 
-    for ds in ['ag_news']:
+    # for ds in ['ag_news']:
+    for ds in ['isear']:
         # for biased in [False, True]:
         for biased in [False]:
             # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
@@ -619,7 +625,7 @@ if __name__ == '__main__':
                     # Load data
                     if biased:
                         train, test, bias_indices = load_and_format_dataset(
-                            dataset_name='ag_news',
+                            dataset_name=ds,
                             tokenization_model=transformer_model_name,
                             target_labels=[0, 1],
                             biased=True
