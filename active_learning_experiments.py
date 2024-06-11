@@ -433,14 +433,16 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
 
     raw_dataset = datasets.load_dataset(datasets_dict[dataset_name]['hf_name'])
 
-    # Rename text column
     if dataset_name == "isear":
+
+        # Remove validation split
+        print(raw_dataset.keys())
+        del raw_dataset['validation']
+
+        # Rename text column
         raw_dataset = raw_dataset.remove_columns('text')
         raw_dataset = raw_dataset.remove_columns('Text_processed')
         raw_dataset = raw_dataset.rename_column(datasets_dict[dataset_name]['text_name'], 'text')
-
-        # Remove validation split
-        del raw_dataset['validation']
 
     # Make label column into ints
     if dataset_name == "isear":
