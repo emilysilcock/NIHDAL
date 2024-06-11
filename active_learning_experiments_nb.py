@@ -278,10 +278,10 @@ class NIHDAL_2(DiscriminativeActiveLearning_amended):
         return selected_indices
 
 
-def make_binary(dataset, target_labels, datasets_dict, dataset_name):
+def make_binary(dataset, target_labels):
 
     # Create mapping
-    num_classes = dataset.features[datasets_dict[dataset_name]['label_name']].num_classes
+    num_classes = dataset.features['label'].num_classes
 
     class_mapping = {lab: 0 for lab in range(num_classes)}
     
@@ -289,11 +289,11 @@ def make_binary(dataset, target_labels, datasets_dict, dataset_name):
         class_mapping[tl] = 1
 
     # Apply the mapping to change the labels
-    binary_dataset = dataset.map(lambda example: {datasets_dict[dataset_name]['label_name']: class_mapping[example[datasets_dict[dataset_name]['label_name']]]})
+    binary_dataset = dataset.map(lambda example: {'label': class_mapping[example['label']]})
 
     # Update metadata
     new_features = datasets.Features({
-        'text': binary_dataset.features[datasets_dict[dataset_name]['text_name']],
+        'text': binary_dataset.features['text'],
         'label': datasets.ClassLabel(names = ['merged', 'target'], num_classes=2)
         })
     binary_dataset = binary_dataset.cast(new_features)
@@ -301,11 +301,11 @@ def make_binary(dataset, target_labels, datasets_dict, dataset_name):
     return binary_dataset
 
 
-def make_imbalanced(dataset, datasets_dict, dataset_name, indices_to_track=None):
+def make_imbalanced(dataset, indices_to_track=None):
 
     # Split dataset
-    other_samples = dataset.filter(lambda example: example[datasets_dict[dataset_name]['label_name']] == 0)
-    target_samples = dataset.filter(lambda example: example[datasets_dict[dataset_name]['label_name']] == 1)
+    other_samples = dataset.filter(lambda example: example['label'] == 0)
+    target_samples = dataset.filter(lambda example: example['label'] == 1)
 
     # Calculate the number of target samples to keep (1% of imbalanced dataset)
     other_samples_count = len(other_samples)
@@ -433,39 +433,51 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
 
     raw_dataset = datasets.load_dataset(datasets_dict[dataset_name]['hf_name'])
 
+    # Rename text column
+    dataset = dataset.rename_column(datasets_dict[dataset_name]['text_name'], 'text')
+
+    # Make label column into ints 
     if dataset_name == "isear":
+        unique_labs = raw_dataset['train'].unique(datasets_dict[dataset_name]['label_name'])
+        str_to_int = {emotion: idx for idx, emotion in enumerate(unique_labs)}
+
+        def encode_string_labels(example):
+            example['label'] = str_to_int[example[datasets_dict[dataset_name]['label_name']]]
+            return example
+
+        # Apply the encoding to both train and test splits
+        raw_dataset = raw_dataset.map(encode_string_labels, batched=False)
 
         print(raw_dataset['train'].features)
 
-
     if biased:
-        unsampled_train_indices = [i for i, lab in enumerate(raw_dataset['train'][datasets_dict[dataset_name]['label_name']]) if lab == target_labels[1]]
+        unsampled_train_indices = [i for i, lab in enumerate(raw_dataset['train']['label']) if lab == target_labels[1]]
 
     # Reduce to two classes
-    raw_dataset['train'] = make_binary(raw_dataset['train'], target_labels, datasets_dict, dataset_name)
-    raw_dataset['test'] = make_binary(raw_dataset['test'], target_labels, datasets_dict, dataset_name)
+    raw_dataset['train'] = make_binary(raw_dataset['train'], target_labels)
+    raw_dataset['test'] = make_binary(raw_dataset['test'], target_labels)
 
     # Make target class 1% of the data
     if biased:
-        raw_dataset['train'], bias_indices = make_imbalanced(raw_dataset['train'], datasets_dict, dataset_name, indices_to_track=unsampled_train_indices)
+        raw_dataset['train'], bias_indices = make_imbalanced(raw_dataset['train'], indices_to_track=unsampled_train_indices)
     else:
-        raw_dataset['train'] = make_imbalanced(raw_dataset['train'], datasets_dict, dataset_name)
+        raw_dataset['train'] = make_imbalanced(raw_dataset['train'])
 
-    raw_dataset['test'] = make_imbalanced(raw_dataset['test'], datasets_dict, dataset_name)
+    raw_dataset['test'] = make_imbalanced(raw_dataset['test'])
 
     # Tokenize data
     tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
 
-    num_classes = raw_dataset['train'].features[datasets_dict[dataset_name]['label_name']].num_classes
+    num_classes = raw_dataset['train'].features['label'].num_classes
     lab_array = np.arange(num_classes)
 
-    train_dat = TransformersDataset.from_arrays(raw_dataset['train'][datasets_dict[dataset_name]['text_name']],
-                                            raw_dataset['train'][datasets_dict[dataset_name]['label_name']],
+    train_dat = TransformersDataset.from_arrays(raw_dataset['train']['text'],
+                                            raw_dataset['train']['label'],
                                             tokenizer,
                                             max_length=100,
                                             target_labels=lab_array)
-    test_dat = TransformersDataset.from_arrays(raw_dataset['test'][datasets_dict[dataset_name]['text_name']],
-                                          raw_dataset['test'][datasets_dict[dataset_name]['label_name']],
+    test_dat = TransformersDataset.from_arrays(raw_dataset['test']['text'],
+                                          raw_dataset['test']['label'],
                                           tokenizer,
                                           max_length=100,
                                           target_labels=lab_array)
@@ -475,7 +487,6 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
 
     else:
         return train_dat, test_dat
-
 
 def set_up_active_learner(transformer_model_name, active_learning_method):
 
