@@ -439,6 +439,9 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
         raw_dataset = raw_dataset.remove_columns('Text_processed')
         raw_dataset = raw_dataset.rename_column(datasets_dict[dataset_name]['text_name'], 'text')
 
+        # Remove validation split
+        del raw_dataset['validation']
+
     # Make label column into ints
     if dataset_name == "isear":
         unique_labs = raw_dataset['train'].unique(datasets_dict[dataset_name]['label_name'])
@@ -454,8 +457,6 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
 
         raw_dataset = raw_dataset.remove_columns(datasets_dict[dataset_name]['label_name'])
 
-
-    print(raw_dataset['train'].features)
 
     if biased:
         unsampled_train_indices = [i for i, lab in enumerate(raw_dataset['train']['label']) if lab == target_labels[1]]
@@ -494,6 +495,7 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
 
     else:
         return train_dat, test_dat
+
 
 def set_up_active_learner(transformer_model_name, active_learning_method):
 
