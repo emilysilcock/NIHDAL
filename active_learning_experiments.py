@@ -600,7 +600,7 @@ if __name__ == '__main__':
 
     for ds in ['ag_news']:
         # for biased in [False, True]:
-        for biased in [True]:
+        for biased in [65372]:
             # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
             for als in ['NIHDAL', 'NIHDAL_simon']: #"Contrastive",
 
