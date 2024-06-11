@@ -602,14 +602,12 @@ if __name__ == '__main__':
         # for biased in [False, True]:
         for biased in [False]:
             # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
-            for als in ['NIHDAL', 'NIHDAL_simon']: #"Contrastive",
+            for als in ["DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
 
                 print(f'****************{als}**********************')
 
                 # Set seed
-                for seed in [65372]:  # 42, 12731, 65372, 97, 163
-
-                    ## 97 not done 
+                for seed in [97]:  # 42, 12731, 65372, 97, 163
 
                     print(f'#################{seed}##################')
                     torch.manual_seed(seed)
