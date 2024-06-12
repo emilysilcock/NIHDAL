@@ -50,6 +50,8 @@ new_labelled_data_paths = [
         'Labelled_data/kw_initialisation/sample_26.json',
         'Labelled_data/kw_initialisation/sample_27.json',
         'Labelled_data/kw_initialisation/sample_28.json'
+        'Labelled_data/kw_initialisation/sample_29.json'
+        'Labelled_data/kw_initialisation/sample_30.json'
         ]
 
 new_positives = []
