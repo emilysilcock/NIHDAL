@@ -33,7 +33,8 @@ edition_dict = {
     'Edition 2, Ireland': 'remove',
     'Edition 2, Scotland': 'remove',
     'Edition 3MM': 'keep',
-    'Edition 3, National Edition': 'keep'
+    'Edition 3, National Edition': 'keep',
+    'Edition 10, Scotland': 'remove'
 }
 
 for year in range(2013, 2023):
