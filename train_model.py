@@ -315,6 +315,13 @@ if __name__ == '__main__':
         'Labelled_data/kw_initialisation/sample_22.json',
         'Labelled_data/kw_initialisation/sample_23.json',
         'Labelled_data/kw_initialisation/sample_24.json',
+        'Labelled_data/kw_initialisation/sample_25.json',
+        'Labelled_data/kw_initialisation/sample_26.json',
+        'Labelled_data/kw_initialisation/sample_27.json',
+        'Labelled_data/kw_initialisation/sample_28.json',
+        'Labelled_data/kw_initialisation/sample_29.json',
+        'Labelled_data/kw_initialisation/sample_30.json',
+        'Labelled_data/kw_initialisation/sample_31.json',
         ]
 
     label2int = {'Irrelevant': 0, 'On topic': 1}
@@ -325,7 +332,8 @@ if __name__ == '__main__':
     train_test_dev_split(
         ls_data_paths=data_paths,
         label_dict=label2int,
-        save_dir="/mnt/data01/AL/final_labelled_data/",
+        # save_dir="/mnt/data01/AL/final_labelled_data/",
+        save_dir="/n/home09/esilcock/NIHDAL/final_labelled_data/",
         test_perc=0.15,
         eval_perc=0.15,
         model=pretrained_model
@@ -335,14 +343,15 @@ if __name__ == '__main__':
     datasets = {}
     for dataset in ["train", "eval", "test"]:
         datasets[dataset] = tokenize_data_for_finetuning(
-            directory=f"/mnt/data01/AL/final_labelled_data/{dataset}.csv",
+            directory=f"/n/home09/esilcock/NIHDAL/final_labelled_data/{dataset}.csv",
+            # directory=f"/mnt/data01/AL/final_labelled_data/{dataset}.csv",
             hf_model=pretrained_model,
             max_token_length=512
         )
 
 
     # Config hyperparameter sweep
-    for batch_size in [8, 16, 32, 64, 128]:
+    for batch_size in [16]:
         for lr in [5e-7, 1e-6, 2e-06, 5e-6, 1e-5, 5e-5, 1e-4]:
 
             name = f'{batch_size}_{lr}'
@@ -358,7 +367,7 @@ if __name__ == '__main__':
                 batch_size=batch_size,
                 lr=lr,
                 epochs=20,
-                save_dir=f'/mnt/data01/AL/trained_models/kw_initialisation/{name}'
+                save_dir=f'/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_{name}'
             )
 
 
