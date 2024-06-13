@@ -59,92 +59,146 @@ def find_sep_token(tokenizer):
     return sep
 
 
-def basic_clean(fp, first_date, sp):
+# def basic_clean(fp, sp):
 
-    data_dict = {}
-    not_found_dict = []
+#     data_dict = {}
+#     not_found_dict = []
 
-    remove_before = datetime.strptime(first_date, '%d-%m-%Y')
+#     paths = glob(fp)
+#     print(f'{len(paths)} paths to process')
 
-    paths = glob(fp)
-    print(f'{len(paths)} paths to process')
+#     for path in tqdm(paths):
 
-    for path in tqdm(paths):
+#         try:
+#             count = int(path.split("_")[-1].split(".")[0])
+#         except:
+#             print(path)
+#             assert 1 == 0
 
+#         try:
+#             with open(path) as f:
+#                 dat = json.load(f)
+
+#             for art in dat["value"]:
+
+#                 # Parse xml
+#                 if not art['Document']:
+#                     not_found_dict.append(art)
+#                     count += 1
+#                     continue
+
+#                 content = art['Document']['Content']
+
+#                 soup = BeautifulSoup(content, 'xml')
+
+#                 # Get Date
+#                 date = datetime.strptime(art["Date"], "%Y-%m-%dT%H:%M:%SZ").date()
+
+#                 if date >= remove_before.date():   ### SWITCHED TO EARLIER DATES 
+#                     count += 1
+#                     continue
+
+#                 check_date = datetime.strptime(soup.find('published').get_text(), "%Y-%m-%dT%H:%M:%SZ").date()
+#                 assert date == check_date
+
+#                 publication_date_day = soup.find('publicationDate').get('day')
+#                 publication_date_month = soup.find('publicationDate').get('month')
+#                 publication_date_year = soup.find('publicationDate').get('year')
+#                 publication_date_obj = datetime.strptime(f"{publication_date_year}-{publication_date_month}-{publication_date_day}", "%Y-%m-%d")
+#                 assert date == publication_date_obj.date()
+
+#                 date = date.strftime("%Y-%m-%d")
+
+
+#                 # Get article
+#                 try:
+#                     article = soup.find('nitf:body.content').get_text(separator='\n\n')
+#                 except:
+#                     article = ""
+
+#                 cleaned_data = {
+#                     "int_id": count,
+#                     "ln_id": art["Document"]["DocumentId"],
+#                     "date": date,
+#                     "headline": art["Title"],
+#                     "article": article,
+#                     "newspaper": art["Source"]["Name"],
+#                 }
+
+#                 data_dict[count] = cleaned_data
+
+#                 count += 1
+
+#         except:
+#             print(f'{path} not found')
+
+#     print(f'{len(data_dict)} articles')
+#     print(f'{len(not_found_dict)} articles not found')
+
+#     if sp:
+#         # # Save
+#         # os.makedirs(sp, exist_ok=True)
+
+#         # with open(f"{sp}/cleaned_sample_data_earlier.json", 'w') as f:
+#         #     json.dump(data_dict, f, indent=4)
+
+#         # with open(f"{sp}/not_found_sample_earlier.json", 'w') as f:
+#         #     json.dump(not_found_dict, f, indent=4)
+
+#     return data_dict, not_found_dict 
+
+
+
+def basic_parsing(list_of_articles):
+
+    not_found_list = []
+    cleaned_articles = []
+    for art in list_of_articles:
+
+        # Parse xml
+        if not art['Document']:
+            not_found_list.append(art)
+            continue
+
+        content = art['Document']['Content']
+
+        soup = BeautifulSoup(content, 'xml')
+
+        # Get edition
+        edition = "".join([tag.get_text(separator=' ') for tag in soup.find_all('edition')])
+
+        # Get Date
+        date = datetime.strptime(art["Date"], "%Y-%m-%dT%H:%M:%SZ").date()
+
+        check_date = datetime.strptime(soup.find('published').get_text(), "%Y-%m-%dT%H:%M:%SZ").date()
+        assert date == check_date
+
+        publication_date_day = soup.find('publicationDate').get('day')
+        publication_date_month = soup.find('publicationDate').get('month')
+        publication_date_year = soup.find('publicationDate').get('year')
+        publication_date_obj = datetime.strptime(f"{publication_date_year}-{publication_date_month}-{publication_date_day}", "%Y-%m-%d")
+        assert date == publication_date_obj.date()
+
+        date = date.strftime("%Y-%m-%d")
+
+        # Get article
         try:
-            count = int(path.split("_")[-1].split(".")[0])
+            article = soup.find('nitf:body.content').get_text(separator='\n\n')
         except:
-            print(path)
-            assert 1 == 0
+            article = ""
 
-        try:
-            with open(path) as f:
-                dat = json.load(f)
+        cleaned_data = {
+            "ln_id": art["Document"]["DocumentId"],
+            "date": date,
+            "edition": edition, 
+            "headline": art["Title"],
+            "article": article,
+            "newspaper": art["Source"]["Name"],
+        }
 
-            for art in dat["value"]:
+        cleaned_articles.append(cleaned_data)
 
-                # Parse xml
-                if not art['Document']:
-                    not_found_dict.append(art)
-                    count += 1
-                    continue
-
-                content = art['Document']['Content']
-
-                soup = BeautifulSoup(content, 'xml')
-
-                # Get Date
-                date = datetime.strptime(art["Date"], "%Y-%m-%dT%H:%M:%SZ").date()
-
-                if date >= remove_before.date():   ### SWITCHED TO EARLIER DATES 
-                    count += 1
-                    continue
-
-                check_date = datetime.strptime(soup.find('published').get_text(), "%Y-%m-%dT%H:%M:%SZ").date()
-                assert date == check_date
-
-                publication_date_day = soup.find('publicationDate').get('day')
-                publication_date_month = soup.find('publicationDate').get('month')
-                publication_date_year = soup.find('publicationDate').get('year')
-                publication_date_obj = datetime.strptime(f"{publication_date_year}-{publication_date_month}-{publication_date_day}", "%Y-%m-%d")
-                assert date == publication_date_obj.date()
-
-                date = date.strftime("%Y-%m-%d")
-
-
-                # Get article
-                try:
-                    article = soup.find('nitf:body.content').get_text(separator='\n\n')
-                except:
-                    article = ""
-
-                cleaned_data = {
-                    "int_id": count,
-                    "ln_id": art["Document"]["DocumentId"],
-                    "date": date,
-                    "headline": art["Title"],
-                    "article": article,
-                    "newspaper": art["Source"]["Name"],
-                }
-
-                data_dict[count] = cleaned_data
-
-                count += 1
-
-        except:
-            print(f'{path} not found')
-
-    print(f'{len(data_dict)} articles')
-    print(f'{len(not_found_dict)} articles not found')
-
-    # Save
-    os.makedirs(sp, exist_ok=True)
-
-    with open(f"{sp}/cleaned_sample_data_earlier.json", 'w') as f:
-        json.dump(data_dict, f, indent=4)
-
-    with open(f"{sp}/not_found_sample_earlier.json", 'w') as f:
-        json.dump(not_found_dict, f, indent=4)
+    return cleaned_articles, not_found_list
 
 
 def chunk(art_dict, tokenizer, max_length=512):
