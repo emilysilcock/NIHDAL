@@ -24,7 +24,7 @@ def date_range(start_date, end_date):
 
 
 edition_dict = {
-
+    'Edition 1, Northern Ireland': 'remove'
 }
 
 for year in range(2013, 2023):
@@ -64,9 +64,9 @@ for year in range(2013, 2023):
                 year_list.append(art)
 
     with open(f'/n/home09/esilcock/clean_Sun_data/{year}_cleaned.json', 'w') as f:
-        json.dumps(year_list, f, indent=4)
+        json.dump(year_list, f, indent=4)
     with open(f'/n/home09/esilcock/clean_Sun_data/{year}_not_found.json', 'w') as f:
-        json.dumps(not_found_list, f, indent=4)
+        json.dump(not_found_list, f, indent=4)
 
     print('Filtered articles:', len(year_list))
     print('Not found:', len(not_found_list))
