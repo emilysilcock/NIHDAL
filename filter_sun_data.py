@@ -63,8 +63,12 @@ for year in range(2013, 2023):
         national_editions = []
 
         for art in cleaned_data:
-            if edition_dict[art['edition']] == 'keep':
-                year_list.append(art)
+            try:
+                if edition_dict[art['edition']] == 'keep':
+                    year_list.append(art)
+            except:
+                print(list(set([a['edition'] for a in cleaned_data])))
+                raise LookupError
 
     with open(f'/n/home09/esilcock/clean_Sun_data/{year}_cleaned.json', 'w') as f:
         json.dump(year_list, f, indent=4)
