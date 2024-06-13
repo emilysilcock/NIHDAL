@@ -80,6 +80,7 @@ for art_id, text in old_positives.items():
         print('missing')
         if art_id in new_dict:
             print("found")
+        print(text)
         count += 1
         if count ==4 :
             print(text)
