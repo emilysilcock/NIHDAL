@@ -24,7 +24,8 @@ def date_range(start_date, end_date):
 
 
 edition_dict = {
-    'Edition 1, Northern Ireland': 'remove'
+    'Edition 1, Northern Ireland': 'remove',
+    'Edition 1, National Edition': 'keep',
 }
 
 for year in range(2013, 2023):
