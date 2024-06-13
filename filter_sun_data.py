@@ -33,7 +33,9 @@ for date in tqdm(date_list):
         with open(path) as f:
             dat = json.load(f)
 
-        date_data.extend(dat['value'])
+        date_data.extend([d["ResultId"] for d in dat['value']])
+
+    date_data = list(set(date_data))
 
     assert len(date_data) == dat["@odata.count"]
         
