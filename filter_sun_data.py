@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
-from glob import glob 
+from glob import glob
+from tqdm import tqdm 
 import json
 
 
@@ -22,9 +23,9 @@ def date_range(start_date, end_date):
 
 date_list = date_range(start_date="2013-01-01", end_date="2023-12-31")
 
-for date in date_list:
+for date in tqdm(date_list):
 
-    paths = glob('/n/home09/esilcock/Sun_data')
+    paths = glob(f'/n/home09/esilcock/Sun_data/{date}**')
 
     date_data = []
     for path in paths:
