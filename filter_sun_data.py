@@ -50,7 +50,8 @@ edition_dict = {
     'Edition 1': 'keep',
     'Edition 1GM': 'keep',
     'Edition 3GM': 'keep',
-    'Edition 1, ': 'keep'
+    'Edition 1, ': 'keep',
+    'Edition 1GG, Super Goals': 'keep',
 }
 
 # for year in range(2013, 2023):
