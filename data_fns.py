@@ -193,7 +193,7 @@ def basic_parsing(list_of_articles):
             "edition": edition, 
             "headline": art["Title"],
             "article": article,
-            "newspaper": art["Source"]["Name"],
+            # "newspaper": art["Source"]["Name"],
         }
 
         cleaned_articles.append(cleaned_data)
