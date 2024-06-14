@@ -32,12 +32,21 @@ edition_dict = {
     'Edition 2, National Edition': 'keep',
     'Edition 2, Ireland': 'remove',
     'Edition 2, Scotland': 'remove',
-    'Edition 3MM': 'keep',
+    'Edition 3, Northern Ireland': 'remove',
     'Edition 3, National Edition': 'keep',
-    'Edition 10, Scotland': 'remove',
-    '': 'keep',
+    'Edition 3, Ireland': 'remove',
+    'Edition 3, Scotland': 'remove',
+    'Edition 4, Northern Ireland': 'remove',
     'Edition 4, National Edition': 'keep',
-    'Edition 3, Scotland': 'remove'
+    'Edition 4, Ireland': 'remove',
+    'Edition 4, Scotland': 'remove',
+    'Edition 5, Northern Ireland': 'remove',
+    'Edition 5, National Edition': 'keep',
+    'Edition 5, Ireland': 'remove',
+    'Edition 5, Scotland': 'remove',
+    'Edition 10, Scotland': 'remove',
+    'Edition 3MM': 'keep',
+    '': 'keep',
 }
 
 for year in range(2013, 2023):
