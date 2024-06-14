@@ -84,7 +84,7 @@ for year in range(2018, 2023):
 
         if not len(date_ids) == dat["@odata.count"]:
             print(len(date_ids))
-            print(len(dat["@odata.count"]))
+            print(dat["@odata.count"])
             print(date)
             raise ValueError
 
