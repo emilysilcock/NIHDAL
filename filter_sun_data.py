@@ -56,7 +56,7 @@ edition_dict = {
 }
 
 # for year in range(2013, 2023):
-for year in range(2016, 2023):
+for year in range(2017, 2023):
 
     year_list = []
     not_found_list = []
