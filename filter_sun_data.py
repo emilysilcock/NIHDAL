@@ -57,7 +57,7 @@ edition_dict = {
 }
 
 # for year in range(2013, 2023):
-for year in range(2017, 2023):
+for year in range(2018, 2023):
 
     year_list = []
     not_found_list = []
@@ -82,7 +82,11 @@ for year in range(2017, 2023):
 
         date_ids = list(set(date_ids))
 
-        assert len(date_ids) == dat["@odata.count"]
+        if not len(date_ids) == dat["@odata.count"]:
+            print(len(date_ids))
+            print(len(dat["@odata.count"]))
+            print(date)
+            raise ValueError
 
         cleaned_data, not_found_data = basic_parsing(date_data)
         not_found_list.append(not_found_data)
