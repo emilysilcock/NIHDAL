@@ -51,7 +51,8 @@ edition_dict = {
     'Edition 1GM': 'keep',
 }
 
-for year in range(2013, 2023):
+# for year in range(2013, 2023):
+for year in range(2014, 2023):
 
     year_list = []
     not_found_list = []
