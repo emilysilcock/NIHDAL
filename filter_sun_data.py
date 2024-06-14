@@ -48,6 +48,7 @@ edition_dict = {
     'Edition 3MM': 'keep',
     '': 'keep',
     'Edition 1': 'keep',
+    'Edition 1GM': 'keep',
 }
 
 for year in range(2013, 2023):
