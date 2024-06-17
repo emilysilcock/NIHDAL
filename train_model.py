@@ -377,7 +377,8 @@ if __name__ == '__main__':
 
     evaluate(
         base_model=pretrained_model,
-        trained_model='/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_16_5e-06_v2/checkpoint-840', # 1140, 1150 
+        # trained_model='/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_16_5e-06_v2/checkpoint-840', # 1140, 1150 
+        trained_model='/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_16_1e-05_v2/checkpoint-660', # 1140, 1150 
         label_dict=label2int,
         original_test_dir='/n/home09/esilcock/NIHDAL/final_labelled_data/test.csv',
         print_mistakes=True
