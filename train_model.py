@@ -263,17 +263,17 @@ def evaluate(base_model, trained_model, label_dict, original_test_dir, print_mis
         print("True positives:", len(tps))
         print("True negatives:", len(tns))
 
-        print("\n\n")
-        print("***************** FALSE POSITIVES *****************")
-        for i in list(fps.index.values):
-            print(fps["article"][i])
-            print("*****")
-
         # print("\n\n")
-        # print("***************** FALSE NEGATIVES *****************")
-        # for i in list(fns.index.values):
-        #     print(fns["article"][i])
+        # print("***************** FALSE POSITIVES *****************")
+        # for i in list(fps.index.values):
+        #     print(fps["article"][i])
         #     print("*****")
+
+        print("\n\n")
+        print("***************** FALSE NEGATIVES *****************")
+        for i in list(fns.index.values):
+            print(fns["article"][i])
+            print("*****")
 
     print("***Test results***")
     metric0 = load_metric("accuracy")
