@@ -57,9 +57,9 @@ edition_dict = {
     'Edition 2UB, Ulster': 'remove'
 }
 
-# for year in range(2013, 2023):
+for year in range(2013, 2023):
 # for year in range(2021, 2023):
-for year in [2020]:
+# for year in [2020]:
 
     year_list = []
     not_found_list = []
@@ -92,7 +92,7 @@ for year in [2020]:
             print("*************************************************")
 
         cleaned_data, not_found_data = basic_parsing(date_data)
-        not_found_list.append(not_found_data)
+        not_found_list.extend(not_found_data)
 
         national_editions = []
 
@@ -106,7 +106,7 @@ for year in [2020]:
 
     with open(f'/n/home09/esilcock/clean_Sun_data/{year}_cleaned.json', 'w') as f:
         json.dump(year_list, f, indent=4)
-    with open(f'/n/home09/esilcock/clean_Sun_data/{year}_not_found.json', 'w') as f:
+    with open(f'/n/home09/esilcock/clean_Sun_data/{year}_not_found_v2.json', 'w') as f:
         json.dump(not_found_list, f, indent=4)
 
     print('Filtered articles:', len(year_list))
