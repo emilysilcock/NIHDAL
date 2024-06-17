@@ -376,6 +376,6 @@ if __name__ == '__main__':
         base_model=pretrained_model,
         trained_model='/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_16_5e-07/checkpoint-1860', # 1140, 1150 
         label_dict=label2int,
-        original_test_dir='/n/home09/esilcock/NIHDAL/final_labelled_data/eval.csv',
+        original_test_dir='/n/home09/esilcock/NIHDAL/final_labelled_data/test.csv',
         print_mistakes=True
     )
