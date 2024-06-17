@@ -54,6 +54,7 @@ edition_dict = {
     'Edition 1GG, Super Goals': 'keep',
     'Edition 1SS, Scotland': 'remove',
     'Edition 3SS, Scotland': 'remove',
+    'Edition 2UB, Ulster': 'remove'
 }
 
 # for year in range(2013, 2023):
