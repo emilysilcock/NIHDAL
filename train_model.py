@@ -377,5 +377,5 @@ if __name__ == '__main__':
         trained_model='/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_16_1e-06/checkpoint-870',
         label_dict=label2int,
         original_test_dir='/n/home09/esilcock/NIHDAL/final_labelled_data/eval.csv',
-        print_mistakes=True
+        print_mistakes=False
     )
