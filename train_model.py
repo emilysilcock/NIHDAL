@@ -350,32 +350,32 @@ if __name__ == '__main__':
         )
 
 
-    # # Config hyperparameter sweep
-    # for batch_size in [16]:
-    #     for lr in [5e-7, 1e-6, 2e-6, 5e-6, 1e-5, 5e-5, 1e-4]:
-    #     # for lr in [2e-6, 5e-6, 1e-5, 5e-5, 1e-4]:
+    # Config hyperparameter sweep
+    for batch_size in [16]:
+        # for lr in [5e-7, 1e-6, 2e-6, 5e-6, 1e-5, 5e-5, 1e-4]:
+        for lr in [1e-5, 5e-5, 1e-4]:
 
-    #         name = f'{batch_size}_{lr}'
-    #         run = wandb.init(project = 'benefits_topic', entity = 'stigma', name = name, reinit=True)
+            name = f'{batch_size}_{lr}'
+            run = wandb.init(project = 'benefits_topic', entity = 'stigma', name = name, reinit=True)
 
-    #         # Train model
-    #         train(
-    #             datasets["train"],
-    #             datasets["eval"],
-    #             hf_model=pretrained_model,
-    #             num_labels=2,
-    #             eval_steps=10,
-    #             batch_size=batch_size,
-    #             lr=lr,
-    #             epochs=20,
-    #             save_dir=f'/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_{name}'
-    #         )
+            # Train model
+            train(
+                datasets["train"],
+                datasets["eval"],
+                hf_model=pretrained_model,
+                num_labels=2,
+                eval_steps=20,
+                batch_size=batch_size,
+                lr=lr,
+                epochs=10,
+                save_dir=f'/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_{name}'
+            )
 
 
-    evaluate(
-        base_model=pretrained_model,
-        trained_model='/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/rl_16_2e-06/checkpoint-1000', # 1140, 1150 
-        label_dict=label2int,
-        original_test_dir='/n/home09/esilcock/NIHDAL/final_labelled_data/eval.csv',
-        print_mistakes=False
-    )
+    # evaluate(
+    #     base_model=pretrained_model,
+    #     trained_model='/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/rl_16_2e-06/checkpoint-1000', # 1140, 1150 
+    #     label_dict=label2int,
+    #     original_test_dir='/n/home09/esilcock/NIHDAL/final_labelled_data/eval.csv',
+    #     print_mistakes=False
+    # )
