@@ -84,7 +84,7 @@ if __name__ == '__main__':
         year_dict = {a['ln_id']: a for a in year_dat}
 
         # Chunk, format and tokenize
-        tokenized_data, chunk_map = format_and_tokenize(year_dat, tokenization_model=base_model, max_token_length=512)
+        tokenized_data, chunk_map = format_and_tokenize(year_dict, tokenization_model=base_model, max_token_length=512)
 
         # Run inference
         topic_arts = pull_positives(
