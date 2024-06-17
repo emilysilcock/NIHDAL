@@ -263,11 +263,11 @@ def evaluate(base_model, trained_model, label_dict, original_test_dir, print_mis
         print("True positives:", len(tps))
         print("True negatives:", len(tns))
 
-        # print("\n\n")
-        # print("***************** FALSE POSITIVES *****************")
-        # for i in list(fps.index.values):
-        #     print(fps["article"][i])
-        #     print("*****")
+        print("\n\n")
+        print("***************** FALSE POSITIVES *****************")
+        for i in list(fps.index.values):
+            print(fps["article"][i])
+            print("*****")
 
         print("\n\n")
         print("***************** FALSE NEGATIVES *****************")
@@ -376,6 +376,6 @@ if __name__ == '__main__':
         base_model=pretrained_model,
         trained_model='/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_16_5e-07/checkpoint-1860', # 1140, 1150 
         label_dict=label2int,
-        original_test_dir='/n/home09/esilcock/NIHDAL/final_labelled_data/train.csv',
+        original_test_dir='/n/home09/esilcock/NIHDAL/final_labelled_data/eval.csv',
         print_mistakes=True
     )
