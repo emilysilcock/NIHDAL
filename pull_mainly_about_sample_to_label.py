@@ -7,7 +7,7 @@ from tqdm import tqdm
 from datasets import Dataset
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
 
-from data_fns import find_sep_token, basic_clean, chunk
+from data_fns import find_sep_token, chunk
 
 os.environ['TRANSFORMERS_CACHE'] = '.cache/'
 
