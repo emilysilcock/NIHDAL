@@ -330,16 +330,16 @@ if __name__ == '__main__':
 
     pretrained_model = 'roberta-large'
 
-    # Clean data
-    train_test_dev_split(
-        ls_data_paths=data_paths,
-        label_dict=label2int,
-        # save_dir="/mnt/data01/AL/final_labelled_data/",
-        save_dir="/n/home09/esilcock/NIHDAL/final_labelled_data/",
-        test_perc=0.15,
-        eval_perc=0.15,
-        model=pretrained_model
-    )
+    # # Clean data
+    # train_test_dev_split(
+    #     ls_data_paths=data_paths,
+    #     label_dict=label2int,
+    #     # save_dir="/mnt/data01/AL/final_labelled_data/",
+    #     save_dir="/n/home09/esilcock/NIHDAL/final_labelled_data/",
+    #     test_perc=0.15,
+    #     eval_perc=0.15,
+    #     model=pretrained_model
+    # )
 
     # Tokenize data
     datasets = {}
@@ -355,7 +355,7 @@ if __name__ == '__main__':
     # Config hyperparameter sweep
     for batch_size in [16]:
         # for lr in [5e-7, 1e-6, 2e-6, 5e-6, 1e-5, 5e-5, 1e-4]:
-        for lr in [1e-6]: #1e-6, 2e-6, 5e-6, 1e-5, 5e-5, 1e-4]:
+        for lr in [2e-6]: #1e-6, 2e-6, 5e-6, 1e-5, 5e-5, 1e-4]:
 
             name = f'{batch_size}_{lr}'
             run = wandb.init(project = 'benefits_topic', entity = 'stigma', name = name, reinit=True)
