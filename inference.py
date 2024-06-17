@@ -113,7 +113,8 @@ if __name__ == '__main__':
         tokenized_data,
         org_data=sample_articles,
         chunk_map=chunk_map,
-        finetuned_topic_model='/mnt/data01/AL/trained_models/kw_initialisation/rl_16_2e-06/checkpoint-1000',
+        # finetuned_topic_model='/mnt/data01/AL/trained_models/kw_initialisation/rl_16_2e-06/checkpoint-1000',
+        finetuned_topic_model='/mnt/data01/AL/trained_models/mentions_benefits',
         batch_size=512
     )
 
@@ -134,5 +135,5 @@ if __name__ == '__main__':
 
     random.shuffle(to_label)
 
-    with open('/mnt/data01/AL/NIHDAL/data_to_label/mainly_about/mainly_about_full.json', 'w') as f:
+    with open('/mnt/data01/AL/NIHDAL/data_to_label/mainly_about/mainly_about_full_final_model.json', 'w') as f:
         json.dump(to_label, f, indent=4)
