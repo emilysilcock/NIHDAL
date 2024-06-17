@@ -232,7 +232,7 @@ def evaluate(base_model, trained_model, label_dict, original_test_dir, print_mis
 
     # Tokenize data
     test = tokenize_data_for_finetuning(
-        directory=f"/mnt/data01/AL/final_labelled_data/test.csv",
+        directory=original_test_dir,
         hf_model=base_model,
         max_token_length=512
     )
