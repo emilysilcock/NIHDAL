@@ -290,54 +290,56 @@ if __name__ == '__main__':
 
     random.seed(42)
 
-    data_paths = [
-        'Labelled_data/kw_initialisation/sample_1_with_correct_ids.json',
-        'Labelled_data/kw_initialisation/sample_2.json',
-        'Labelled_data/kw_initialisation/sample_3.json',
-        'Labelled_data/kw_initialisation/sample_4.json',
-        'Labelled_data/kw_initialisation/sample_5.json',
-        'Labelled_data/kw_initialisation/sample_6.json',
-        'Labelled_data/kw_initialisation/sample_7.json',
-        'Labelled_data/kw_initialisation/sample_8.json',
-        'Labelled_data/kw_initialisation/sample_9.json',
-        'Labelled_data/kw_initialisation/sample_10.json',
-        'Labelled_data/kw_initialisation/sample_11.json',
-        'Labelled_data/kw_initialisation/sample_12.json',
-        'Labelled_data/kw_initialisation/sample_13.json',
-        'Labelled_data/kw_initialisation/sample_14.json',
-        'Labelled_data/kw_initialisation/sample_15.json',
-        'Labelled_data/kw_initialisation/sample_16.json',
-        'Labelled_data/kw_initialisation/sample_17.json',
-        'Labelled_data/kw_initialisation/sample_18.json',
-        'Labelled_data/kw_initialisation/sample_19.json',
-        'Labelled_data/kw_initialisation/sample_20.json',
-        'Labelled_data/kw_initialisation/sample_21.json',
-        'Labelled_data/kw_initialisation/sample_22.json',
-        'Labelled_data/kw_initialisation/sample_23.json',
-        'Labelled_data/kw_initialisation/sample_24.json',
-        'Labelled_data/kw_initialisation/sample_25.json',
-        'Labelled_data/kw_initialisation/sample_26.json',
-        'Labelled_data/kw_initialisation/sample_27.json',
-        'Labelled_data/kw_initialisation/sample_28.json',
-        'Labelled_data/kw_initialisation/sample_29.json',
-        'Labelled_data/kw_initialisation/sample_30.json',
-        'Labelled_data/kw_initialisation/sample_31.json',
-        ]
+    # data_paths = [
+    #     'Labelled_data/kw_initialisation/sample_1_with_correct_ids.json',
+    #     'Labelled_data/kw_initialisation/sample_2.json',
+    #     'Labelled_data/kw_initialisation/sample_3.json',
+    #     'Labelled_data/kw_initialisation/sample_4.json',
+    #     'Labelled_data/kw_initialisation/sample_5.json',
+    #     'Labelled_data/kw_initialisation/sample_6.json',
+    #     'Labelled_data/kw_initialisation/sample_7.json',
+    #     'Labelled_data/kw_initialisation/sample_8.json',
+    #     'Labelled_data/kw_initialisation/sample_9.json',
+    #     'Labelled_data/kw_initialisation/sample_10.json',
+    #     'Labelled_data/kw_initialisation/sample_11.json',
+    #     'Labelled_data/kw_initialisation/sample_12.json',
+    #     'Labelled_data/kw_initialisation/sample_13.json',
+    #     'Labelled_data/kw_initialisation/sample_14.json',
+    #     'Labelled_data/kw_initialisation/sample_15.json',
+    #     'Labelled_data/kw_initialisation/sample_16.json',
+    #     'Labelled_data/kw_initialisation/sample_17.json',
+    #     'Labelled_data/kw_initialisation/sample_18.json',
+    #     'Labelled_data/kw_initialisation/sample_19.json',
+    #     'Labelled_data/kw_initialisation/sample_20.json',
+    #     'Labelled_data/kw_initialisation/sample_21.json',
+    #     'Labelled_data/kw_initialisation/sample_22.json',
+    #     'Labelled_data/kw_initialisation/sample_23.json',
+    #     'Labelled_data/kw_initialisation/sample_24.json',
+    #     'Labelled_data/kw_initialisation/sample_25.json',
+    #     'Labelled_data/kw_initialisation/sample_26.json',
+    #     'Labelled_data/kw_initialisation/sample_27.json',
+    #     'Labelled_data/kw_initialisation/sample_28.json',
+    #     'Labelled_data/kw_initialisation/sample_29.json',
+    #     'Labelled_data/kw_initialisation/sample_30.json',
+    #     'Labelled_data/kw_initialisation/sample_31.json',
+    #     ]
+
+    data_paths = ['Labelled_data/kw_initialisation/full_corrected.json']
 
     label2int = {'Irrelevant': 0, 'On topic': 1}
 
     pretrained_model = 'roberta-large'
 
-    # # Clean data
-    # train_test_dev_split(
-    #     ls_data_paths=data_paths,
-    #     label_dict=label2int,
-    #     # save_dir="/mnt/data01/AL/final_labelled_data/",
-    #     save_dir="/n/home09/esilcock/NIHDAL/final_labelled_data/",
-    #     test_perc=0.15,
-    #     eval_perc=0.15,
-    #     model=pretrained_model
-    # )
+    # Clean data
+    train_test_dev_split(
+        ls_data_paths=data_paths,
+        label_dict=label2int,
+        # save_dir="/mnt/data01/AL/final_labelled_data/",
+        save_dir="/n/home09/esilcock/NIHDAL/final_labelled_data/",
+        test_perc=0.15,
+        eval_perc=0.15,
+        model=pretrained_model
+    )
 
     # Tokenize data
     datasets = {}
@@ -350,32 +352,32 @@ if __name__ == '__main__':
         )
 
 
-    # # Config hyperparameter sweep
-    # for batch_size in [16]:
-    #     # for lr in [5e-7, 1e-6, 2e-6, 5e-6, 1e-5, 5e-5, 1e-4]:
-    #     for lr in [1e-5, 5e-5, 1e-4]:
+    # Config hyperparameter sweep
+    for batch_size in [16]:
+        for lr in [5e-7, 1e-6, 2e-6, 5e-6, 1e-5, 5e-5, 1e-4]:
+        # for lr in [1e-5, 5e-5, 1e-4]:
 
-    #         name = f'{batch_size}_{lr}'
-    #         run = wandb.init(project = 'benefits_topic', entity = 'stigma', name = name, reinit=True)
+            name = f'{batch_size}_{lr}'
+            run = wandb.init(project = 'benefits_topic', entity = 'stigma', name = name, reinit=True)
 
-    #         # Train model
-    #         train(
-    #             datasets["train"],
-    #             datasets["eval"],
-    #             hf_model=pretrained_model,
-    #             num_labels=2,
-    #             eval_steps=20,
-    #             batch_size=batch_size,
-    #             lr=lr,
-    #             epochs=10,
-    #             save_dir=f'/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_{name}'
-    #         )
+            # Train model
+            train(
+                datasets["train"],
+                datasets["eval"],
+                hf_model=pretrained_model,
+                num_labels=2,
+                eval_steps=20,
+                batch_size=batch_size,
+                lr=lr,
+                epochs=10,
+                save_dir=f'/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_{name}_v2'
+            )
 
 
-    evaluate(
-        base_model=pretrained_model,
-        trained_model='/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_16_5e-07/checkpoint-1860', # 1140, 1150 
-        label_dict=label2int,
-        original_test_dir='/n/home09/esilcock/NIHDAL/final_labelled_data/test.csv',
-        print_mistakes=True
-    )
+    # evaluate(
+    #     base_model=pretrained_model,
+    #     trained_model='/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_16_5e-07/checkpoint-1860', # 1140, 1150 
+    #     label_dict=label2int,
+    #     original_test_dir='/n/home09/esilcock/NIHDAL/final_labelled_data/test.csv',
+    #     print_mistakes=True
+    # )
