@@ -2,8 +2,7 @@ import json
 
 all_not_found = []
 
-# for year in range(2013, 2023):
-for year in range(2013, 2018):
+for year in range(2013, 2023):
 
     print(year)
 
@@ -15,5 +14,11 @@ for year in range(2013, 2018):
 
 print(len(all_not_found))
 
-with open('/n/home09/esilcock/clean_Sun_data/all_not_found.json', 'w') as f:
-    json.dump(all_not_found, f, indent=4)
+dates = []
+for art_dict in all_not_found:
+    dates.append(art_dict["Date"][:10])
+
+print(dates)
+
+with open('/n/home09/esilcock/clean_Sun_data/missing_dates.json', 'w') as f:
+    json.dump(dates, f, indent=4)
