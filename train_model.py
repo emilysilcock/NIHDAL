@@ -355,7 +355,7 @@ if __name__ == '__main__':
     # Config hyperparameter sweep
     for batch_size in [16]:
         # for lr in [5e-7, 1e-6, 2e-6, 5e-6, 1e-5, 5e-5, 1e-4]:
-        for lr in [5e-6]: #1e-6, 2e-6, 5e-6, 1e-5, 5e-5, 1e-4]:
+        for lr in [1e-5]: #1e-6, 2e-6, 5e-6, 1e-5, 5e-5, 1e-4]:
 
             name = f'{batch_size}_{lr}'
             run = wandb.init(project = 'benefits_topic', entity = 'stigma', name = name, reinit=True)
