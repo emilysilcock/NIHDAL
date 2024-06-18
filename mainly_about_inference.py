@@ -54,7 +54,7 @@ def pull_positives(tokenized_data, org_data, finetuned_topic_model, batch_size):
     # Subset to positives only
     positive_dict = {}
     count = 0
-    for art_id, art in org_data.items:
+    for art_id, art in org_data.items():
         if predictions[count] == 1:
             positive_dict[art_id] = art
         count += 1
