@@ -277,7 +277,7 @@ def evaluate(base_model, trained_model, label_dict, original_test_dir, print_mis
         for i in list(fns.index.values):
             print(fns["article"][i])
             print("*****")
-            false_neg.append(fps["article"][i])
+            false_neg.append(fns["article"][i])
 
         with open('temp/false_positives.json', 'w') as f:
             json.dump(false_pos, f, indent=4)
