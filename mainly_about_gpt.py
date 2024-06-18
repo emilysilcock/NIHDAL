@@ -101,7 +101,7 @@ if __name__ == '__main__':
     fps = 0
     fns = 0
 
-    for i, pred in preds:
+    for i, pred in enumerate(preds):
         if pred == 1 and gts[i] == "Mainly about benefits":
             tps +=1
         elif pred == 1 and gts[i] == "Not mainly about benefits":
