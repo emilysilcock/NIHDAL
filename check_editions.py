@@ -2,6 +2,7 @@ import json
 from tqdm import tqdm
 
 editions = []
+count = 0
 
 for year in range(2013, 2023):
 
@@ -14,4 +15,9 @@ for year in range(2013, 2023):
         if art['edition'] not in editions:
             editions.append(art['edition'])
 
+        if art['edition'] in ['Edition 1, ', 'Edition 1']:
+            print(art['date'], art['headline'])
+            count += 1
+
 print(editions)
+print(count)
