@@ -84,7 +84,7 @@ if __name__ == '__main__':
             year_dat = json.load(f)
 
         #########
-        year_dat = [a for a in year_dat if "worst benefit cheat" in a['headline'].lower()]
+        year_dat = [a for a in year_dat if "worst benefits cheat" in a['headline'].lower()]
         print(len(year_dat))
         print("??????????????????????????")
         #########
