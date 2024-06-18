@@ -28,6 +28,7 @@ def format_and_tokenize(dat, tokenization_model, max_token_length):
     for art_id, art_dict in dat.items():
         chunk_map[art_id] = []
         chunked_dict = chunk(art_dict, tokenizer, max_token_length)
+        print(json.dumps(chunked_dict["chunks"],indent=2))
         for ch in chunked_dict["chunks"]:
             corpus.append(str(art_dict['headline']) + sep + str(ch))
             
