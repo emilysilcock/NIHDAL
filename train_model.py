@@ -319,34 +319,36 @@ if __name__ == '__main__':
         )
 
 
-    # Config hyperparameter sweep
-    for batch_size in [16]:
-        # for lr in [1e-6, 2e-6, 5e-6]:
-        for lr in [1e-5, 5e-5, 1e-4]:
-        # for lr in [5e-5]: #1e-6, 2e-6, 5e-6, 1e-5, 5e-5, 1e-4]:
+    # # Config hyperparameter sweep
+    # for batch_size in [16]:
+    #     # for lr in [1e-6, 2e-6, 5e-6]:
+    #     for lr in [1e-5, 5e-5, 1e-4]:
+    #     # for lr in [5e-5]: #1e-6, 2e-6, 5e-6, 1e-5, 5e-5, 1e-4]:
 
-            name = f'{batch_size}_{lr}'
-            run = wandb.init(project = 'benefits_mainly', entity = 'stigma', name = name, reinit=True)
+    #         name = f'{batch_size}_{lr}'
+    #         run = wandb.init(project = 'benefits_mainly', entity = 'stigma', name = name, reinit=True)
 
-            # Train model
-            train(
-                datasets["train"],
-                datasets["eval"],
-                hf_model=pretrained_model,
-                num_labels=2,
-                eval_steps=20,
-                batch_size=batch_size,
-                lr=lr,
-                epochs=10,
-                # save_dir=f'/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_{name}_v2'
-                save_dir=f'/n/holyscratch01/economics/esilcock/mentions_mainly_models/{name}/'
-            )
+    #         # Train model
+    #         train(
+    #             datasets["train"],
+    #             datasets["eval"],
+    #             hf_model=pretrained_model,
+    #             num_labels=2,
+    #             eval_steps=20,
+    #             batch_size=batch_size,
+    #             lr=lr,
+    #             epochs=10,
+    #             # save_dir=f'/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_{name}_v2'
+    #             save_dir=f'/n/holyscratch01/economics/esilcock/mentions_mainly_models/{name}/'
+    #         )
 
 
-    # evaluate(
-    #     base_model=pretrained_model,
-    #     trained_model='/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_16_5e-06_v2/checkpoint-840', # 1140, 1150 
-    #     label_dict=label2int,
-    #     original_test_dir='/n/home09/esilcock/NIHDAL/final_labelled_data/test.csv',
-    #     print_mistakes=True
-    # )
+    evaluate(
+        base_model=pretrained_model,
+        # trained_model='/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_16_5e-06_v2/checkpoint-840', # 1140, 1150 
+        trained_model='/n/home09/esilcock/NIHDAL/trained_models/mainly_about/checkpoint-100', # 1140, 1150 
+        label_dict=label2int,
+        # original_test_dir='/n/home09/esilcock/NIHDAL/final_labelled_data/test.csv',
+        original_test_dir='/n/home09/esilcock/NIHDAL/final_labelled_data_mainly_about/test.csv',
+        print_mistakes=True
+    )
