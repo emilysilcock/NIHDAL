@@ -297,49 +297,49 @@ if __name__ == '__main__':
 
     pretrained_model = 'roberta-large'
 
-    # Clean data
-    train_test_dev_split(
-        ls_data_paths=data_paths,
-        label_dict=label2int,
-        # save_dir="/mnt/data01/AL/final_labelled_data/",
-        save_dir="/n/home09/esilcock/NIHDAL/final_labelled_data_mainly_about/",
-        test_perc=0.15,
-        eval_perc=0.15,
-        model=pretrained_model
-    )
+    # # Clean data
+    # train_test_dev_split(
+    #     ls_data_paths=data_paths,
+    #     label_dict=label2int,
+    #     # save_dir="/mnt/data01/AL/final_labelled_data/",
+    #     save_dir="/n/home09/esilcock/NIHDAL/final_labelled_data_mainly_about/",
+    #     test_perc=0.15,
+    #     eval_perc=0.15,
+    #     model=pretrained_model
+    # )
 
-    # # Tokenize data
-    # datasets = {}
-    # for dataset in ["train", "eval", "test"]:
-    #     datasets[dataset] = tokenize_data_for_finetuning(
-    #         directory=f"/n/home09/esilcock/NIHDAL/final_labelled_data_mainly_about/{dataset}.csv",
-    #         # directory=f"/mnt/data01/AL/final_labelled_data/{dataset}.csv",
-    #         hf_model=pretrained_model,
-    #         max_token_length=512
-    #     )
+    # Tokenize data
+    datasets = {}
+    for dataset in ["train", "eval", "test"]:
+        datasets[dataset] = tokenize_data_for_finetuning(
+            directory=f"/n/home09/esilcock/NIHDAL/final_labelled_data_mainly_about/{dataset}.csv",
+            # directory=f"/n/home09/esilcock/NIHDAL/final_labelled_data/{dataset}.csv",
+            hf_model=pretrained_model,
+            max_token_length=512
+        )
 
 
-    # # Config hyperparameter sweep
-    # for batch_size in [16]:
-    #     # for lr in [5e-7, 1e-6, 2e-6, 5e-6, 1e-5, 5e-5, 1e-4]:
-    #     for lr in [5e-5]: #1e-6, 2e-6, 5e-6, 1e-5, 5e-5, 1e-4]:
+    # Config hyperparameter sweep
+    for batch_size in [16]:
+        for lr in [5e-7, 1e-6, 2e-6, 5e-6, 1e-5, 5e-5, 1e-4]:
+        # for lr in [5e-5]: #1e-6, 2e-6, 5e-6, 1e-5, 5e-5, 1e-4]:
 
-    #         name = f'{batch_size}_{lr}'
-    #         run = wandb.init(project = 'benefits_topic', entity = 'stigma', name = name, reinit=True)
+            name = f'{batch_size}_{lr}'
+            run = wandb.init(project = 'benefits_mainly', entity = 'stigma', name = name, reinit=True)
 
-    #         # Train model
-    #         train(
-    #             datasets["train"],
-    #             datasets["eval"],
-    #             hf_model=pretrained_model,
-    #             num_labels=2,
-    #             eval_steps=20,
-    #             batch_size=batch_size,
-    #             lr=lr,
-    #             epochs=10,
-    #             # save_dir=f'/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_{name}_v2'
-    #             save_dir=f'/n/holyscratch01/economics/esilcock/mentions_benefits_models/full_dat_{name}_v2'
-    #         )
+            # Train model
+            train(
+                datasets["train"],
+                datasets["eval"],
+                hf_model=pretrained_model,
+                num_labels=2,
+                eval_steps=20,
+                batch_size=batch_size,
+                lr=lr,
+                epochs=10,
+                # save_dir=f'/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_{name}_v2'
+                save_dir=f'/n/holyscratch01/economics/esilcock/mentions_mainly_models/'
+            )
 
 
     # evaluate(
