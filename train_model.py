@@ -263,17 +263,26 @@ def evaluate(base_model, trained_model, label_dict, original_test_dir, print_mis
         print("True positives:", len(tps))
         print("True negatives:", len(tns))
 
+        false_pos = []
         print("\n\n")
         print("***************** FALSE POSITIVES *****************")
         for i in list(fps.index.values):
             print(fps["article"][i])
             print("*****")
+            false_pos.append(fps["article"][i])
 
+        false_neg = []
         print("\n\n")
         print("***************** FALSE NEGATIVES *****************")
         for i in list(fns.index.values):
             print(fns["article"][i])
             print("*****")
+            false_neg.append(fps["article"][i])
+
+        with open('temp/false_positives.json', 'w') as f:
+            json.dump(false_pos, f, indent=4)
+        with open('temp/false_negatives.json', 'w') as f:
+            json.dump(false_neg, f, indent=4)
 
     print("***Test results***")
     metric0 = load_metric("accuracy")
