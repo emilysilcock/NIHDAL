@@ -74,12 +74,19 @@ if __name__ == '__main__':
     base_model='roberta-large'
 
     # Open data 
-    for year in range(2013, 2023):
+    # for year in range(2013, 2023):
+    for year in [2019]:
 
         print(f"******************{year}**********************")
 
         with open(f'/n/home09/esilcock/clean_Sun_data/{year}_cleaned.json') as f:
             year_dat = json.load(f)
+
+        #########
+        year_dat = [a for a in year_dat if "britain's worst benefits cheat" in a['headline'].lower()]
+        print(len(year_dat))
+        print("??????????????????????????")
+        #########
 
         year_dict = {a['ln_id']: a for a in year_dat}
 
@@ -95,5 +102,5 @@ if __name__ == '__main__':
             batch_size=512
         )
 
-        with open(f'/n/home09/esilcock/mentions_benefits/mentions_benefits_{year}.json', 'w') as f:
-            json.dump(topic_arts, f, indent=4)
+        # with open(f'/n/home09/esilcock/mentions_benefits/mentions_benefits_{year}.json', 'w') as f:
+        #     json.dump(topic_arts, f, indent=4)
