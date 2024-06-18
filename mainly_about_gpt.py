@@ -85,19 +85,19 @@ if __name__ == '__main__':
     with open('Labelled_data/mainly_about/final_merged_with_summaries.json', 'w') as f:
         json.dump(dat, f)
 
-    # Predict over summaries
-    base_model='roberta-large'
-    tokenized_data = tokenize(dat, tokenization_model=base_model, max_token_length=512)
+    # # Predict over summaries
+    # base_model='roberta-large'
+    # tokenized_data = tokenize(dat, tokenization_model=base_model, max_token_length=512)
 
-    # Run inference
-    preds = predict(
-        tokenized_data,
-        finetuned_topic_model='/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_16_5e-06_v2/checkpoint-840',
-        batch_size=512
-    )
+    # # Run inference
+    # preds = predict(
+    #     tokenized_data,
+    #     finetuned_topic_model='/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_16_5e-06_v2/checkpoint-840',
+    #     batch_size=512
+    # )
 
-    print(preds)
-    print(gts)
+    # print(preds)
+    # print(gts)
 
 
 
