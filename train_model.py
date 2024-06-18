@@ -356,7 +356,7 @@ if __name__ == '__main__':
         base_model=pretrained_model,
         # trained_model='/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_16_5e-06_v2/checkpoint-840', 
         # trained_model='/n/home09/esilcock/NIHDAL/trained_models/mainly_about/checkpoint-100', 
-        trained_model='/n/holyscratch01/economics/esilcock/mentions_mainly_models/checkpoint-20', 
+        trained_model='/n/holyscratch01/economics/esilcock/mentions_mainly_models/checkpoint-80', 
         label_dict=label2int,
         # original_test_dir='/n/home09/esilcock/NIHDAL/final_labelled_data/test.csv',
         original_test_dir='/n/home09/esilcock/NIHDAL/final_labelled_data_mainly_about/test.csv',
