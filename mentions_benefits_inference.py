@@ -75,7 +75,7 @@ if __name__ == '__main__':
 
     # Open data 
     # for year in range(2013, 2023):
-    for year in [2019]:
+    for year in [2013]:
 
         print(f"******************{year}**********************")
 
@@ -83,7 +83,7 @@ if __name__ == '__main__':
             year_dat = json.load(f)
 
         #########
-        year_dat = [a for a in year_dat if "worst benefits cheat" in a['headline'].lower()]
+        year_dat = [a for a in year_dat if "scroungers like barry rogerson make" in a['headline'].lower()]
         print(len(year_dat))
         print("??????????????????????????")
         #########
