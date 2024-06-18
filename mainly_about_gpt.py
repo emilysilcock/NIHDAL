@@ -2,10 +2,10 @@ import json
 from tqdm import tqdm
 
 import numpy as np
-from openai import OpenAI
+# from openai import OpenAI
 
-# from datasets import Dataset
-# from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
+from datasets import Dataset
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
 
 
 def generate_summary(client, headline, article):
