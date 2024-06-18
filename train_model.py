@@ -321,8 +321,8 @@ if __name__ == '__main__':
 
     # Config hyperparameter sweep
     for batch_size in [16]:
-        for lr in [5e-7, 1e-6, 2e-6]:
-        # for lr in [5e-6, 1e-5, 5e-5, 1e-4]:
+        for lr in [1e-6, 2e-6, 5e-6]:
+        # for lr in [1e-5, 5e-5, 1e-4]:
         # for lr in [5e-5]: #1e-6, 2e-6, 5e-6, 1e-5, 5e-5, 1e-4]:
 
             name = f'{batch_size}_{lr}'
@@ -339,7 +339,7 @@ if __name__ == '__main__':
                 lr=lr,
                 epochs=10,
                 # save_dir=f'/n/home09/esilcock/NIHDAL/trained_models/kw_initialisation/full_dat_{name}_v2'
-                save_dir=f'/n/holyscratch01/economics/esilcock/mentions_mainly_models/'
+                save_dir=f'/n/holyscratch01/economics/esilcock/mentions_mainly_models/{name}/'
             )
 
 
