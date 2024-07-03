@@ -31,10 +31,10 @@ def format_and_tokenize(dat, tokenization_model, max_token_length):
         print(json.dumps(chunked_dict["chunks"],indent=2))
         for ch in chunked_dict["chunks"]:
             corpus.append(str(art_dict['headline']) + sep + str(ch))
-            
+
             chunk_map[art_id].append(counter)
             counter += 1
-            
+
     dataset = Dataset.from_dict({'corpus': corpus})
 
     # Tokenize datasets
@@ -58,6 +58,7 @@ def pull_positives(tokenized_data, org_data, chunk_map, finetuned_topic_model, b
     preds = trainer.predict(tokenized_data)
 
     predictions = np.argmax(preds.predictions, axis=-1)
+    print(predictions)
 
     # Subset to positives only
     positive_dict = {}
