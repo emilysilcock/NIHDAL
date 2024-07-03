@@ -70,7 +70,7 @@ for year in range(2013, 2023):
 
     for date in tqdm(date_list):
 
-        paths = glob(f'/n/home09/esilcock/Sun_data/**{date}**')
+        paths = glob(f'/n/holyscratch01/economics/esilcock/Sun_data/**{date}**')
 
         date_ids = []
         date_data = []
