@@ -28,7 +28,7 @@ def format_and_tokenize(dat, tokenization_model, max_token_length):
     for art_id, art_dict in dat.items():
         chunk_map[art_id] = []
         chunked_dict = chunk(art_dict, tokenizer, max_token_length)
-        print(json.dumps(chunked_dict["chunks"],indent=2))
+
         for ch in chunked_dict["chunks"]:
             corpus.append(str(art_dict['headline']) + sep + str(ch))
 
@@ -58,7 +58,6 @@ def pull_positives(tokenized_data, org_data, chunk_map, finetuned_topic_model, b
     preds = trainer.predict(tokenized_data)
 
     predictions = np.argmax(preds.predictions, axis=-1)
-    print(predictions)
 
     # Subset to positives only
     positive_dict = {}
@@ -76,21 +75,19 @@ if __name__ == '__main__':
     base_model='roberta-large'
 
     # Open data 
-    # for year in range(2013, 2023):
-    for year in [2016]:
+    for year in range(2013, 2023):
 
         print(f"******************{year}**********************")
 
-        with open(f'/n/home09/esilcock/clean_Sun_data/{year}_cleaned.json') as f:
+        with open(f'/n/home09/esilcock/clean_Sun_data/{year}_cleaned_non_national.json') as f:   ####
             year_dat = json.load(f)
 
-        #########
-        year_dat = [a for a in year_dat if "lottery hoaxer" in a['headline'].lower()]
-        print(len(year_dat))
-        print("??????????????????????????")
-        #########
-
-        print(json.dumps(year_dat, indent=2))
+        # #########
+        # year_dat = [a for a in year_dat if "lottery hoaxer" in a['headline'].lower()]
+        # print(len(year_dat))
+        # print("??????????????????????????")
+        # print(json.dumps(year_dat, indent=2))
+        # #########
 
         year_dict = {a['ln_id']: a for a in year_dat}
 
@@ -106,5 +103,5 @@ if __name__ == '__main__':
             batch_size=512
         )
 
-        # with open(f'/n/home09/esilcock/mentions_benefits/mentions_benefits_{year}_non_national.json', 'w') as f:    ####
-        #     json.dump(topic_arts, f, indent=4)
+        with open(f'/n/home09/esilcock/mentions_benefits/mentions_benefits_{year}_non_national.json', 'w') as f:    ####
+            json.dump(topic_arts, f, indent=4)
