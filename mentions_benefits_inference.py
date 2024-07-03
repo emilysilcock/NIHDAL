@@ -76,7 +76,7 @@ if __name__ == '__main__':
 
     # Open data 
     # for year in range(2013, 2023):
-    for year in [2013, 2016, 2019, 2022]:
+    for year in [2014, 2017, 2020, 2023]:
 
         print(f"******************{year}**********************")
 
