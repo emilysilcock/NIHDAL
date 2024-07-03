@@ -76,7 +76,7 @@ if __name__ == '__main__':
 
     # Open data 
     # for year in range(2013, 2023):
-    for year in [2019]:
+    for year in [2016]:
 
         print(f"******************{year}**********************")
 
@@ -84,7 +84,7 @@ if __name__ == '__main__':
             year_dat = json.load(f)
 
         #########
-        year_dat = [a for a in year_dat if "worst benefits cheat" in a['headline'].lower()]
+        year_dat = [a for a in year_dat if "lottery hoaxer" in a['headline'].lower()]
         print(len(year_dat))
         print("??????????????????????????")
         #########
@@ -105,5 +105,5 @@ if __name__ == '__main__':
             batch_size=512
         )
 
-        # with open(f'/n/home09/esilcock/mentions_benefits/mentions_benefits_{year}.json', 'w') as f:
+        # with open(f'/n/home09/esilcock/mentions_benefits/mentions_benefits_{year}_non_national.json', 'w') as f:    ####
         #     json.dump(topic_arts, f, indent=4)
