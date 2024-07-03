@@ -75,7 +75,8 @@ if __name__ == '__main__':
     base_model='roberta-large'
 
     # Open data 
-    for year in range(2013, 2023):
+    # for year in range(2013, 2023):
+    for year in [2013, 2016, 2019, 2022]:
 
         print(f"******************{year}**********************")
 
