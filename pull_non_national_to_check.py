@@ -1,6 +1,7 @@
 import json
 
 count = 0
+total = 0
 for year in range(2013, 2023):
 
     print(f"******************{year}**********************")
@@ -25,7 +26,8 @@ for year in range(2013, 2023):
     print(counter)
     count += counter
     print(len(non_national))
+    total += non_national
 
 print(count)
-
+print(total)
     
