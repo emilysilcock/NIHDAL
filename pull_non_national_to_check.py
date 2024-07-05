@@ -26,7 +26,7 @@ for year in range(2013, 2023):
     print(counter)
     count += counter
     print(len(non_national))
-    total += non_national
+    total += len(non_national)
 
 print(count)
 print(total)
