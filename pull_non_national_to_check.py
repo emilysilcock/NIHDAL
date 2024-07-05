@@ -1,6 +1,6 @@
 import json
 
-
+count = 0
 for year in range(2013, 2023):
 
     print(f"******************{year}**********************")
@@ -23,6 +23,9 @@ for year in range(2013, 2023):
             # print(art['date'])
 
     print(counter)
+    count += counter
     print(len(non_national))
+
+print(count)
 
     
