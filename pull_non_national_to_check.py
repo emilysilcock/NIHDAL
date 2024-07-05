@@ -1,8 +1,7 @@
 import json
 
 
-# for year in range(2013, 2023):
-for year in range(2014, 2023):
+for year in range(2013, 2023):
 
     print(f"******************{year}**********************")
 
