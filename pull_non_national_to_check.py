@@ -20,6 +20,9 @@ for year in range(2014, 2023):
         if art['article'][:50] not in labelled_list:
             counter += 1
 
+            print(art['headline'])
+            print(art['date'])
+
     print(counter)
     print(len(non_national))
 
