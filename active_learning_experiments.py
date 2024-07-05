@@ -154,37 +154,37 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
         global selected_descr
         selected_descr = {}
 
-        pred_tar_actual_tar = sum(train.y[target_indices])
-        print(f'Predicted target: Selected {len(target_indices)} samples, with {pred_tar_actual_tar} target class')
-        selected_descr['predicted_target'] = {}
-        selected_descr['predicted_target']['selected'] = len(target_indices)
-        selected_descr['predicted_target']['target'] = pred_tar_actual_tar
-        if biased:
-            bias_indices_selected_tar = len([i for i in target_indices if i in bias_indices])
-            print(f'of these {bias_indices_selected_tar} are in the non-seeded target')
-            selected_descr['predicted_target']['non_seeded_target'] = bias_indices_selected_tar
+        # pred_tar_actual_tar = sum(train.y[target_indices])
+        # print(f'Predicted target: Selected {len(target_indices)} samples, with {pred_tar_actual_tar} target class')
+        # selected_descr['predicted_target'] = {}
+        # selected_descr['predicted_target']['selected'] = len(target_indices)
+        # selected_descr['predicted_target']['target'] = pred_tar_actual_tar
+        # if biased:
+        #     bias_indices_selected_tar = len([i for i in target_indices if i in bias_indices])
+        #     print(f'of these {bias_indices_selected_tar} are in the non-seeded target')
+        #     selected_descr['predicted_target']['non_seeded_target'] = bias_indices_selected_tar
 
-        ## From pred other
-        pred_oth_actual_tar = sum(train.y[other_indices])
-        print(f'Predicted non-target: Selected {len(other_indices)} samples, with {pred_oth_actual_tar} target class')
-        selected_descr['predicted_other'] = {}
-        selected_descr['predicted_other']['selected'] = len(other_indices)
-        selected_descr['predicted_other']['target'] = pred_oth_actual_tar
-        if biased:
-            bias_indices_selected_oth = len([i for i in other_indices if i in bias_indices])
-            print(f'of these {bias_indices_selected_oth} are in the non-seeded target')
-            selected_descr['predicted_other']['non_seeded_target'] = bias_indices_selected_oth
+        # ## From pred other
+        # pred_oth_actual_tar = sum(train.y[other_indices])
+        # print(f'Predicted non-target: Selected {len(other_indices)} samples, with {pred_oth_actual_tar} target class')
+        # selected_descr['predicted_other'] = {}
+        # selected_descr['predicted_other']['selected'] = len(other_indices)
+        # selected_descr['predicted_other']['target'] = pred_oth_actual_tar
+        # if biased:
+        #     bias_indices_selected_oth = len([i for i in other_indices if i in bias_indices])
+        #     print(f'of these {bias_indices_selected_oth} are in the non-seeded target')
+        #     selected_descr['predicted_other']['non_seeded_target'] = bias_indices_selected_oth
 
-        ## Overall
-        actual_tar = sum(train.y[selected_indices])
-        print(f'All: Selected {len(selected_indices)} samples, with {actual_tar} target class')
-        selected_descr['all'] = {}
-        selected_descr['all']['selected'] = len(selected_indices)
-        selected_descr['all']['target'] = actual_tar
-        if biased:
-            bias_indices_selected_all = len([i for i in selected_indices if i in bias_indices])
-            print(f'of these {bias_indices_selected_all} are in the non-seeded target')
-            selected_descr['all']['non_seeded_target'] = bias_indices_selected_all 
+        # ## Overall
+        # actual_tar = sum(train.y[selected_indices])
+        # print(f'All: Selected {len(selected_indices)} samples, with {actual_tar} target class')
+        # selected_descr['all'] = {}
+        # selected_descr['all']['selected'] = len(selected_indices)
+        # selected_descr['all']['target'] = actual_tar
+        # if biased:
+        #     bias_indices_selected_all = len([i for i in selected_indices if i in bias_indices])
+        #     print(f'of these {bias_indices_selected_all} are in the non-seeded target')
+        #     selected_descr['all']['non_seeded_target'] = bias_indices_selected_all
 
         return selected_indices
 
@@ -240,40 +240,40 @@ class NIHDAL_2(DiscriminativeActiveLearning_amended):
         global selected_descr
         selected_descr = {}
 
-        ## From pred target
-        pred_tar_selected = [i for i in selected_indices if i in target_pool]
-        pred_tar_actual_tar = sum(train.y[pred_tar_selected])
-        print(f'Predicted target: Selected {len(pred_tar_selected)} samples, with {pred_tar_actual_tar} target class')
-        selected_descr['predicted_target'] = {}
-        selected_descr['predicted_target']['selected'] = len(pred_tar_selected)
-        selected_descr['predicted_target']['target'] = pred_tar_actual_tar
-        if biased:
-            bias_indices_selected_tar = len([i for i in pred_tar_selected if i in bias_indices])
-            print(f'of these {bias_indices_selected_tar} are in the non-seeded target')
-            selected_descr['predicted_target']['non_seeded_target'] = bias_indices_selected_tar
+        # ## From pred target
+        # pred_tar_selected = [i for i in selected_indices if i in target_pool]
+        # pred_tar_actual_tar = sum(train.y[pred_tar_selected])
+        # print(f'Predicted target: Selected {len(pred_tar_selected)} samples, with {pred_tar_actual_tar} target class')
+        # selected_descr['predicted_target'] = {}
+        # selected_descr['predicted_target']['selected'] = len(pred_tar_selected)
+        # selected_descr['predicted_target']['target'] = pred_tar_actual_tar
+        # if biased:
+        #     bias_indices_selected_tar = len([i for i in pred_tar_selected if i in bias_indices])
+        #     print(f'of these {bias_indices_selected_tar} are in the non-seeded target')
+        #     selected_descr['predicted_target']['non_seeded_target'] = bias_indices_selected_tar
 
-        ## From pred other
-        pred_oth_selected = [i for i in selected_indices if i in other_pool]
-        pred_oth_actual_tar = sum(train.y[pred_oth_selected])
-        print(f'Predicted non-target: Selected {len(pred_oth_selected)} samples, with {pred_oth_actual_tar} target class')
-        selected_descr['predicted_other'] = {}
-        selected_descr['predicted_other']['selected'] = len(pred_oth_selected)
-        selected_descr['predicted_other']['target'] = pred_oth_actual_tar
-        if biased:
-            bias_indices_selected_oth = len([i for i in pred_oth_selected if i in bias_indices])
-            print(f'of these {bias_indices_selected_oth} are in the non-seeded target')
-            selected_descr['predicted_other']['non_seeded_target'] = bias_indices_selected_oth
+        # ## From pred other
+        # pred_oth_selected = [i for i in selected_indices if i in other_pool]
+        # pred_oth_actual_tar = sum(train.y[pred_oth_selected])
+        # print(f'Predicted non-target: Selected {len(pred_oth_selected)} samples, with {pred_oth_actual_tar} target class')
+        # selected_descr['predicted_other'] = {}
+        # selected_descr['predicted_other']['selected'] = len(pred_oth_selected)
+        # selected_descr['predicted_other']['target'] = pred_oth_actual_tar
+        # if biased:
+        #     bias_indices_selected_oth = len([i for i in pred_oth_selected if i in bias_indices])
+        #     print(f'of these {bias_indices_selected_oth} are in the non-seeded target')
+        #     selected_descr['predicted_other']['non_seeded_target'] = bias_indices_selected_oth
 
-        ## Overall
-        actual_tar = sum(train.y[selected_indices])
-        print(f'All: Selected {len(selected_indices)} samples, with {actual_tar} target class')
-        selected_descr['all'] = {}
-        selected_descr['all']['selected'] = len(selected_indices)
-        selected_descr['all']['target'] = actual_tar
-        if biased:
-            bias_indices_selected_all = len([i for i in selected_indices if i in bias_indices])
-            print(f'of these {bias_indices_selected_all} are in the non-seeded target')
-            selected_descr['all']['non_seeded_target'] = bias_indices_selected_all 
+        # ## Overall
+        # actual_tar = sum(train.y[selected_indices])
+        # print(f'All: Selected {len(selected_indices)} samples, with {actual_tar} target class')
+        # selected_descr['all'] = {}
+        # selected_descr['all']['selected'] = len(selected_indices)
+        # selected_descr['all']['target'] = actual_tar
+        # if biased:
+        #     bias_indices_selected_all = len([i for i in selected_indices if i in bias_indices])
+        #     print(f'of these {bias_indices_selected_all} are in the non-seeded target')
+        #     selected_descr['all']['non_seeded_target'] = bias_indices_selected_all 
 
         return selected_indices
 
