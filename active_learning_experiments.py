@@ -640,16 +640,17 @@ if __name__ == '__main__':
 
     transformer_model_name = 'distilroberta-base'
 
-    # for ds in ['ag_news']:
-    for ds in ['isear']:
-        for biased in [False, True]:
+    for ds in ['ag_news']:
+    # for ds in ['isear']:
+        # for biased in [False, True]:
+        for biased in [True]:
             # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
-            for als in ["DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']:
+            for als in ['NIHDAL', 'NIHDAL_simon']:
 
                 print(f'****************{als}**********************')
 
                 # Set seed
-                for seed in [97]:  # 42, 12731, 65372, 97, 163
+                for seed in [42]:  # 42, 12731, 65372, 97, 163
 
                     print(f'#################{seed}##################')
                     torch.manual_seed(seed)
@@ -680,9 +681,9 @@ if __name__ == '__main__':
                     results = active_learning_loop(active_learner, train, test, num_queries=10, bias=bias_indices, selected_descr=selected_descr)
 
                     if biased:
-                        with open(f'results/{ds}_{als}_results_{seed}_biased_new.pkl', 'wb') as f:
+                        with open(f'/n/holyscratch01/economics/esilcock/NIHDAL_results/{ds}_{als}_results_{seed}_biased_new.pkl', 'wb') as f:
                             pickle.dump(results, f)
 
                     else:
-                        with open(f'results/{ds}_{als}_results_{seed}_unbiased.pkl', 'wb') as f:
+                        with open(f'/n/holyscratch01/economics/esilcock/NIHDAL_results/{ds}_{als}_results_{seed}_unbiased.pkl', 'wb') as f:
                             pickle.dump(results, f)
