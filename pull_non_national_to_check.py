@@ -11,12 +11,12 @@ for year in range(2014, 2023):
     with open(f'/n/home09/esilcock/mainly_about_benefits/mainly_about_benefits_{year}.json') as f:
         national = json.load(f)
 
-    labelled_list = [art['article'][:50] for art in national]
+    labelled_list = [art['article'][:50] for _, art in national.items()]
 
     with open(f'/n/home09/esilcock/mainly_about_benefits/mainly_about_benefits_{year}_non_national.json') as f:
         non_national = json.load(f)
 
-    for art in non_national:
+    for _, art in non_national.items():
         if art['article'][:50] not in labelled_list:
             counter += 1
 
