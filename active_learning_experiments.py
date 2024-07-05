@@ -643,14 +643,14 @@ if __name__ == '__main__':
     for ds in ['ag_news']:
     # for ds in ['isear']:
         # for biased in [False, True]:
-        for biased in [False]:
+        for biased in [True]:
             # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
-            for als in ['NIHDAL', 'NIHDAL_simon']:
+            for als in ["DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']:
 
                 print(f'****************{als}**********************')
 
                 # Set seed
-                for seed in [65372]:  # 42, 12731, 65372, 97, 163
+                for seed in [97]:  # 42, 12731, 65372, 97, 163
 
                     print(f'#################{seed}##################')
                     torch.manual_seed(seed)
