@@ -70,12 +70,12 @@ if __name__ == '__main__':
 
     # Open data 
     # for year in range(2013, 2023):
-    for year in [2022]:
+    for year in [2013]:
 
         print(f"******************{year}**********************")
 
 
-        with open(f'/n/home09/esilcock/mentions_benefits/mentions_benefits_{year}_non_national.json') as f: #####
+        with open(f'/n/home09/esilcock/mentions_benefits/mentions_benefits_{year}.json') as f: 
             mentions_benefits = json.load(f)
 
         # Chunk, format and tokenize
@@ -89,5 +89,5 @@ if __name__ == '__main__':
             batch_size=512
         )
 
-        with open(f'/n/home09/esilcock/mainly_about_benefits/mainly_about_benefits_{year}_non_national.json', 'w') as f:
+        with open(f'/n/home09/esilcock/mainly_about_benefits/mainly_about_benefits_{year}.json', 'w') as f:
             json.dump(topic_arts, f, indent=4)
