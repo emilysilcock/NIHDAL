@@ -466,35 +466,14 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
     elif dataset_name == 'ag_news':
         raw_dataset = datasets.load_dataset(datasets_dict[dataset_name]['hf_name'])
 
-    print(raw_dataset['train'].features)
-
-    ###############
-    raw_dataset = datasets.load_dataset('ag_news')
-    print(raw_dataset['train'].features)
-
-    assert 0 == 1
-    ###############
-
 
     # Rename text column if necessary
     if datasets_dict[dataset_name]['text_name'] != 'text':
         raw_dataset = raw_dataset.rename_column(datasets_dict[dataset_name]['text_name'], 'text')
 
-    # Convert label column if necessary
+    # Rename label column if necessary
     if datasets_dict[dataset_name]['label_name'] != 'label':
-        # raw_dataset = raw_dataset.rename_column(datasets_dict[dataset_name]['label_name'], 'label')
-
-        unique_labs = raw_dataset['train'].unique(datasets_dict[dataset_name]['label_name'])
-        class_labels = datasets.ClassLabel(names=unique_labs)
-
-        def encode_string_labels(example):
-            example['label'] = class_labels.str2int(example[datasets_dict[dataset_name]['label_name']])
-            return example
-
-        raw_dataset = raw_dataset.map(encode_string_labels, batched=False)
-        raw_dataset = raw_dataset.cast_column('label', class_labels)
-
-    print(raw_dataset)
+        raw_dataset = raw_dataset.rename_column(datasets_dict[dataset_name]['label_name'], 'label')
 
     # Keep track of unlabelled class
     if biased:
