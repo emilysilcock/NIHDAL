@@ -659,12 +659,12 @@ if __name__ == '__main__':
 
     transformer_model_name = 'distilroberta-base'
 
-    # for ds in ['ag_news']:
-    for ds in ['trec-10']:
+    for ds in ['ag_news']:
+    # for ds in ['trec-10']:
         # for biased in [False, True]:
-        for biased in [False]:
+        for biased in [True]:
             # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
-            for als in ['Random']:
+            for als in ['NIHDAL_simon']:
 
                 print(f'****************{als}**********************')
 
