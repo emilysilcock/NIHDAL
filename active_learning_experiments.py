@@ -465,7 +465,7 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
         })
 
     elif dataset_name == 'ag_news':
-        raw_dataset = datasets.load_dataset(datasets_dict[dataset_name]['hf_name'])
+        raw_dataset = datasets.load_dataset(datasets_dict[dataset_name]['name'])
 
 
     # Rename text column if necessary
