@@ -440,6 +440,11 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
         df_train = tfds.as_dataframe(tf_dataset['train'])
         df_test = tfds.as_dataframe(tf_dataset['test'])
 
+        for k in df_train:
+            if k not in [datasets_dict[dataset_name]['label_name'], datasets_dict[dataset_name]['text_name']]:
+                del df_test[k]
+                del df_train[k]
+
         num_classes = len(set(df_test[datasets_dict[dataset_name]['label_name']]))
         print(num_classes)
 
@@ -449,8 +454,8 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
         class_label = datasets.ClassLabel(num_classes=num_classes, names=names)
 
         features = datasets.Features({
-            datasets_dict[dataset_name]['label_name']: class_label,
-            datasets_dict[dataset_name]['text_name']: datasets.Value("string")
+            datasets_dict[dataset_name]['text_name']: datasets.Value("string"),
+            datasets_dict[dataset_name]['label_name']: class_label
             })
 
         raw_dataset = datasets.DatasetDict({
