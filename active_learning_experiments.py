@@ -644,6 +644,8 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
 
         res['counts'] = selected_descr
 
+        print(selected_descr)
+
         results.append(res)
 
     return results
