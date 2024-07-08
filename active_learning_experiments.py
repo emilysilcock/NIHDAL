@@ -440,10 +440,10 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
         df_train = tfds.as_dataframe(tf_dataset['train'])
         df_test = tfds.as_dataframe(tf_dataset['test'])
 
-        raw_dataset = {
+        raw_dataset = datasets.DatasetDict({
             'train': datasets.Dataset.from_pandas(df_train),
             'test': datasets.Dataset.from_pandas(df_test)
-        }
+        })
 
         print(raw_dataset)
 
