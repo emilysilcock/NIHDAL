@@ -345,8 +345,6 @@ def evaluate(active_learner, train, test):
     labelled_embeddings = active_learner.classifier.embed(train)
     test_embeddings = active_learner.classifier.embed(test)
 
-    print(labelled_embeddings.shape)
-
     r = {
         'Train accuracy': accuracy_score(y_pred, train.y),
         'Test accuracy': accuracy_score(y_pred_test, test.y),
@@ -362,6 +360,8 @@ def evaluate(active_learner, train, test):
         'Labelled data embeddings': labelled_embeddings,
         'Labelled data labels': train.y
     }
+
+    print('Test accuracy:', r['Test accuracy'], 'Test F1:', r['Test F1'])
 
     return r
 
