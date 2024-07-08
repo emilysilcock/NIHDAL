@@ -453,9 +453,19 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
     if datasets_dict[dataset_name]['text_name'] != 'text':
         raw_dataset = raw_dataset.rename_column(datasets_dict[dataset_name]['text_name'], 'text')
 
-    # Rename label column if necessary
+    # Convert label column if necessary
     if datasets_dict[dataset_name]['label_name'] != 'label':
-        raw_dataset = raw_dataset.rename_column(datasets_dict[dataset_name]['label_name'], 'label')
+        # raw_dataset = raw_dataset.rename_column(datasets_dict[dataset_name]['label_name'], 'label')
+
+        unique_labs = raw_dataset['train'].unique(datasets_dict[dataset_name]['label_name'])
+        class_labels = datasets.ClassLabel(names=unique_labs)
+        
+        def encode_string_labels(example):
+            example['label'] = class_labels.str2int(example[datasets_dict[dataset_name]['label_name']])
+            return example
+        
+        raw_dataset = raw_dataset.map(encode_string_labels, batched=False)
+        raw_dataset = raw_dataset.cast_column('label', class_labels)
 
     print(raw_dataset)
 
