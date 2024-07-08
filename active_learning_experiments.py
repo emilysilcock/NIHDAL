@@ -313,6 +313,7 @@ def make_imbalanced(dataset, indices_to_track=None):
     other_samples_count = len(other_samples)
     imbalanced_total = other_samples_count/0.99
     target_count = int(imbalanced_total * 0.01)
+    print(f'There are {target_count} target examples left in the dataset')
 
     # Filter target samples to target number
     target_samples = target_samples.shuffle()
