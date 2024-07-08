@@ -6,6 +6,8 @@ from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_sc
 import datasets
 import numpy as np
 import torch
+
+import tensorflow_datasets as tfds
 from transformers import AutoTokenizer
 
 import small_text
@@ -417,49 +419,44 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
 
     # Load data
     datasets_dict = {
-        'isear': 
-            {
-                'hf_name': 'RikoteMaster/isear_rauw',
-                'text_name': 'Text',
-                'label_name': 'Emotion'
-            },
         'ag_news': 
             {
-                'hf_name': 'ag_news',
+                'name': 'ag_news',
                 'text_name': 'text',
                 'label_name': 'label'
+            },
+        'trec-10':
+            {
+                'name': 'trec',
+                'text_name': 'text',
+                'label_name': 'label-coarse'
             }
     }
 
-    raw_dataset = datasets.load_dataset(datasets_dict[dataset_name]['hf_name'])
+    if dataset_name == "trec-10":
+        tf_dataset, info = tfds.load('trec', with_info=False, as_supervised=True)
 
-    if dataset_name == "isear":
+        print(info)
 
-        # Remove validation split
-        print(raw_dataset.keys())
-        del raw_dataset['validation']
+        # Convert to hf dataset
+        tf_dataset = tfds.as_dataframe(tf_dataset)
+        raw_dataset = datasets.Dataset.from_pandas(tf_dataset)
 
-        # Rename text column
-        raw_dataset = raw_dataset.remove_columns('text')
-        raw_dataset = raw_dataset.remove_columns('Text_processed')
+        print(type(raw_dataset))
+
+    elif dataset_name == 'ag_news':
+        raw_dataset = datasets.load_dataset(datasets_dict[dataset_name]['hf_name'])
+
+
+    # Rename text column if necessary
+    if datasets_dict[dataset_name]['text_name'] != 'text':
         raw_dataset = raw_dataset.rename_column(datasets_dict[dataset_name]['text_name'], 'text')
 
-    # Make label column into ints
-    if dataset_name == "isear":
-        unique_labs = raw_dataset['train'].unique(datasets_dict[dataset_name]['label_name'])
-        class_labels = datasets.ClassLabel(names=unique_labs)
+    # Rename label column if necessary
+    if datasets_dict[dataset_name]['label_name'] != 'label':
+        raw_dataset = raw_dataset.rename_column(datasets_dict[dataset_name]['label_name'], 'label')
 
-        def encode_string_labels(example):
-            example['label'] = class_labels.str2int(example[datasets_dict[dataset_name]['label_name']])
-            return example
-
-        raw_dataset = raw_dataset.map(encode_string_labels, batched=False)
-
-        raw_dataset = raw_dataset.cast_column('label', class_labels)
-
-        raw_dataset = raw_dataset.remove_columns(datasets_dict[dataset_name]['label_name'])
-
-
+    # Keep track of unlabelled class 
     if biased:
         unsampled_train_indices = [i for i, lab in enumerate(raw_dataset['train']['label']) if lab == target_labels[1]]
 
@@ -640,12 +637,12 @@ if __name__ == '__main__':
 
     transformer_model_name = 'distilroberta-base'
 
-    for ds in ['ag_news']:
-    # for ds in ['isear']:
+    # for ds in ['ag_news']:
+    for ds in ['trec_10']:
         # for biased in [False, True]:
-        for biased in [True]:
+        for biased in [False]:
             # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
-            for als in ['NIHDAL_simon']:
+            for als in ['Random']:
 
                 print(f'****************{als}**********************')
 
