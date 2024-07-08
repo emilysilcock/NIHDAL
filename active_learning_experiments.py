@@ -440,9 +440,23 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
         df_train = tfds.as_dataframe(tf_dataset['train'])
         df_test = tfds.as_dataframe(tf_dataset['test'])
 
+        # 
+        num_classes = len(set(df_test[datasets_dict[dataset_name]['label_name']]))
+        print(num_classes)
+
+        names = [f"class_{i}" for i in range(num_classes)]
+        print(names)
+
+        class_label = datasets.ClassLabel(num_classes=num_classes, names=names)
+
+        features = datasets.Features({
+            datasets_dict[dataset_name]['label_name']: class_label, 
+            df_test[datasets_dict[dataset_name]['label_name']]: datasets.Value("string")
+            })
+
         raw_dataset = datasets.DatasetDict({
-            'train': datasets.Dataset.from_pandas(df_train),
-            'test': datasets.Dataset.from_pandas(df_test)
+            'train': datasets.Dataset.from_pandas(df_train, features=features),
+            'test': datasets.Dataset.from_pandas(df_test, features=features)
         })
 
     elif dataset_name == 'ag_news':
