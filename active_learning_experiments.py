@@ -436,16 +436,26 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
     if dataset_name == "trec-10":
         tf_dataset = tfds.load('trec')
 
-        print(tf_dataset)
-
         # Convert to hf dataset
-        tf_dataset = tfds.as_dataframe(tf_dataset)
-        raw_dataset = datasets.Dataset.from_pandas(tf_dataset)
+        df_train = tfds.as_dataframe(tf_dataset['train'])
+        df_test = tfds.as_dataframe(tf_dataset['test'])
 
-        print(type(raw_dataset))
+        raw_dataset = {
+            'train': datasets.Dataset.from_pandas(df_train),
+            'test': datasets.Dataset.from_pandas(df_test)
+        }
+
+        print(raw_dataset)
 
     elif dataset_name == 'ag_news':
         raw_dataset = datasets.load_dataset(datasets_dict[dataset_name]['hf_name'])
+
+    #############
+    raw_dataset = datasets.load_dataset(ag_news)
+    print(raw_dataset)
+
+    assert 0 == 1
+    #############
 
 
     # Rename text column if necessary
