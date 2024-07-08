@@ -435,7 +435,7 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
     }
 
     if dataset_name == "trec-10":
-        tf_dataset, info = tfds.load('trec', with_info=True, as_supervised=True)
+        tf_dataset, info = tfds.load('trec', with_info=True)
 
         print(info)
 
