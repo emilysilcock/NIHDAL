@@ -435,9 +435,9 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
     }
 
     if dataset_name == "trec-10":
-        tf_dataset, info = tfds.load('trec', with_info=True)
+        tf_dataset = tfds.load('trec')
 
-        print(info)
+        print(type(tf_dataset))
 
         # Convert to hf dataset
         tf_dataset = tfds.as_dataframe(tf_dataset)
