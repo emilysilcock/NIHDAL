@@ -445,17 +445,8 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
             'test': datasets.Dataset.from_pandas(df_test)
         })
 
-        print(raw_dataset)
-
     elif dataset_name == 'ag_news':
         raw_dataset = datasets.load_dataset(datasets_dict[dataset_name]['hf_name'])
-
-    #############
-    raw_dataset = datasets.load_dataset('ag_news')
-    print(raw_dataset)
-
-    assert 0 == 1
-    #############
 
 
     # Rename text column if necessary
@@ -465,6 +456,8 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
     # Rename label column if necessary
     if datasets_dict[dataset_name]['label_name'] != 'label':
         raw_dataset = raw_dataset.rename_column(datasets_dict[dataset_name]['label_name'], 'label')
+
+    print(raw_dataset)
 
     # Keep track of unlabelled class
     if biased:
