@@ -457,7 +457,7 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
     if datasets_dict[dataset_name]['label_name'] != 'label':
         raw_dataset = raw_dataset.rename_column(datasets_dict[dataset_name]['label_name'], 'label')
 
-    # Keep track of unlabelled class 
+    # Keep track of unlabelled class
     if biased:
         unsampled_train_indices = [i for i, lab in enumerate(raw_dataset['train']['label']) if lab == target_labels[1]]
 
@@ -639,7 +639,7 @@ if __name__ == '__main__':
     transformer_model_name = 'distilroberta-base'
 
     # for ds in ['ag_news']:
-    for ds in ['trec_10']:
+    for ds in ['trec-10']:
         # for biased in [False, True]:
         for biased in [False]:
             # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
