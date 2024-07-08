@@ -448,11 +448,11 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
     elif dataset_name == 'ag_news':
         raw_dataset = datasets.load_dataset(datasets_dict[dataset_name]['hf_name'])
 
-    print(raw_dataset.features)
+    print(raw_dataset['train'].features)
 
     ###############
     raw_dataset = datasets.load_dataset('ag_news')
-    print(raw_dataset.features)
+    print(raw_dataset['train'].features)
 
     assert 0 == 1
     ###############
