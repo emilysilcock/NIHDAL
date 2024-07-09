@@ -2,7 +2,6 @@ import json
 from tqdm import tqdm
 
 date_lists = {}
-
 for year in range(2013, 2023):
 
     print(f'*******{year}*******')
@@ -28,15 +27,17 @@ with open('all_headlines.json', 'w') as f:
 
 
 print("Finding duplicates")
-duplicates = []
-for date in tqdm(date_lists):
+all_headlines = []
+for date, head_dicts in tqdm(date_lists.items()):
 
-    other_dates = [value for key, value in date_lists.items() if key != date]
+    all_headlines.extend(list(set([a['headline'] for a in head_dicts])))
 
-    for art in date_lists[date]:
+seen = set()
+duplicates = set()
+for item in tqdm(all_headlines):
+    if item in seen:
+        duplicates.add(item)
+    else:
+        seen.add(item)
 
-        if any(art["headline"] in head_list for head_list in other_dates):
-
-            duplicates.append(art["headline"])
-
-    print(set(duplicates))
+print(duplicates)
