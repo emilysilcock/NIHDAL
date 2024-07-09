@@ -39,4 +39,4 @@ for date in tqdm(date_lists):
 
             duplicates.append(art["headline"])
 
-print(set(duplicates))
+    print(set(duplicates))
