@@ -8,10 +8,10 @@ for year in range(2013, 2023):
     print(f'*******{year}*******')
 
     
-    with open(f'/n/home09/esilcock/clean_Sun_data/{year}_cleaned.json', 'w') as f:
+    with open(f'/n/home09/esilcock/clean_Sun_data/{year}_cleaned.json') as f:
         national = json.load(f)
 
-    with open(f'/n/home09/esilcock/clean_Sun_data/{year}_cleaned_non_national.json', 'w') as f:
+    with open(f'/n/home09/esilcock/clean_Sun_data/{year}_cleaned_non_national.json') as f:
         non_national = json.load(f)
 
     all_dat = national + non_national
