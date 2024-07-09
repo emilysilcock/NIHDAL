@@ -46,5 +46,5 @@ for item in tqdm(all_headlines):
         seen.add(item)
 
 for dup, count in duplicates.items():
-    if count > 10:
+    if count > 50:
         print(dup)
