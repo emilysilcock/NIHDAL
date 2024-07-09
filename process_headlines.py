@@ -33,11 +33,16 @@ for date, head_dicts in tqdm(date_lists.items()):
     all_headlines.extend(list(set([a['headline'] for a in head_dicts])))
 
 seen = set()
-duplicates = set()
+duplicates = {}
 for item in tqdm(all_headlines):
     if item in seen:
-        duplicates.add(item)
+        if item not in duplicates:
+            duplicates[item] = 2
+        else:
+            duplicates[item] += 1
     else:
         seen.add(item)
 
-print(duplicates)
+for dup, count in duplicates.items():
+    if count > 10:
+        print(dup)
