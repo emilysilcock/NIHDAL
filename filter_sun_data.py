@@ -57,9 +57,9 @@ edition_dict = {
     'Edition 2UB, Ulster': 'remove'
 }
 
-for year in range(2013, 2023):
+# for year in range(2013, 2023):
 # for year in range(2021, 2023):
-# for year in [2020]:
+for year in [2013]:
 
     year_list = []
     not_found_list = []
@@ -98,16 +98,16 @@ for year in range(2013, 2023):
 
         for art in cleaned_data:
             try:
-                # if edition_dict[art['edition']] == 'keep':     ####################
-                if edition_dict[art['edition']] == 'remove':     ####################
+                if edition_dict[art['edition']] == 'keep':     ####################
+                # if edition_dict[art['edition']] == 'remove':     ####################
                     year_list.append(art)
             except:
                 print(list(set([a['edition'] for a in cleaned_data])))
                 raise LookupError
 
-    with open(f'/n/home09/esilcock/clean_Sun_data/{year}_cleaned_non_national.json', 'w') as f:
+    with open(f'/n/home09/esilcock/clean_Sun_data/{year}_cleaned.json', 'w') as f:
         json.dump(year_list, f, indent=4)
-    with open(f'/n/home09/esilcock/clean_Sun_data/{year}_not_found_non_national.json', 'w') as f:
+    with open(f'/n/home09/esilcock/clean_Sun_data/{year}_not_found.json', 'w') as f:
         json.dump(not_found_list, f, indent=4)
 
     print('Filtered articles:', len(year_list))
