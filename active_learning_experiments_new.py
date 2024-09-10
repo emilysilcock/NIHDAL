@@ -17,6 +17,7 @@ from small_text import (
     TransformerBasedClassificationFactory,
     TransformerModelArguments,
     DiscriminativeActiveLearning,
+    DiscriminativeRepresentationLearning,
     random_initialization_balanced
 )
 
@@ -29,7 +30,7 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
 
     # Load data
     datasets_dict = {
-        'ag_news': 
+        'ag_news':
             {
                 'name': 'ag_news',
                 'text_name': 'text',
@@ -122,7 +123,7 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
 
     else:
         return train_dat, test_dat
-    
+
 def make_binary(dataset, target_labels):
 
     # target_labels contains the original label values that are to become target labels,
@@ -132,7 +133,7 @@ def make_binary(dataset, target_labels):
     num_classes = dataset.features['label'].num_classes
 
     class_mapping = {lab: 0 for lab in range(num_classes)}
-    
+
     for tl in target_labels:
         class_mapping[tl] = 1
 
@@ -210,7 +211,8 @@ def set_up_active_learner(transformer_model_name, active_learning_method,
 
     # Setting the query method
     if active_learning_method == "DAL":
-        query_strategy = DiscriminativeActiveLearning_amended(classifier_factory=clf_factory_2, num_iterations=10)
+        # query_strategy = DiscriminativeActiveLearning_amended(classifier_factory=clf_factory_2, num_iterations=10)
+        query_strategy = DiscriminativeRepresentationLearning(num_iterations=10, selection='greedy')
     elif active_learning_method == "NIHDAL":
         query_strategy = NIHDAL(classifier_factory=clf_factory_2, num_iterations=10)
     elif active_learning_method == "NIHDAL_simon":
@@ -245,7 +247,7 @@ def set_up_active_learner(transformer_model_name, active_learning_method,
     return a_learner
 
 def random_initialization_biased(y, n_samples=10, non_sample=None):
-    """Randomly draws half class 1, in a biased way, and half class 0. 
+    """Randomly draws half class 1, in a biased way, and half class 0.
 
     Parameters
     ----------
@@ -282,7 +284,8 @@ def initialize_active_learner(active_learner, y_train, biased_indices = []):
     else:
         indices_initial = random_initialization_balanced(y_train, n_samples=100)
 
-    active_learner.initialize_data(indices_initial, y_train[indices_initial])
+    # active_learner.initialize_data(indices_initial, y_train[indices_initial])
+    active_learner.initialize(indices_initial, y_train[indices_initial])
 
     return indices_initial
 
@@ -314,7 +317,7 @@ def evaluate(active_learner, train, test):
 
     return r
 
-def active_learning_loop(active_learner, train, test, num_queries, bias, selected_descr):
+def active_learning_loop(active_learner, train, test, num_queries, bias, selected_descr, active_learning_method):
 
     # Initialise with first sample
     if bias:
@@ -330,7 +333,7 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
 
     results = []
     results.append(evaluate(active_learner, train[indices_labeled], test))
-        
+
     for i in range(num_queries):
 
         # Query samples to label
@@ -348,7 +351,7 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
         print(f'Iteration #{i} ({len(indices_labeled)} samples)')
         res = evaluate(active_learner, train[indices_labeled], test)
 
-        if als not in ['NIHDAL', 'NIHDAL_simon']:
+        if active_learning_method not in ['NIHDAL', 'NIHDAL_simon']:
 
             selected_descr = {
                 'all': {
@@ -357,7 +360,7 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
                 }
             }
 
-            if biased:
+            if bias:
                 selected_descr['all']['non_seeded_target'] = len([i for i in indices_queried if i in bias])
 
         res['counts'] = selected_descr
@@ -411,9 +414,10 @@ if __name__ == '__main__':
                         )
                         bias_indices = None
 
-                    active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als)
+                    active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als, train_dataset = train)
 
-                    results = active_learning_loop(active_learner, train, test, num_queries=10, bias=bias_indices, selected_descr=selected_descr)
+                    results = active_learning_loop(active_learner, train, test, num_queries=10, bias=bias_indices, selected_descr=selected_descr,
+                                                   active_learning_method=als)
 
                     if biased:
                         with open(f'/n/holyscratch01/economics/esilcock/NIHDAL_results/{ds}_{als}_results_{seed}_biased_new.pkl', 'wb') as f:
