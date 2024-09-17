@@ -282,6 +282,9 @@ class NIHDAL_2(DiscriminativeActiveLearning_amended):
 
 def make_binary(dataset, target_labels):
 
+    # target_labels contains the original label values that are to become target labels,
+    # all the others are then 0
+
     # Create mapping
     num_classes = dataset.features['label'].num_classes
 
