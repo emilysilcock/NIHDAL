@@ -7,7 +7,7 @@ import copy
 
 from transformers import AutoTokenizer
 
-from data_fns import get_pub_list, chunk
+from data_fnsMOVED import get_pub_list, chunk
 
 if __name__ == '__main__':
 

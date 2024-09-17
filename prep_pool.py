@@ -3,7 +3,7 @@ import json
 
 from transformers import AutoTokenizer
 
-from data_fns import get_pub_list, chunk
+from data_fnsMOVED import get_pub_list, chunk
 
 # Open all data
 sample_list = []
