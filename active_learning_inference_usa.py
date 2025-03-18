@@ -272,9 +272,9 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
     return a_learner
 
 
-def open_pool(fp):
+def open_pool(fp, soft_start_data=None):
     
-    # Open pool 
+    # Open pool
     with open(fp) as f:
         pool = json.load(f)
 
@@ -289,7 +289,23 @@ def open_pool(fp):
 
             pool_list.append(art_copy)
 
-    print(f'{len(pool_list)} articles in the pool')
+    if soft_start_data:
+        with open(soft_start_data) as f:
+            ssd = json.load(f)
+
+        for dat in ssd:
+            pool_list.append({
+                "headline": dat["data"]["headline"],
+                "article": dat["data"]["article"],
+                "ln_id": dat["data"]["ln_id"],
+                "publisher": dat["data"]["newspaper"]
+            })
+
+        print(f'{len(pool_list)} articles in the pool of which {len(ssd)} are from soft start')
+
+    else:
+        print(f'{len(pool_list)} articles in the pool')
+
 
     return pool_list
 
@@ -317,8 +333,11 @@ if __name__ == '__main__':
     transformer_model_name = 'FacebookAI/roberta-base'
     als = 'NIHDAL'
 
-    sample_list = open_pool('/n/home09/esilcock/stigma-non-take-up/data/raw_data/newspapers/ProQuest_data/usa_chunked.json')
-    
+    sample_list = open_pool(
+        '/n/home09/esilcock/stigma-non-take-up/data/raw_data/newspapers/ProQuest_data/usa_chunked.json',
+        soft_start_data = 'Labelled_data/kw_initialisation/full_corrected.json'
+        )
+
     parsed_labelled_data = open_labelled_data(['Labelled_data/kw_initialisation/full_corrected.json'])
 
     texts = []
