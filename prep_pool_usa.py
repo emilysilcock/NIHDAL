@@ -26,7 +26,24 @@ tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
 chunked_sample = []
 
 for s in tqdm(sample_list):
-    chunked_sample.append(chunk(s, tokenizer, max_length=512, article_name="text"))
+    s['article'] = s['text']
+    del s['text']
+    s['ln_id'] = s['goid']
+    del s['ln_id']
+    chunked_sample.append(chunk(s, tokenizer, max_length=512))
+
+# Add labelled UK data 
+with open('Labelled_data/kw_initialisation/full_corrected.json') as f:
+    uk_data = json.load(f)
+
+for art in uk_data:
+    chunked_sample.append({
+        "headline": art["data"]["headline"],
+        "article": art["data"]["article"],
+        "ln_id": art["data"]["ln_id"],
+        "chunks": art["data"]["chunks"],
+        "publisher": art["data"]["newspaper"]
+    })
 
 with open('/n/home09/esilcock/stigma-non-take-up/data/raw_data/newspapers/ProQuest_data/usa_chunked.json', 'w') as f:
     json.dump(chunked_sample, f, indent=4)

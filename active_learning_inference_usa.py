@@ -317,40 +317,9 @@ if __name__ == '__main__':
     transformer_model_name = 'FacebookAI/roberta-base'
     als = 'NIHDAL'
 
-    sample_list = open_pool('Sun_data/chunked_sample.json')
-    parsed_labelled_data = open_labelled_data([
-        'Labelled_data/kw_initialisation/sample_1_with_correct_ids.json',
-        'Labelled_data/kw_initialisation/sample_2.json',
-        'Labelled_data/kw_initialisation/sample_3.json',
-        'Labelled_data/kw_initialisation/sample_4.json',
-        'Labelled_data/kw_initialisation/sample_5.json',
-        'Labelled_data/kw_initialisation/sample_6.json',
-        'Labelled_data/kw_initialisation/sample_7.json',
-        'Labelled_data/kw_initialisation/sample_8.json',
-        'Labelled_data/kw_initialisation/sample_9.json',
-        'Labelled_data/kw_initialisation/sample_10.json',
-        'Labelled_data/kw_initialisation/sample_11.json',
-        'Labelled_data/kw_initialisation/sample_12.json',
-        'Labelled_data/kw_initialisation/sample_13.json',
-        'Labelled_data/kw_initialisation/sample_14.json',
-        'Labelled_data/kw_initialisation/sample_15.json',
-        'Labelled_data/kw_initialisation/sample_16.json',
-        'Labelled_data/kw_initialisation/sample_17.json',
-        'Labelled_data/kw_initialisation/sample_18.json',
-        'Labelled_data/kw_initialisation/sample_19.json',
-        'Labelled_data/kw_initialisation/sample_20.json',
-        'Labelled_data/kw_initialisation/sample_21.json',
-        'Labelled_data/kw_initialisation/sample_22.json',
-        'Labelled_data/kw_initialisation/sample_23.json',
-        'Labelled_data/kw_initialisation/sample_24.json',
-        'Labelled_data/kw_initialisation/sample_25.json',
-        'Labelled_data/kw_initialisation/sample_26.json',
-        'Labelled_data/kw_initialisation/sample_27.json',
-        'Labelled_data/kw_initialisation/sample_28.json',
-        'Labelled_data/kw_initialisation/sample_29.json',
-        'Labelled_data/kw_initialisation/sample_30.json',
-        'Labelled_data/kw_initialisation/sample_31.json',
-        ])
+    sample_list = open_pool('/n/home09/esilcock/stigma-non-take-up/data/raw_data/newspapers/ProQuest_data/usa_chunked.json')
+    
+    parsed_labelled_data = open_labelled_data(['Labelled_data/kw_initialisation/full_corrected.json'])
 
     texts = []
     indices_labeled = []
@@ -414,5 +383,5 @@ if __name__ == '__main__':
             "data": sample_list[i]
         })
 
-    with open(f'data_to_label/kw_initialisation/sample_32.json', 'w') as f:
+    with open(f'data_to_label/kw_initialisation/usa_sample_1.json', 'w') as f:
         json.dump(to_label, f, indent=2)
