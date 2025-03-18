@@ -29,7 +29,7 @@ for s in tqdm(sample_list):
     s['article'] = s['text']
     del s['text']
     s['ln_id'] = s['goid']
-    del s['ln_id']
+    del s['goid']
     chunked_sample.append(chunk(s, tokenizer, max_length=512))
 
 # Add labelled UK data 
