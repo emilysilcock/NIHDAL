@@ -306,7 +306,6 @@ def open_pool(fp, soft_start_data=None):
     else:
         print(f'{len(pool_list)} articles in the pool')
 
-
     return pool_list
 
 
@@ -337,70 +336,74 @@ if __name__ == '__main__':
         '/n/home09/esilcock/stigma-non-take-up/data/raw_data/newspapers/ProQuest_data/usa_chunked.json',
         soft_start_data = 'Labelled_data/kw_initialisation/full_corrected.json'
         )
+    
+
 
     parsed_labelled_data = open_labelled_data(['Labelled_data/kw_initialisation/full_corrected.json'])
 
-    texts = []
-    indices_labeled = []
-    labels = []
-    all_labels = []
+    print(len(parsed_labelled_data))
 
-    tokenizer = AutoTokenizer.from_pretrained(transformer_model_name)
-    sep = find_sep_token(tokenizer)
+    # texts = []
+    # indices_labeled = []
+    # labels = []
+    # all_labels = []
 
-    for idx, article in tqdm(enumerate(sample_list)):
+    # tokenizer = AutoTokenizer.from_pretrained(transformer_model_name)
+    # sep = find_sep_token(tokenizer)
 
-        # Check and add to labels
-        if article['ln_id'] in parsed_labelled_data:
-            indices_labeled.append(idx)
+    # for idx, article in tqdm(enumerate(sample_list)):
 
-            lab = parsed_labelled_data[article['ln_id']]
-            if lab == 'Irrelevant':
-                labels.append(0)
-                all_labels.append(0)
-            else:
-                labels.append(1)
-                all_labels.append(1)
+    #     # Check and add to labels
+    #     if article['ln_id'] in parsed_labelled_data:
+    #         indices_labeled.append(idx)
 
-        else:
-            all_labels.append(small_text.base.LABEL_UNLABELED)
+    #         lab = parsed_labelled_data[article['ln_id']]
+    #         if lab == 'Irrelevant':
+    #             labels.append(0)
+    #             all_labels.append(0)
+    #         else:
+    #             labels.append(1)
+    #             all_labels.append(1)
 
-        # Create pool
-        text = str(article['headline']) + sep + str(article['article'])
-        texts.append(text)
+    #     else:
+    #         all_labels.append(small_text.base.LABEL_UNLABELED)
 
-    print(f"Pool size: {len(texts)}")
-    print(f"of which {len(labels)} are labelled")
+    #     # Create pool
+    #     text = str(article['headline']) + sep + str(article['article'])
+    #     texts.append(text)
 
-    assert len(labels) == len(parsed_labelled_data)
-    indices_labeled = np.array(indices_labeled)
-    labels = np.array(labels)
+    # print(f"Pool size: {len(texts)}")
+    # print(f"of which {len(labels)} are labelled")
 
-    lab_array = np.arange(2)
+    # assert len(labels) == len(parsed_labelled_data)
+    # indices_labeled = np.array(indices_labeled)
+    # labels = np.array(labels)
 
-    train = TransformersDataset.from_arrays(
-        texts,
-        all_labels,
-        tokenizer,
-        max_length=512,
-        target_labels=lab_array
-    )
+    # lab_array = np.arange(2)
 
-    ## Active Learning
-    active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als)
+    # train = TransformersDataset.from_arrays(
+    #     texts,
+    #     all_labels,
+    #     tokenizer,
+    #     max_length=512,
+    #     target_labels=lab_array
+    # )
 
-    active_learner.initialize_data(indices_labeled, labels)
+    # ## Active Learning
+    # active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als)
 
-    indices_queried = active_learner.query(num_samples=100)
+    # active_learner.initialize_data(indices_labeled, labels)
 
-    # Format for label studio
-    to_label = []
+    # indices_queried = active_learner.query(num_samples=100)
 
-    for i in indices_queried:
-        to_label.append({
-            "id": int(i),
-            "data": sample_list[i]
-        })
+    # # Format for label studio
+    # to_label = []
 
-    with open(f'data_to_label/usa_sample_1.json', 'w') as f:
-        json.dump(to_label, f, indent=2)
+    # for i in indices_queried:
+    #     to_label.append({
+    #         "id": int(i),
+    #         "data": sample_list[i]
+    #     })
+
+    # with open(f'data_to_label/usa_sample_1.json', 'w') as f:
+    #     json.dump(to_label, f, indent=2)
