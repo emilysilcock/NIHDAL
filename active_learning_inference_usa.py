@@ -336,37 +336,41 @@ if __name__ == '__main__':
         '/n/home09/esilcock/stigma-non-take-up/data/raw_data/newspapers/ProQuest_data/usa_chunked.json',
         soft_start_data = 'Labelled_data/kw_initialisation/full_corrected.json'
         )
-    
-
 
     parsed_labelled_data = open_labelled_data(['Labelled_data/kw_initialisation/full_corrected.json'])
 
-    print(len(parsed_labelled_data))
+    texts = []
+    indices_labeled = []
+    labels = []
+    all_labels = []
 
-    # texts = []
-    # indices_labeled = []
-    # labels = []
-    # all_labels = []
+    tokenizer = AutoTokenizer.from_pretrained(transformer_model_name)
+    sep = find_sep_token(tokenizer)
 
-    # tokenizer = AutoTokenizer.from_pretrained(transformer_model_name)
-    # sep = find_sep_token(tokenizer)
+    count = 0
+    check = []
+    for idx, article in tqdm(enumerate(sample_list)):
 
-    # for idx, article in tqdm(enumerate(sample_list)):
+        # Check and add to labels
+        if article['ln_id'] in parsed_labelled_data:
+            count += 1
+            indices_labeled.append(idx)
 
-    #     # Check and add to labels
-    #     if article['ln_id'] in parsed_labelled_data:
-    #         indices_labeled.append(idx)
+            lab = parsed_labelled_data[article['ln_id']]
+            if lab == 'Irrelevant':
+                labels.append(0)
+                all_labels.append(0)
+            else:
+                labels.append(1)
+                all_labels.append(1)
 
-    #         lab = parsed_labelled_data[article['ln_id']]
-    #         if lab == 'Irrelevant':
-    #             labels.append(0)
-    #             all_labels.append(0)
-    #         else:
-    #             labels.append(1)
-    #             all_labels.append(1)
+        else:
+            check.append(idx)
+            all_labels.append(small_text.base.LABEL_UNLABELED)
 
-    #     else:
-    #         all_labels.append(small_text.base.LABEL_UNLABELED)
+
+    print(count)
+    print(len([i for i in check if "shared" in i]))
 
     #     # Create pool
     #     text = str(article['headline']) + sep + str(article['article'])
