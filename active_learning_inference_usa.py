@@ -365,7 +365,7 @@ if __name__ == '__main__':
                 all_labels.append(1)
 
         else:
-            check.append(idx)
+            check.append(article['ln_id'])
             all_labels.append(small_text.base.LABEL_UNLABELED)
 
 
