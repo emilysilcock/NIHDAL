@@ -371,6 +371,7 @@ if __name__ == '__main__':
 
     print(count)
     print(len([i for i in check if "shared" in i]))
+    print([i for i in check if "shared" in i][:5])
 
     #     # Create pool
     #     text = str(article['headline']) + sep + str(article['article'])
