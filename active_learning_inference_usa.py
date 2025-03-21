@@ -347,7 +347,6 @@ if __name__ == '__main__':
     tokenizer = AutoTokenizer.from_pretrained(transformer_model_name)
     sep = find_sep_token(tokenizer)
 
-    count = 0
     check = []
     for idx, article in tqdm(enumerate(sample_list)):
 
@@ -368,47 +367,43 @@ if __name__ == '__main__':
             check.append(article['ln_id'])
             all_labels.append(small_text.base.LABEL_UNLABELED)
 
+        # Create pool
+        text = str(article['headline']) + sep + str(article['article'])
+        texts.append(text)
 
-    print(count)
-    print(len([i for i in check if "shared" in i]))
-    print([i for i in check if "shared" in i][:5])
+    print(len([i for i in check if "shared" in i]), "should be zero")
+    print(f"Pool size: {len(texts)}")
+    print(f"of which {len(labels)} are labelled")
 
-    #     # Create pool
-    #     text = str(article['headline']) + sep + str(article['article'])
-    #     texts.append(text)
+    assert len(labels) == len(parsed_labelled_data)
+    indices_labeled = np.array(indices_labeled)
+    labels = np.array(labels)
 
-    # print(f"Pool size: {len(texts)}")
-    # print(f"of which {len(labels)} are labelled")
+    lab_array = np.arange(2)
 
-    # assert len(labels) == len(parsed_labelled_data)
-    # indices_labeled = np.array(indices_labeled)
-    # labels = np.array(labels)
+    train = TransformersDataset.from_arrays(
+        texts,
+        all_labels,
+        tokenizer,
+        max_length=512,
+        target_labels=lab_array
+    )
 
-    # lab_array = np.arange(2)
+    ## Active Learning
+    active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als)
 
-    # train = TransformersDataset.from_arrays(
-    #     texts,
-    #     all_labels,
-    #     tokenizer,
-    #     max_length=512,
-    #     target_labels=lab_array
-    # )
+    active_learner.initialize_data(indices_labeled, labels)
 
-    # ## Active Learning
-    # active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als)
+    indices_queried = active_learner.query(num_samples=100)
 
-    # active_learner.initialize_data(indices_labeled, labels)
+    # Format for label studio
+    to_label = []
 
-    # indices_queried = active_learner.query(num_samples=100)
+    for i in indices_queried:
+        to_label.append({
+            "id": int(i),
+            "data": sample_list[i]
+        })
 
-    # # Format for label studio
-    # to_label = []
-
-    # for i in indices_queried:
-    #     to_label.append({
-    #         "id": int(i),
-    #         "data": sample_list[i]
-    #     })
-
-    # with open(f'data_to_label/usa_sample_1.json', 'w') as f:
-    #     json.dump(to_label, f, indent=2)
+    with open(f'data_to_label/usa_sample_1.json', 'w') as f:
+        json.dump(to_label, f, indent=2)
