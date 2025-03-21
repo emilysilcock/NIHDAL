@@ -352,7 +352,6 @@ if __name__ == '__main__':
 
         # Check and add to labels
         if article['ln_id'] in parsed_labelled_data:
-            count += 1
             indices_labeled.append(idx)
 
             lab = parsed_labelled_data[article['ln_id']]
@@ -371,7 +370,7 @@ if __name__ == '__main__':
         text = str(article['headline']) + sep + str(article['article'])
         texts.append(text)
 
-    print(len([i for i in check if "shared" in i]), "should be zero")
+    assert len([i for i in check if "shared" in i]) == 0  # checking no unlabelled UK articles 
     print(f"Pool size: {len(texts)}")
     print(f"of which {len(labels)} are labelled")
 
