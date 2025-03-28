@@ -326,7 +326,12 @@ def open_labelled_data(fp_list, already_cleaned):
             dat = json.load(f)
 
         for d in dat:
-            parsed_labelled_data[d['id']] = d['label']
+            if d['label'] == 1:
+                lab = 'On topic'
+            else:
+                lab = 'Irrelevant'
+
+            parsed_labelled_data[d['id']] = lab
 
     return parsed_labelled_data
 
