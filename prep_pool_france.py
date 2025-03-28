@@ -16,6 +16,8 @@ publications = ['le_monde', 'les_echos']
 
 for publication in publications:
 
+    print(publication)
+
     with open(f"/n/home09/esilcock/stigma-non-take-up/data/raw_data/newspapers/ProQuest_data/{publication}_sample.json") as f:
         sample_list.extend(json.load(f))
 
@@ -25,11 +27,13 @@ publications = ["Le_Figaro", "Libération"]
 
 for publication in publications:
 
+    print(publication)
+
     full_dat = []
 
     for year in range(1995, 2024):
         with open(f"/n/netscratch/economics/Lab/esilcock/LexisNexis_data/LexisNexis_clean/{publication}/{year}_cleaned.json") as f:
-            sample_list.extend(json.load(f))
+            full_dat.extend(json.load(f))
 
     sample_list.extend(random.sample(full_dat, 1000))
 
