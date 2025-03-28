@@ -35,6 +35,8 @@ for publication in publications:
         with open(f"/n/netscratch/economics/Lab/esilcock/LexisNexis_data/LexisNexis_clean/{publication}/{year}_cleaned.json") as f:
             full_dat.extend(json.load(f))
 
+    print(len(full_dat))
+
     sample_list.extend(random.sample(full_dat, 1000))
 
 print("Number of articles: ", len(sample_list))
