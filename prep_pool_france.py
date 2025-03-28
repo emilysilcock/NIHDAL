@@ -33,7 +33,7 @@ for publication in publications:
 
     for year in range(1995, 2024):
         with open(f"/n/netscratch/economics/Lab/esilcock/LexisNexis_data/LexisNexis_clean/{publication}/{year}_cleaned.json") as f:
-            full_dat.extend(json.load(f))
+            full_dat.extend(list(json.load(f).values))
 
     print(len(full_dat))
 
