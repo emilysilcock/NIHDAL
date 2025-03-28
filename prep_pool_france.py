@@ -37,6 +37,8 @@ for publication in publications:
 
     print(len(full_dat))
 
+    print(full_dat[0])
+
     sample_list.extend(random.sample(full_dat, 1000))
 
 print("Number of articles: ", len(sample_list))
