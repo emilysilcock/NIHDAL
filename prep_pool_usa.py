@@ -22,13 +22,9 @@ for year in range(1997, 2022):
     with open(f"/n/netscratch/economics/Lab/esilcock/Factiva_data/Factiva_clean/NY_Post/{year}_cleaned.json") as f:
         full_dat.extend(list(json.load(f).values()))
 
-    sample_list.extend(random.sample(full_dat, 1000))
+sample_list.extend(random.sample(full_dat, 1000))
 
 print("Number of articles: ", len(sample_list))
-
-with open(f"/n/home09/esilcock/stigma-non-take-up/data/raw_data/newspapers/Factiva_data/{publication}_sample.json") as f:
-    sample_list.extend(json.load(f))
-
 
 
 
