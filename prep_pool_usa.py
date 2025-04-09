@@ -16,6 +16,13 @@ for publication in tqdm(publications):
     with open(f"/n/home09/esilcock/stigma-non-take-up/data/raw_data/newspapers/ProQuest_data/{publication}_sample.json") as f:
         sample_list.extend(json.load(f))
 
+for s in sample_list:
+    s['article'] = s['text']
+    del s['text']
+    s['ln_id'] = s['goid']
+    del s['goid']
+
+
 # Add NY post 
 full_dat  = []
 for year in range(1997, 2022):
@@ -36,10 +43,6 @@ tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
 chunked_sample = []
 
 for s in tqdm(sample_list):
-    s['article'] = s['text']
-    del s['text']
-    s['ln_id'] = s['goid']
-    del s['goid']
     chunked_sample.append(chunk(s, tokenizer, max_length=512))
 
 
