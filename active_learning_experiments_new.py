@@ -21,8 +21,164 @@ from small_text import (
     random_initialization_balanced
 )
 
+# Imports for amended classes -----------------------------------------
+
+import numpy.typing as npt
+
+from typing import Union
+
+from scipy.sparse import csr_matrix
+from scipy.special import softmax
+
+from small_text.classifiers import Classifier
+from small_text.data import Dataset
+from small_text.query_strategies.strategies import DiscriminativeActiveLearning
+
+from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
+from small_text.query_strategies import (
+    constraints,
+    QueryStrategy,
+    EmbeddingBasedQueryStrategy)
+from small_text.utils.clustering import init_kmeans_plusplus_safe
+from small_text.utils.context import build_pbar_context
+from small_text.utils.data import list_length
+
+try:
+    import torch
+    import torch.nn.functional as F  # noqa: N812
+
+    from torch.amp import GradScaler  # pyright: ignore
+    from torch.nn import BCEWithLogitsLoss
+    from torch.nn.utils import clip_grad_norm_  # pyright: ignore
+
+    from torch.optim import Adam
+
+    from small_text.integrations.pytorch.classifiers.base import AMPArguments
+    from small_text.integrations.pytorch.models.mlp import MLP
+
+    from small_text.integrations.pytorch.utils.misc import _assert_layer_exists
+    from small_text.integrations.pytorch.utils.data import dataloader
+    from small_text.integrations.pytorch.utils.contextmanager import inference_mode
+except ImportError:
+    raise PytorchNotFoundError('Could not import pytorch')
+
+
 # Own query method classes ------------------------------------------------------------------------
 
+class PretrainedDiscriminativeActiveLearning(QueryStrategy):
+    """Discriminative Active Learning that initializes the discriminative transformer classifier
+    with weights from the main transformer model.
+    """
+
+    LABEL_LABELED_POOL = 0
+    LABEL_UNLABELED_POOL = 1
+
+    def __init__(self, classifier_factory, num_iterations=10, unlabeled_factor=10, pbar='tqdm'):
+        self.classifier_factory = classifier_factory
+        self.num_iterations = num_iterations
+        self.unlabeled_factor = unlabeled_factor
+        self.pbar = pbar
+        self.clf_ = None
+
+    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
+        self._validate_query_input(indices_unlabeled, n)
+
+        if len(indices_unlabeled) == n:
+            return np.array(indices_unlabeled)
+
+        query_sizes = DiscriminativeActiveLearning._get_query_sizes(self.num_iterations, n)
+        indices = self._discriminative_active_learning(clf, dataset, indices_unlabeled, indices_labeled,
+                                                      query_sizes)
+        return indices
+
+    def _discriminative_active_learning(self, clf, dataset, indices_unlabeled, indices_labeled, query_sizes):
+        indices = np.array([], dtype=indices_labeled.dtype)
+        indices_unlabeled_copy = np.copy(indices_unlabeled)
+        indices_labeled_copy = np.copy(indices_labeled)
+
+        with build_pbar_context(len(query_sizes)) as pbar:
+            for q in query_sizes:
+                indices_most_confident = self._train_and_get_most_confident(clf, dataset,
+                                                                         indices_unlabeled_copy,
+                                                                         indices_labeled_copy, q)
+
+                indices = np.append(indices, indices_unlabeled_copy[indices_most_confident])
+                indices_labeled_copy = np.append(indices_labeled_copy,
+                                              indices_unlabeled_copy[indices_most_confident])
+                indices_unlabeled_copy = np.delete(indices_unlabeled_copy, indices_most_confident)
+                pbar.update(1)
+
+        return indices
+
+    def _train_and_get_most_confident(self, clf, ds, indices_unlabeled, indices_labeled, q):
+        if self.clf_ is not None:
+            del self.clf_
+                
+        # Create a new binary classifier from the factory
+        original_num_classes = self.classifier_factory.num_classes
+        self.classifier_factory.num_classes = 2
+        discr_clf = self.classifier_factory.new()
+        self.classifier_factory.num_classes = original_num_classes
+        
+        # Create the discriminative dataset first
+        num_unlabeled = min(indices_labeled.shape[0] * self.unlabeled_factor,
+                        indices_unlabeled.shape[0])
+
+        indices_unlabeled_sub = np.random.choice(indices_unlabeled,
+                                            num_unlabeled,
+                                            replace=False)
+
+        ds_discr = DiscriminativeActiveLearning.get_relabeled_copy(ds,
+                                                                indices_unlabeled_sub,
+                                                                indices_labeled)
+        
+        # Try to initialize the model if needed
+        # Many transformer models initialize on first use
+        if hasattr(discr_clf, 'initialize'):
+            discr_clf.initialize()
+        
+        # # First make sure the discriminative classifier works on its own
+        # # This will ensure the model is properly initialized
+        # discr_clf.fit(ds_discr)
+        
+        # Now try copying weights from the main model if possible
+        if hasattr(clf, 'model') and hasattr(discr_clf, 'model') and \
+        clf.model is not None and discr_clf.model is not None:
+            try:
+                # Get state dictionaries
+                main_state_dict = clf.model.state_dict()
+                discr_state_dict = discr_clf.model.state_dict()
+                
+                # Copy all matching parameters except the classification head
+                for name, param in main_state_dict.items():
+                    # Skip classification head parameters and mismatched shapes
+                    if 'classifier' not in name and 'head' not in name and \
+                    name in discr_state_dict and \
+                    discr_state_dict[name].shape == param.shape:
+                        discr_state_dict[name].copy_(param)
+                
+                # Load the updated state dict
+                discr_clf.model.load_state_dict(discr_state_dict)
+                
+                # Retrain with the copied weights
+                self.clf_ = discr_clf.fit(ds_discr)
+            except Exception as e:
+                # Fall back to the already trained classifier if weight transfer fails
+                self.clf_ = discr_clf
+                print(f"Weight transfer failed, using standard initialization. Error: {e}")
+        else:
+            self.clf_ = discr_clf
+
+        # Get predictions
+        proba = self.clf_.predict_proba(ds[indices_unlabeled])
+        proba = proba[:, self.LABEL_UNLABELED_POOL]
+
+        # Return instances which most likely belong to the "unlabeled" class
+        return np.argpartition(-proba, q)[:q]
+
+    def __str__(self):
+        return f'PretrainedDiscriminativeActiveLearning(classifier_factory={str(self.classifier_factory)}, ' \
+               f'num_iterations={self.num_iterations}, unlabeled_factor={self.unlabeled_factor})'
 
 # Functions for creating the data ----------------------------------------------------------------
 
@@ -35,47 +191,10 @@ def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0],
                 'name': 'ag_news',
                 'text_name': 'text',
                 'label_name': 'label'
-            },
-        'trec-10':
-            {
-                'name': 'trec',
-                'text_name': 'text',
-                'label_name': 'label-coarse'
             }
     }
 
-    if dataset_name == "trec-10":
-        tf_dataset = tfds.load('trec')
-
-        # Convert to hf dataset
-        df_train = tfds.as_dataframe(tf_dataset['train'])
-        df_test = tfds.as_dataframe(tf_dataset['test'])
-
-        for k in df_train:
-            if k not in [datasets_dict[dataset_name]['label_name'], datasets_dict[dataset_name]['text_name']]:
-                del df_test[k]
-                del df_train[k]
-
-        num_classes = len(set(df_test[datasets_dict[dataset_name]['label_name']]))
-        print(num_classes)
-
-        names = [f"class_{i}" for i in range(num_classes)]
-        print(names)
-
-        class_label = datasets.ClassLabel(num_classes=num_classes, names=names)
-
-        features = datasets.Features({
-            datasets_dict[dataset_name]['text_name']: datasets.Value("string"),
-            datasets_dict[dataset_name]['label_name']: class_label
-            })
-
-        raw_dataset = datasets.DatasetDict({
-            'train': datasets.Dataset.from_pandas(df_train, features=features),
-            'test': datasets.Dataset.from_pandas(df_test, features=features)
-        })
-
-    elif dataset_name == 'ag_news':
-        raw_dataset = datasets.load_dataset(datasets_dict[dataset_name]['name'])
+    raw_dataset = datasets.load_dataset(datasets_dict[dataset_name]['name'])
 
     # Rename text column if necessary
     if datasets_dict[dataset_name]['text_name'] != 'text':
@@ -202,21 +321,26 @@ def set_up_active_learner(transformer_model_name, active_learning_method,
 
     clf_factory = TransformerBasedClassificationFactory(transformer_model,
                                                         num_classes,
-                                                        kwargs=TransformerBasedClassificationFactory_kwargs)
+                                                        classification_kwargs=TransformerBasedClassificationFactory_kwargs,
+                                                        cache_dir='/n/netscratch/economics/Lab/esilcock/nihdal_results/cache')
 
     clf_factory_2 = TransformerBasedClassificationFactory(transformer_model,
                                                         num_classes,
-                                                        kwargs=TransformerBasedClassificationFactory_kwargs)
+                                                        classification_kwargs=TransformerBasedClassificationFactory_kwargs,
+                                                        cache_dir='/n/netscratch/economics/Lab/esilcock/nihdal_results/cache')
 
 
     # Setting the query method
-    if active_learning_method == "DAL":
-        # query_strategy = DiscriminativeActiveLearning_amended(classifier_factory=clf_factory_2, num_iterations=10)
+    if active_learning_method == "DAL1":
+        query_strategy = DiscriminativeActiveLearning(num_iterations=10)
+    if active_learning_method == "DAL2":
+        query_strategy = PretrainedDiscriminativeActiveLearning(num_iterations=10)
+    if active_learning_method == "DAL3":
         query_strategy = DiscriminativeRepresentationLearning(num_iterations=10, selection='greedy')
-    elif active_learning_method == "NIHDAL":
-        query_strategy = NIHDAL(classifier_factory=clf_factory_2, num_iterations=10)
-    elif active_learning_method == "NIHDAL_simon":
-        query_strategy = NIHDAL_2(classifier_factory=clf_factory_2, num_iterations=10)
+    # elif active_learning_method == "NIHDAL":
+    #     query_strategy = NIHDAL(classifier_factory=clf_factory_2, num_iterations=10)
+    # elif active_learning_method == "NIHDAL_simon":
+    #     query_strategy = NIHDAL_2(classifier_factory=clf_factory_2, num_iterations=10)
     elif active_learning_method == "Random":
         query_strategy = small_text.query_strategies.strategies.RandomSampling()
     elif active_learning_method == "Least Confidence":
@@ -284,7 +408,6 @@ def initialize_active_learner(active_learner, y_train, biased_indices = []):
     else:
         indices_initial = random_initialization_balanced(y_train, n_samples=100)
 
-    # active_learner.initialize_data(indices_initial, y_train[indices_initial])
     active_learner.initialize(indices_initial, y_train[indices_initial])
 
     return indices_initial
@@ -381,9 +504,9 @@ if __name__ == '__main__':
     transformer_model_name = 'distilroberta-base'
 
     for ds in ['ag_news']:
-        for biased in [True]:
+        for biased in [False]:
             # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
-            for als in ['Least Confidence']:
+            for als in ['DAL1', 'DAL2', 'DAL3', 'Random']:
 
                 print(f'****************{als}**********************')
 
@@ -416,13 +539,13 @@ if __name__ == '__main__':
 
                     active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als, train_dataset = train)
 
-                    results = active_learning_loop(active_learner, train, test, num_queries=10, bias=bias_indices, selected_descr=selected_descr,
+                    results = active_learning_loop(active_learner, train, test, num_queries=3, bias=bias_indices, selected_descr=selected_descr,
                                                    active_learning_method=als)
 
                     if biased:
-                        with open(f'/n/holyscratch01/economics/esilcock/NIHDAL_results/{ds}_{als}_results_{seed}_biased_new.pkl', 'wb') as f:
+                        with open(f'/n/netscratch/economics/Lab/esilcock/nihdal_results/{ds}_{als}_results_{seed}_biased_new.pkl', 'wb') as f:
                             pickle.dump(results, f)
 
                     else:
-                        with open(f'/n/holyscratch01/economics/esilcock/NIHDAL_results/{ds}_{als}_results_{seed}_unbiased.pkl', 'wb') as f:
+                        with open(f'/n/netscratch/economics/Lab/esilcock/nihdal_results/{ds}_{als}_results_{seed}_unbiased.pkl', 'wb') as f:
                             pickle.dump(results, f)
