@@ -339,6 +339,7 @@ if __name__ == '__main__':
 
     parsed_labelled_data = open_labelled_data([
         'Labelled_data/kw_initialisation/full_corrected.json',
+        'Labelled_data/usa_mentions/usa_sample_1.json'
         ])
 
     texts = []
@@ -406,5 +407,5 @@ if __name__ == '__main__':
             "data": sample_list[i]
         })
 
-    with open(f'data_to_label/usa_sample_1.json', 'w') as f:
+    with open(f'data_to_label/usa_sample_2.json', 'w') as f:
         json.dump(to_label, f, indent=2)
