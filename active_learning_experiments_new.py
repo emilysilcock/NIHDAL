@@ -330,9 +330,9 @@ def set_up_active_learner(transformer_model_name, active_learning_method,
 
     # Setting the query method
     if active_learning_method == "DAL1":
-        query_strategy = DiscriminativeActiveLearning(num_iterations=10)
+        query_strategy = DiscriminativeActiveLearning(clf_factory, num_iterations=10)
     if active_learning_method == "DAL2":
-        query_strategy = PretrainedDiscriminativeActiveLearning(num_iterations=10)
+        query_strategy = PretrainedDiscriminativeActiveLearning(clf_factory, num_iterations=10)
     if active_learning_method == "DAL3":
         query_strategy = DiscriminativeRepresentationLearning(num_iterations=10, selection='greedy')
     # elif active_learning_method == "NIHDAL":
