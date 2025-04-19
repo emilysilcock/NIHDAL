@@ -509,7 +509,7 @@ if __name__ == '__main__':
                 print(f'****************{als}**********************')
 
                 # Set seed
-                for seed in [42]:  # 42, 12731, 65372, 97, 163
+                for seed in [42, 12731]:  # 42, 12731, 65372, 97, 163
 
                     print(f'#################{seed}##################')
                     torch.manual_seed(seed)
@@ -537,7 +537,7 @@ if __name__ == '__main__':
 
                     active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als, train_dataset = train)
 
-                    results = active_learning_loop(active_learner, train, test, num_queries=3, bias=bias_indices, selected_descr=selected_descr,
+                    results = active_learning_loop(active_learner, train, test, num_queries=5, bias=bias_indices, selected_descr=selected_descr,
                                                    active_learning_method=als)
 
                     if biased:
