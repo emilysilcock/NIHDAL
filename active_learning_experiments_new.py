@@ -309,7 +309,8 @@ def set_up_active_learner(transformer_model_name, active_learning_method,
                                                                     'mini_batch_size': 32,
                                                                     'num_epochs': 20,    ########
                                                                     'lr': 5e-5,    #######
-                                                                    'class_weight': 'balanced'
+                                                                    'class_weight': 'balanced',
+                                                                    'cache_dir': '/n/netscratch/economics/Lab/esilcock/nihdal_results/cache'
                                                                     })):
 
     # Set up active learner
@@ -320,13 +321,11 @@ def set_up_active_learner(transformer_model_name, active_learning_method,
 
     clf_factory = TransformerBasedClassificationFactory(transformer_model,
                                                         num_classes,
-                                                        classification_kwargs=TransformerBasedClassificationFactory_kwargs,
-                                                        cache_dir='/n/netscratch/economics/Lab/esilcock/nihdal_results/cache')
+                                                        classification_kwargs=TransformerBasedClassificationFactory_kwargs)
 
     clf_factory_2 = TransformerBasedClassificationFactory(transformer_model,
                                                         num_classes,
-                                                        classification_kwargs=TransformerBasedClassificationFactory_kwargs,
-                                                        cache_dir='/n/netscratch/economics/Lab/esilcock/nihdal_results/cache')
+                                                        classification_kwargs=TransformerBasedClassificationFactory_kwargs)
 
 
     # Setting the query method
