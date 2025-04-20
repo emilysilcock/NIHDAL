@@ -674,7 +674,7 @@ if __name__ == '__main__':
     for ds in ['ag_news']:
         for biased in [True]:
             # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
-            for als in ['DAL2', 'NIHDAL', 'Random']:
+            for als in ['NIHDAL', 'DAL2', 'Random']:
 
                 print(f'****************{als}**********************')
 
