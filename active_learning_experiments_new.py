@@ -22,15 +22,15 @@ from small_text import (
 
 # Imports for amended classes -----------------------------------------
 
-import numpy.typing as npt
+# import numpy.typing as npt
 
-from typing import Union
+# from typing import Union
 
-from scipy.sparse import csr_matrix
-from scipy.special import softmax
+# from scipy.sparse import csr_matrix
+# from scipy.special import softmax
 
-from small_text.classifiers import Classifier
-from small_text.data import Dataset
+# from small_text.classifiers import Classifier
+# from small_text.data import Dataset
 from small_text.query_strategies.strategies import DiscriminativeActiveLearning
 
 from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
@@ -179,6 +179,178 @@ class PretrainedDiscriminativeActiveLearning(QueryStrategy):
         return f'PretrainedDiscriminativeActiveLearning(classifier_factory={str(self.classifier_factory)}, ' \
                f'num_iterations={self.num_iterations}, unlabeled_factor={self.unlabeled_factor})'
 
+
+class NIHDAL(QueryStrategy):
+    """Discriminative Active Learning that runs twice - once for predicted positives and once for predicted negatives.
+    Each run initializes the discriminative transformer classifier with weights from the main transformer model.
+    """
+
+    LABEL_LABELED_POOL = 0
+    LABEL_UNLABELED_POOL = 1
+
+    def __init__(self, classifier_factory, num_iterations=10, unlabeled_factor=10, pbar='tqdm', split_ratio=0.5):
+        self.classifier_factory = classifier_factory
+        self.num_iterations = num_iterations
+        self.unlabeled_factor = unlabeled_factor
+        self.pbar = pbar
+        self.clf_positive_ = None
+        self.clf_negative_ = None
+        self.split_ratio = split_ratio  # Proportion of samples to select from positive predictions
+
+    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
+        self._validate_query_input(indices_unlabeled, n)
+
+        if len(indices_unlabeled) == n:
+            return np.array(indices_unlabeled)
+
+        # Get predictions from the original classifier for the unlabeled data
+        proba = clf.predict_proba(dataset[indices_unlabeled])
+        
+        # Split the unlabeled data into predicted positives and negatives
+        # Class 1 is typically the positive class
+        predicted_positive_mask = np.argmax(proba, axis=1) == 1
+        
+        # Get the indices for predicted positives and negatives
+        indices_predicted_positive = indices_unlabeled[predicted_positive_mask]
+        indices_predicted_negative = indices_unlabeled[~predicted_positive_mask]
+        
+        print(f"Unlabeled split: {len(indices_predicted_positive)} predicted positives, {len(indices_predicted_negative)} predicted negatives")
+        
+        # Calculate how many samples to select from each group
+        n_positive = max(1, int(n * self.split_ratio))
+        n_negative = n - n_positive
+        
+        # Adjust if one of the groups doesn't have enough samples
+        if len(indices_predicted_positive) < n_positive:
+            n_positive = len(indices_predicted_positive)
+            n_negative = n - n_positive
+        elif len(indices_predicted_negative) < n_negative:
+            n_negative = len(indices_predicted_negative)
+            n_positive = n - n_negative
+            
+        print(f"Selecting {n_positive} from positives, {n_negative} from negatives")
+        
+        # Run discriminative active learning on each group
+        query_sizes_positive = DiscriminativeActiveLearning._get_query_sizes(self.num_iterations, n_positive)
+        query_sizes_negative = DiscriminativeActiveLearning._get_query_sizes(self.num_iterations, n_negative)
+        
+        indices_positive = self._discriminative_active_learning(
+            clf, dataset, indices_predicted_positive, indices_labeled, query_sizes_positive, is_positive=True
+        )
+        
+        indices_negative = self._discriminative_active_learning(
+            clf, dataset, indices_predicted_negative, indices_labeled, query_sizes_negative, is_positive=False
+        )
+        
+        # Combine the results
+        indices = np.concatenate([indices_positive, indices_negative])
+        
+        return indices
+
+    def _discriminative_active_learning(self, clf, dataset, indices_unlabeled, indices_labeled, query_sizes, is_positive=True):
+        indices = np.array([], dtype=indices_labeled.dtype)
+        indices_unlabeled_copy = np.copy(indices_unlabeled)
+        indices_labeled_copy = np.copy(indices_labeled)
+
+        with build_pbar_context(len(query_sizes)) as pbar:
+            for q in query_sizes:
+                indices_most_confident = self._train_and_get_most_confident(
+                    clf, dataset, indices_unlabeled_copy, indices_labeled_copy, q, is_positive
+                )
+
+                indices = np.append(indices, indices_unlabeled_copy[indices_most_confident])
+                indices_labeled_copy = np.append(indices_labeled_copy,
+                                              indices_unlabeled_copy[indices_most_confident])
+                indices_unlabeled_copy = np.delete(indices_unlabeled_copy, indices_most_confident)
+                pbar.update(1)
+
+        return indices
+
+    def _train_and_get_most_confident(self, clf, ds, indices_unlabeled, indices_labeled, q, is_positive=True):
+        # Reset the appropriate classifier based on which pool we're working with
+        if is_positive and self.clf_positive_ is not None:
+            del self.clf_positive_
+        elif not is_positive and self.clf_negative_ is not None:
+            del self.clf_negative_
+                
+        # Create a new binary classifier from the factory
+        original_num_classes = self.classifier_factory.num_classes
+        self.classifier_factory.num_classes = 2
+        discr_clf = self.classifier_factory.new()
+        self.classifier_factory.num_classes = original_num_classes
+        
+        # Create the discriminative dataset first
+        num_unlabeled = min(indices_labeled.shape[0] * self.unlabeled_factor,
+                        indices_unlabeled.shape[0])
+
+        indices_unlabeled_sub = np.random.choice(indices_unlabeled,
+                                            num_unlabeled,
+                                            replace=False)
+
+        ds_discr = DiscriminativeActiveLearning.get_relabeled_copy(ds,
+                                                                indices_unlabeled_sub,
+                                                                indices_labeled)
+        
+        # Try to initialize the model if needed
+        if hasattr(discr_clf, 'initialize'):
+            discr_clf.initialize()
+        
+        # Try copying weights from the main model if possible
+        if hasattr(clf, 'model') and hasattr(discr_clf, 'model') and \
+        clf.model is not None and discr_clf.model is not None:
+            try:
+                # Get state dictionaries
+                main_state_dict = clf.model.state_dict()
+                discr_state_dict = discr_clf.model.state_dict()
+                
+                # Copy all matching parameters except the classification head
+                for name, param in main_state_dict.items():
+                    # Skip classification head parameters and mismatched shapes
+                    if 'classifier' not in name and 'head' not in name and \
+                    name in discr_state_dict and \
+                    discr_state_dict[name].shape == param.shape:
+                        discr_state_dict[name].copy_(param)
+                
+                # Load the updated state dict
+                discr_clf.model.load_state_dict(discr_state_dict)
+                
+                # Retrain with the copied weights
+                trained_clf = discr_clf.fit(ds_discr)
+                
+                # Store the classifier in the appropriate attribute
+                if is_positive:
+                    self.clf_positive_ = trained_clf
+                else:
+                    self.clf_negative_ = trained_clf
+                    
+            except Exception as e:
+                # Fall back to the already trained classifier if weight transfer fails
+                if is_positive:
+                    self.clf_positive_ = discr_clf
+                else:
+                    self.clf_negative_ = discr_clf
+                print(f"Weight transfer failed, using standard initialization. Error: {e}")
+        else:
+            if is_positive:
+                self.clf_positive_ = discr_clf
+            else:
+                self.clf_negative_ = discr_clf
+
+        # Use the appropriate classifier for predictions
+        current_clf = self.clf_positive_ if is_positive else self.clf_negative_
+        
+        # Get predictions
+        proba = current_clf.predict_proba(ds[indices_unlabeled])
+        proba = proba[:, self.LABEL_UNLABELED_POOL]
+
+        # Return instances which most likely belong to the "unlabeled" class
+        return np.argpartition(-proba, q)[:q]
+
+    def __str__(self):
+        return f'NIHDAL(classifier_factory={str(self.classifier_factory)}, ' \
+               f'num_iterations={self.num_iterations}, unlabeled_factor={self.unlabeled_factor}, ' \
+               f'split_ratio={self.split_ratio})'
+
 # Functions for creating the data ----------------------------------------------------------------
 
 def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0], biased_labels=[]):
@@ -323,10 +495,6 @@ def set_up_active_learner(transformer_model_name, active_learning_method,
                                                         num_classes,
                                                         classification_kwargs=TransformerBasedClassificationFactory_kwargs)
 
-    clf_factory_2 = TransformerBasedClassificationFactory(transformer_model,
-                                                        num_classes,
-                                                        classification_kwargs=TransformerBasedClassificationFactory_kwargs)
-
 
     # Setting the query method
     if active_learning_method == "DAL1":
@@ -335,8 +503,10 @@ def set_up_active_learner(transformer_model_name, active_learning_method,
         query_strategy = PretrainedDiscriminativeActiveLearning(clf_factory, num_iterations=10)
     elif active_learning_method == "DAL3":
         query_strategy = DiscriminativeRepresentationLearning(num_iterations=10, selection='greedy')
-    # elif active_learning_method == "NIHDAL":
-    #     query_strategy = NIHDAL(classifier_factory=clf_factory_2, num_iterations=10)
+    elif active_learning_method == "NIHDAL":
+        query_strategy = NIHDAL(clf_factory, num_iterations=10)
+    elif active_learning_method == "NIHDAL":
+        query_strategy = NIHDAL(classifier_factory=clf_factory, num_iterations=10)
     # elif active_learning_method == "NIHDAL_simon":
     #     query_strategy = NIHDAL_2(classifier_factory=clf_factory_2, num_iterations=10)
     elif active_learning_method == "Random":
@@ -502,14 +672,15 @@ if __name__ == '__main__':
     transformer_model_name = 'distilroberta-base'
 
     for ds in ['ag_news']:
-        for biased in [False]:
+        for biased in [True]:
             # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
-            for als in ['DAL1', 'DAL2', 'DAL3', 'Random']:
+            for als in ['DAL2', 'NIHDAL', 'Random']:
 
                 print(f'****************{als}**********************')
 
                 # Set seed
-                for seed in [42, 12731]:  # 42, 12731, 65372, 97, 163
+                for seed in [42]:  # 42, 12731, 65372, 97, 163
+                # for seed in [42, 12731]:  # 42, 12731, 65372, 97, 163
 
                     print(f'#################{seed}##################')
                     torch.manual_seed(seed)
@@ -537,7 +708,7 @@ if __name__ == '__main__':
 
                     active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als, train_dataset = train)
 
-                    results = active_learning_loop(active_learner, train, test, num_queries=5, bias=bias_indices, selected_descr=selected_descr,
+                    results = active_learning_loop(active_learner, train, test, num_queries=3, bias=bias_indices, selected_descr=selected_descr,
                                                    active_learning_method=als)
 
                     if biased:
