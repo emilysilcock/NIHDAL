@@ -22,44 +22,12 @@ from small_text import (
 
 # Imports for amended classes -----------------------------------------
 
-# import numpy.typing as npt
-
-# from typing import Union
-
-# from scipy.sparse import csr_matrix
-# from scipy.special import softmax
-
-# from small_text.classifiers import Classifier
-# from small_text.data import Dataset
 from small_text.query_strategies.strategies import DiscriminativeActiveLearning
 
-from small_text.integrations.pytorch.exceptions import PytorchNotFoundError
-from small_text.query_strategies import (
-    constraints,
-    QueryStrategy,
-    EmbeddingBasedQueryStrategy)
-from small_text.utils.clustering import init_kmeans_plusplus_safe
+from small_text.query_strategies import QueryStrategy
 from small_text.utils.context import build_pbar_context
-from small_text.utils.data import list_length
 
-try:
-    import torch
-    import torch.nn.functional as F  # noqa: N812
-
-    from torch.amp import GradScaler  # pyright: ignore
-    from torch.nn import BCEWithLogitsLoss
-    from torch.nn.utils import clip_grad_norm_  # pyright: ignore
-
-    from torch.optim import Adam
-
-    from small_text.integrations.pytorch.classifiers.base import AMPArguments
-    from small_text.integrations.pytorch.models.mlp import MLP
-
-    from small_text.integrations.pytorch.utils.misc import _assert_layer_exists
-    from small_text.integrations.pytorch.utils.data import dataloader
-    from small_text.integrations.pytorch.utils.contextmanager import inference_mode
-except ImportError:
-    raise PytorchNotFoundError('Could not import pytorch')
+import torch
 
 
 # Own query method classes ------------------------------------------------------------------------
