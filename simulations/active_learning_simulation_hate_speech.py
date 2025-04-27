@@ -752,7 +752,8 @@ if __name__ == '__main__':
 
     transformer_model_name = 'distilroberta-base'
     output_dir = '/n/netscratch/economics/Lab/esilcock/nihdal_results/hate_speech_sim0427'
-    
+    num_queries = 10
+
     # Create output directory if it doesn't exist
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -806,7 +807,7 @@ if __name__ == '__main__':
             
             # Run active learning queries
             indices_labeled = indices_initial.copy()
-            for i in range(10):  # num_queries = 10
+            for i in range(num_queries):  
                 # Query samples to label
                 indices_queried = active_learner.query(num_samples=100)
                 
