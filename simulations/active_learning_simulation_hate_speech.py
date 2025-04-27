@@ -1,5 +1,6 @@
 import logging
 import pickle
+import os
 
 import random
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
@@ -644,10 +645,10 @@ def evaluate(active_learner, train, test, train_df=None, test_df=None):
 
     return r
 
-def active_learning_loop(active_learner, train, test, train_df, test_df, num_queries, selected_descr=None):
+def active_learning_loop(active_learner, train, test, train_df, test_df, num_queries, selected_descr=None, strategy='random'):
 
     # Initialize with first sample
-    indices_labeled = initialize_active_learner(active_learner, train, train_df)
+    indices_labeled = initialize_active_learner(active_learner, train, train_df, strategy=strategy)
 
     results = []
     results.append(evaluate(active_learner, train[indices_labeled], test, train_df.iloc[indices_labeled], test_df))
@@ -704,10 +705,15 @@ if __name__ == '__main__':
     datasets.logging.get_verbosity = lambda: logging.NOTSET
 
     transformer_model_name = 'distilroberta-base'
-    output_dir = '/n/netscratch/economics/Lab/esilcock/nihdal_results'
+    output_dir = '/n/netscratch/economics/Lab/esilcock/nihdal_results/hate_speech_sim0427'
+    
+    # Create output directory if it doesn't exist
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+        print(f"Created output directory: {output_dir}")
     
     # Active learning loop ------------------------------------------------------------
-    for als in ['NIHDAL', 'DAL2', 'Random']:
+    for als in ['NIHDAL', 'DAL2', 'Core Set', 'Least Confidence', 'Random']:
 
         print(f'****************{als}**********************')
 
@@ -729,7 +735,7 @@ if __name__ == '__main__':
 
             active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als, train_dataset = train)
 
-            results = active_learning_loop(active_learner, train, test, train_df, test_df, num_queries=3, selected_descr=selected_descr)
+            results = active_learning_loop(active_learner, train, test, train_df, test_df, num_queries=10, selected_descr=selected_descr, strategy='random')
 
             with open(f'{output_dir}/hate_speech_{als}_results_{seed}_unbiased.pkl', 'wb') as f:
                 pickle.dump(results, f)
