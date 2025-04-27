@@ -255,7 +255,7 @@ class NIHDAL(QueryStrategy):
 # Functions for creating the data ------------------------------------------------------------
 
 def load_and_format_dataset(train_test_split_ratio = 0.2, transformer_model_name = 'distilroberta-base', random_state=42):
-        # Load data
+    # Load data
     dataset = datasets.load_dataset('ucberkeley-dlab/measuring-hate-speech', 'default')   
     dat = dataset['train'].to_pandas()
 
@@ -309,6 +309,12 @@ def load_and_format_dataset(train_test_split_ratio = 0.2, transformer_model_name
 
     # Count how many religions are targeted
     dat['target_religions_count'] = (dat[strict_cols].sum(axis=1)).astype(int)
+    
+    # Remove inconsistent rows where label is 1 but no specific religions are marked
+    inconsistent_rows = (dat['label'] == 1) & (dat['target_religions_count'] == 0)
+    if sum(inconsistent_rows) > 0:
+        print(f"Removing {sum(inconsistent_rows)} rows where label=1 but no specific religions are targeted")
+        dat = dat[~inconsistent_rows].reset_index(drop=True)
 
     # Get counts for each religion to determine which are smallest
     religion_counts = {}
@@ -335,14 +341,52 @@ def load_and_format_dataset(train_test_split_ratio = 0.2, transformer_model_name
                 dat.loc[_, 'strat_col'] = religion
                 break
 
-    # Split the data (80% train, 20% test)
-    train_indices, test_indices = train_test_split(
-        np.arange(len(dat)),
-        test_size=train_test_split_ratio,
-        random_state=random_state,
-        stratify=dat['strat_col']
-    )
-
+    # Split the data (80% train, 20% test) with stratification by subclass
+    # Create separate train/test splits for each strat_col value
+    all_strat_values = dat['strat_col'].unique()
+    train_indices = []
+    test_indices = []
+    
+    # Print the distribution before split
+    print("\nSubclass distribution before split:")
+    for strat_val in all_strat_values:
+        subset_size = sum(dat['strat_col'] == strat_val)
+        subset_pct = subset_size / len(dat) * 100
+        print(f"{strat_val}: {subset_size} samples ({subset_pct:.2f}%)")
+    
+    # Split each stratum separately to maintain distribution
+    for strat_val in all_strat_values:
+        # Get indices for this stratum
+        stratum_indices = np.where(dat['strat_col'] == strat_val)[0]
+            
+        # Split this stratum
+        stratum_train, stratum_test = train_test_split(
+            stratum_indices,
+            test_size=train_test_split_ratio,
+            random_state=random_state
+        )
+        
+        train_indices.extend(stratum_train)
+        test_indices.extend(stratum_test)
+    
+    # Convert to numpy arrays
+    train_indices = np.array(train_indices)
+    test_indices = np.array(test_indices)
+    
+    # Print the distribution after split
+    print("\nSubclass distribution after split:")
+    print("Train set:")
+    for strat_val in all_strat_values:
+        train_count = sum(dat.iloc[train_indices]['strat_col'] == strat_val)
+        train_pct = train_count / len(train_indices) * 100
+        print(f"{strat_val}: {train_count} samples ({train_pct:.2f}%)")
+    
+    print("\nTest set:")
+    for strat_val in all_strat_values:
+        test_count = sum(dat.iloc[test_indices]['strat_col'] == strat_val)
+        test_pct = test_count / len(test_indices) * 100
+        print(f"{strat_val}: {test_count} samples ({test_pct:.2f}%)")
+    
     # Create train and test dataframes
     train_df = dat.iloc[train_indices].reset_index(drop=True)
     test_df = dat.iloc[test_indices].reset_index(drop=True)
@@ -382,13 +426,13 @@ def set_up_active_learner(transformer_model_name, active_learning_method,
     # Set up active learner
     num_classes = 2
 
+    # Set up transformer model
     transformer_model = TransformerModelArguments(transformer_model_name)
 
-
+    # Set up classifier factory
     clf_factory = TransformerBasedClassificationFactory(transformer_model,
                                                         num_classes,
                                                         classification_kwargs=TransformerBasedClassificationFactory_kwargs)
-
 
     # Setting the query method
     if active_learning_method == "DAL1":
@@ -553,33 +597,6 @@ def random_initialization_custom(dataset, dataset_df, n_samples=100, strategy='r
         raise ValueError(f"Unknown strategy: {strategy}. "
                          f"Use one of: 'random', 'stratified', 'biased'.")
 
-def initialize_active_learner(active_learner, dataset, dataset_df, strategy='random'):
-    """Initialize the active learner with initial data points.
-    
-    Parameters
-    ----------
-    active_learner : PoolBasedActiveLearner
-        The active learning model to initialize
-    dataset : TransformersDataset
-        The dataset containing features and labels
-    dataset_df : pd.DataFrame
-        The dataframe with additional information for stratification
-    strategy : str
-        Initialization strategy ('random', 'stratified', or 'biased')
-    
-    Returns
-    -------
-    indices_initial : np.ndarray
-        The indices of the initial samples
-    """
-    # Simulate an initial labeling to warm-start the active learning process
-    indices_initial = random_initialization_custom(dataset=dataset, dataset_df=dataset_df, 
-                                                 n_samples=100, strategy=strategy)
-
-    active_learner.initialize(indices_initial, dataset.y[indices_initial])
-
-    return indices_initial
-
 def evaluate(active_learner, train, test, train_df=None, test_df=None):
 
     y_pred = active_learner.classifier.predict(train)
@@ -645,6 +662,8 @@ def evaluate(active_learner, train, test, train_df=None, test_df=None):
 
     return r
 
+# Old functions ------------------------------------------------------------
+
 def active_learning_loop(active_learner, train, test, train_df, test_df, num_queries, selected_descr=None, strategy='random'):
 
     # Initialize with first sample
@@ -697,6 +716,33 @@ def active_learning_loop(active_learner, train, test, train_df, test_df, num_que
 
     return results
 
+def initialize_active_learner(active_learner, dataset, dataset_df, strategy='random'):
+    """Initialize the active learner with initial data points.
+    
+    Parameters
+    ----------
+    active_learner : PoolBasedActiveLearner
+        The active learning model to initialize
+    dataset : TransformersDataset
+        The dataset containing features and labels
+    dataset_df : pd.DataFrame
+        The dataframe with additional information for stratification
+    strategy : str
+        Initialization strategy ('random', 'stratified', or 'biased')
+    
+    Returns
+    -------
+    indices_initial : np.ndarray
+        The indices of the initial samples
+    """
+    # Simulate an initial labeling to warm-start the active learning process
+    indices_initial = random_initialization_custom(dataset=dataset, dataset_df=dataset_df, 
+                                                 n_samples=100, strategy=strategy)
+
+    active_learner.initialize(indices_initial, dataset.y[indices_initial])
+
+    return indices_initial
+
 # Main body -----------------------------------------------------------
 
 if __name__ == '__main__':
@@ -712,31 +758,94 @@ if __name__ == '__main__':
         os.makedirs(output_dir)
         print(f"Created output directory: {output_dir}")
     
-    # Active learning loop ------------------------------------------------------------
-    for als in ['NIHDAL', 'DAL2', 'Core Set', 'Least Confidence', 'Random']:
+    # Process each seed once
+    for seed in [42]:  # 42, 12731, 65372, 97, 163
+        print(f'#################{seed}##################')
+        
+        # Set seeds for everything
+        torch.manual_seed(seed)
+        np.random.seed(seed)
+        random.seed(seed)
+        
+        # Load dataset once for this seed
+        train, test, train_df, test_df = load_and_format_dataset(
+            train_test_split_ratio = 0.2,
+            transformer_model_name = transformer_model_name,
+            random_state=seed
+        )
+        
+        # Generate initial indices once for this seed
+        indices_initial = random_initialization_custom(
+            dataset=train, 
+            dataset_df=train_df, 
+            n_samples=100, 
+            strategy='random'
+        )
+        
+        # Now run different active learning methods with the same initial data
+        for als in ['NIHDAL', 'DAL2', 'Core Set', 'Least Confidence', 'Random']:
+            print(f'****************{als}**********************')
 
-        print(f'****************{als}**********************')
-
-        # Set seed
-        for seed in [42]:  # 42, 12731, 65372, 97, 163
-
-            print(f'#################{seed}##################')
+            # Reset seeds to ensure all random operations are consistent
             torch.manual_seed(seed)
             np.random.seed(seed)
             random.seed(seed)
 
             selected_descr = None
-
-            train, test, train_df, test_df = load_and_format_dataset(
-                train_test_split_ratio = 0.2,
-                transformer_model_name = transformer_model_name,
-                random_state=seed
-            )
-
-            active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als, train_dataset = train)
-
-            results = active_learning_loop(active_learner, train, test, train_df, test_df, num_queries=10, selected_descr=selected_descr, strategy='random')
-
+            
+            # Set up the active learner for this method
+            active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als, train_dataset=train)
+            
+            # Directly initialize with the pre-generated indices instead of calling initialize_active_learner
+            active_learner.initialize(indices_initial, train.y[indices_initial])
+            
+            # Modified active learning loop that skips initialization
+            results = []
+            # Add initial evaluation
+            results.append(evaluate(active_learner, train[indices_initial], test, train_df.iloc[indices_initial], test_df))
+            
+            # Run active learning queries
+            indices_labeled = indices_initial.copy()
+            for i in range(10):  # num_queries = 10
+                # Query samples to label
+                indices_queried = active_learner.query(num_samples=100)
+                
+                # Simulate labelling
+                y = train.y[indices_queried]
+                
+                # Return the labels for the current query to the active learner
+                active_learner.update(y)
+                
+                indices_labeled = np.concatenate([indices_queried, indices_labeled])
+                
+                print('---------------')
+                print(f'Iteration #{i} ({len(indices_labeled)} samples)')
+                res = evaluate(active_learner, train[indices_labeled], test, train_df.iloc[indices_labeled], test_df)
+                
+                # Track the counts of each type of sample selected
+                if selected_descr is None:
+                    selected_descr = {}
+                    
+                selected_descr['all'] = {
+                    'selected': len(indices_queried),
+                    'target': int(sum(y)),
+                }
+                
+                # Track selection by subgroup
+                religion_cols = [col for col in train_df.columns if col.startswith('target_religion_') and col.endswith('_strict')]
+                for col in religion_cols:
+                    religion = col.replace('target_religion_', '').replace('_strict', '')
+                    subgroup_indices = train_df.iloc[indices_queried][col].values.astype(bool)
+                    selected_descr[religion] = {
+                        'selected': int(sum(subgroup_indices)),
+                        'target': int(sum(y[subgroup_indices])) if sum(subgroup_indices) > 0 else 0
+                    }
+                
+                res['counts'] = selected_descr
+                print(selected_descr)
+                results.append(res)
+            
+            # Save results for this method
             with open(f'{output_dir}/hate_speech_{als}_results_{seed}_unbiased.pkl', 'wb') as f:
                 pickle.dump(results, f)
 
