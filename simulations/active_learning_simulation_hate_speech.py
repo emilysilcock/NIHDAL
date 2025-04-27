@@ -3,6 +3,7 @@ import pickle
 
 import random
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+from sklearn.model_selection import train_test_split
 import datasets
 import numpy as np
 import torch
@@ -17,7 +18,6 @@ from small_text import (
     TransformerModelArguments,
     DiscriminativeActiveLearning,
     DiscriminativeRepresentationLearning,
-    random_initialization_balanced
 )
 
 # Imports for amended classes -----------------------------------------
@@ -26,8 +26,6 @@ from small_text.query_strategies.strategies import DiscriminativeActiveLearning
 
 from small_text.query_strategies import QueryStrategy
 from small_text.utils.context import build_pbar_context
-
-import torch
 
 
 # Own query method classes ------------------------------------------------------------------------
@@ -253,129 +251,122 @@ class NIHDAL(QueryStrategy):
                f'num_iterations={self.num_iterations}, unlabeled_factor={self.unlabeled_factor}, ' \
                f'split_ratio={self.split_ratio})'
 
-# Functions for creating the data ----------------------------------------------------------------
+# Functions for creating the data ------------------------------------------------------------
 
-def load_and_format_dataset(dataset_name, tokenization_model, target_labels=[0], biased_labels=[]):
+def load_and_format_dataset(train_test_split_ratio = 0.2, transformer_model_name = 'distilroberta-base', random_state=42):
+        # Load data
+    dataset = datasets.load_dataset('ucberkeley-dlab/measuring-hate-speech', 'default')   
+    dat = dataset['train'].to_pandas()
 
-    # Load data
-    datasets_dict = {
-        'ag_news':
-            {
-                'name': 'ag_news',
-                'text_name': 'text',
-                'label_name': 'label'
-            }
-    }
+    # Group by comment_id and text, and calculate aggregates
+    dat = dat.groupby(['comment_id', 'text']).agg({
+        'annotator_id': 'count',  # Count of records
+        'hatespeech': 'mean',
+        'hate_speech_score': 'mean',
+        'target_religion': 'mean',
+        'target_religion_atheist': 'mean',
+        'target_religion_buddhist': 'mean',
+        'target_religion_christian': 'mean',
+        'target_religion_hindu': 'mean',
+        'target_religion_jewish': 'mean',
+        'target_religion_mormon': 'mean',
+        'target_religion_muslim': 'mean',
+        'target_religion_other': 'mean'
+    }).reset_index()
 
-    raw_dataset = datasets.load_dataset(datasets_dict[dataset_name]['name'])
+    # Flatten the column names
+    dat.columns = ['comment_id', 'text', 'n', 
+                  'hatespeech', 'hate_speech_score',
+                  'target_religion', 'target_religion_atheist', 'target_religion_buddhist',
+                  'target_religion_christian', 'target_religion_hindu', 'target_religion_jewish',
+                  'target_religion_mormon', 'target_religion_muslim', 'target_religion_other']
 
-    # Rename text column if necessary
-    if datasets_dict[dataset_name]['text_name'] != 'text':
-        raw_dataset = raw_dataset.rename_column(datasets_dict[dataset_name]['text_name'], 'text')
+    # Create the label column
+    dat['label'] = ((dat['hate_speech_score'] > 1) & (dat['target_religion'] == 1)).astype(int)
 
-    # Rename label column if necessary
-    if datasets_dict[dataset_name]['label_name'] != 'label':
-        raw_dataset = raw_dataset.rename_column(datasets_dict[dataset_name]['label_name'], 'label')
+    # Create the strict label columns
+    dat['target_religion_atheist_strict'] = (dat['target_religion_atheist'] == 1) & (dat['hate_speech_score'] > 1)
+    dat['target_religion_buddhist_strict'] = (dat['target_religion_buddhist'] == 1) & (dat['hate_speech_score'] > 1)
+    dat['target_religion_christian_strict'] = (dat['target_religion_christian'] == 1) & (dat['hate_speech_score'] > 1)
+    dat['target_religion_hindu_strict'] = (dat['target_religion_hindu'] == 1) & (dat['hate_speech_score'] > 1)
+    dat['target_religion_jewish_strict'] = (dat['target_religion_jewish'] == 1) & (dat['hate_speech_score'] > 1)
+    dat['target_religion_mormon_strict'] = (dat['target_religion_mormon'] == 1) & (dat['hate_speech_score'] > 1)
+    dat['target_religion_muslim_strict'] = (dat['target_religion_muslim'] == 1) & (dat['hate_speech_score'] > 1)
+    dat['target_religion_other_strict'] = (dat['target_religion_other'] == 1) & (dat['hate_speech_score'] > 1)
 
-    # Keep track of unlabelled class
-    if biased_labels:
-        unsampled_train_indices = [i for i, lab in enumerate(raw_dataset['train']['label']) if lab in biased_labels]
+    # Get list of all strict target columns
+    strict_cols = [c for c in dat.columns if c.endswith('_strict')]
 
-    # Reduce to two classes
-    raw_dataset['train'] = make_binary(raw_dataset['train'], target_labels)
-    raw_dataset['test'] = make_binary(raw_dataset['test'], target_labels)
+    # First create a column with all targeted religions
+    dat['target_religions_list'] = ''
+    for col in strict_cols:
+        religion = col.replace('target_religion_', '').replace('_strict', '')
+        dat.loc[dat[col] == True, 'target_religions_list'] = dat.loc[dat[col] == True, 'target_religions_list'] + religion + ','
 
-    # Make target class 1% of the data
-    if biased_labels:
-        raw_dataset['train'], bias_indices = make_imbalanced(raw_dataset['train'], indices_to_track=unsampled_train_indices)
-    else:
-        raw_dataset['train'] = make_imbalanced(raw_dataset['train'])
+    # Remove trailing comma
+    dat['target_religions_list'] = dat['target_religions_list'].str.rstrip(',')
 
-    raw_dataset['test'] = make_imbalanced(raw_dataset['test'])
+    # Count how many religions are targeted
+    dat['target_religions_count'] = (dat[strict_cols].sum(axis=1)).astype(int)
 
+    # Get counts for each religion to determine which are smallest
+    religion_counts = {}
+    for col in strict_cols:
+        religion = col.replace('target_religion_', '').replace('_strict', '')
+        religion_counts[religion] = dat[col].sum()
+
+    # Sort religions by count (smallest first)
+    religions_by_size = sorted(religion_counts.keys(), key=lambda r: religion_counts[r])
+
+    # Initialize strat_col as 'none'
+    dat['strat_col'] = 'none'
+
+    # For each row, find the smallest targeted religion
+    for _, row in dat.iterrows():
+        # Skip if no religion is targeted
+        if row['target_religions_count'] == 0:
+            continue
+        
+        # Find the smallest targeted religion for this row
+        for religion in religions_by_size:
+            col = f'target_religion_{religion}_strict'
+            if row[col]:
+                dat.loc[_, 'strat_col'] = religion
+                break
+
+    # Split the data (80% train, 20% test)
+    train_indices, test_indices = train_test_split(
+        np.arange(len(dat)),
+        test_size=train_test_split_ratio,
+        random_state=random_state,
+        stratify=dat['strat_col']
+    )
+
+    # Create train and test dataframes
+    train_df = dat.iloc[train_indices].reset_index(drop=True)
+    test_df = dat.iloc[test_indices].reset_index(drop=True)
+    
     # Tokenize data
-    tokenizer = AutoTokenizer.from_pretrained(tokenization_model)
+    tokenizer = AutoTokenizer.from_pretrained(transformer_model_name)
 
-    num_classes = raw_dataset['train'].features['label'].num_classes
-    lab_array = np.arange(num_classes)
+    # Create TransformersDataset for train and test
+    train_dataset = TransformersDataset.from_arrays(
+        train_df['text'],
+        train_df['label'],
+        tokenizer,
+        max_length=100,
+        target_labels=np.array([0, 1])
+    )
 
-    train_dat = TransformersDataset.from_arrays(raw_dataset['train']['text'],
-                                            raw_dataset['train']['label'],
-                                            tokenizer,
-                                            max_length=100,
-                                            target_labels=lab_array)
-    test_dat = TransformersDataset.from_arrays(raw_dataset['test']['text'],
-                                          raw_dataset['test']['label'],
-                                          tokenizer,
-                                          max_length=100,
-                                          target_labels=lab_array)
+    test_dataset = TransformersDataset.from_arrays(
+        test_df['text'],
+        test_df['label'],
+        tokenizer,
+        max_length=100,
+        target_labels=np.array([0, 1])
+    )
 
-    if biased_labels:
-        return train_dat, test_dat, bias_indices
-
-    else:
-        return train_dat, test_dat
-
-def make_binary(dataset, target_labels):
-
-    # target_labels contains the original label values that are to become target labels,
-    # all the others are then 0
-
-    # Create mapping
-    num_classes = dataset.features['label'].num_classes
-
-    class_mapping = {lab: 0 for lab in range(num_classes)}
-
-    for tl in target_labels:
-        class_mapping[tl] = 1
-
-    # Apply the mapping to change the labels
-    binary_dataset = dataset.map(lambda example: {'label': class_mapping[example['label']]})
-
-    # Update metadata
-    new_features = datasets.Features({
-        'text': binary_dataset.features['text'],
-        'label': datasets.ClassLabel(names = ['merged', 'target'], num_classes=2)
-        })
-    binary_dataset = binary_dataset.cast(new_features)
-
-    return binary_dataset
-
-def make_imbalanced(dataset, indices_to_track=None):
-
-    # Split dataset
-    other_samples = dataset.filter(lambda example: example['label'] == 0)
-    target_samples = dataset.filter(lambda example: example['label'] == 1)
-
-    # Calculate the number of target samples to keep (1% of imbalanced dataset)
-    other_samples_count = len(other_samples)
-    imbalanced_total = other_samples_count/0.99
-    target_count = int(imbalanced_total * 0.01)
-    print(f'There are {target_count} target examples left in the dataset')
-
-    # Filter target samples to target number
-    target_samples = target_samples.shuffle()
-    target_samples_to_keep = target_samples.select(range(target_count))
-
-    # Concat back together
-    imbalanced_dataset = datasets.concatenate_datasets([target_samples_to_keep, other_samples])
-
-    if indices_to_track:
-
-        target_list = [i for i in target_samples_to_keep]
-
-        tracked_indices = []
-        for idx in indices_to_track:
-            point = dataset[idx]
-            if point in target_list:
-                tracked_indices.append(target_list.index(dataset[idx]))
-
-        return imbalanced_dataset, tracked_indices
-
-    else:
-        return imbalanced_dataset
-
-# Functions for active learning ---------------------------------------------------------------
+    return train_dataset, test_dataset, train_df, test_df
 
 def set_up_active_learner(transformer_model_name, active_learning_method,
                           train_dataset,
@@ -436,49 +427,159 @@ def set_up_active_learner(transformer_model_name, active_learning_method,
 
     return a_learner
 
-def random_initialization_biased(y, n_samples=10, non_sample=None):
-    """Randomly draws half class 1, in a biased way, and half class 0.
+def random_initialization_custom(dataset, dataset_df, n_samples=100, strategy='random', non_sample=None):
+    """Randomly initializes data points based on different strategies.
 
     Parameters
     ----------
-    y : np.ndarray[int] or csr_matrix
-        Labels to be used for stratification.
-    n_samples :  int
+    dataset : TransformersDataset
+        The dataset containing the features and labels for model training.
+    dataset_df : pd.DataFrame
+        The dataframe containing additional information for stratification.
+    n_samples : int
         Number of samples to draw.
-    non_sample :
-        target indices from which not to sample for initialization
+    strategy : str
+        One of 'random', 'stratified', or 'biased'.
+        - 'random': 50% negative, 50% positive examples
+        - 'stratified': 50% negative, 50% positive, but stratified by strat_col
+        - 'biased': 50% negative, 50% positive, but positives only from 'muslim' strat_col
+    non_sample : list or np.ndarray
+        Indices to exclude from sampling.
 
     Returns
     -------
-    indices : np.ndarray[int]
-        Indices relative to y.
+    indices : np.ndarray
+        Indices of the selected samples.
     """
-
+    # Get labels as a numpy array
+    y = dataset.y
+    
     expected_samples_per_class = np.floor(n_samples/2).astype(int)
-
-    # Targets labels - don't sample from non_sample
-    all_indices = [i for i, lab in enumerate(y) if lab == 1 and i not in non_sample]
-    target_sample = random.sample(all_indices, expected_samples_per_class)
-
-    # Non-target labels
-    all_indices = [i for i, lab in enumerate(y) if lab == 0]
-    other_sample = random.sample(all_indices, expected_samples_per_class)
-
-    return np.array(target_sample + other_sample)
-
-def initialize_active_learner(active_learner, y_train, biased_indices = []):
-
-    # simulates an initial labeling to warm-start the active learning process
-    if biased_indices:
-        indices_initial = random_initialization_biased(y_train, n_samples=100, non_sample=biased_indices)
+    
+    if non_sample is None:
+        non_sample = []
+    
+    if strategy == 'random':
+        # Basic random sampling: 50% positive, 50% negative
+        pos_indices = [i for i, lab in enumerate(y) if lab == 1 and i not in non_sample]
+        neg_indices = [i for i, lab in enumerate(y) if lab == 0 and i not in non_sample]
+        
+        # Handle case where we don't have enough samples
+        pos_samples = min(expected_samples_per_class, len(pos_indices))
+        neg_samples = min(expected_samples_per_class, len(neg_indices))
+        
+        # Randomly sample
+        pos_sample = random.sample(pos_indices, pos_samples)
+        neg_sample = random.sample(neg_indices, neg_samples)
+        
+        return np.array(pos_sample + neg_sample)
+    
+    elif strategy == 'stratified':
+        # Stratified sampling: 50% positive, 50% negative, maintaining strat_col distribution
+        pos_indices = [i for i, lab in enumerate(y) if lab == 1 and i not in non_sample]
+        neg_indices = [i for i, lab in enumerate(y) if lab == 0 and i not in non_sample]
+        
+        # Group positive indices by strat_col
+        strat_groups = {}
+        for i in pos_indices:
+            strat_val = dataset_df.iloc[i]['strat_col']
+            if strat_val not in strat_groups:
+                strat_groups[strat_val] = []
+            strat_groups[strat_val].append(i)
+        
+        # Calculate samples per strat_group proportionally
+        total_pos = len(pos_indices)
+        pos_sample = []
+        
+        for strat_val, indices in strat_groups.items():
+            # Skip 'none' category if there are other categories
+            if strat_val == 'none' and len(strat_groups) > 1:
+                continue
+                
+            group_size = len(indices)
+            group_samples = int(np.ceil((group_size / total_pos) * expected_samples_per_class))
+            group_samples = min(group_samples, group_size)  # Don't sample more than available
+            
+            pos_sample.extend(random.sample(indices, group_samples))
+        
+        # If we sampled too many, subsample randomly
+        if len(pos_sample) > expected_samples_per_class:
+            pos_sample = random.sample(pos_sample, expected_samples_per_class)
+        
+        # Sample negatives
+        neg_samples = min(expected_samples_per_class, len(neg_indices))
+        neg_sample = random.sample(neg_indices, neg_samples)
+        
+        return np.array(pos_sample + neg_sample)
+    
+    elif strategy == 'biased':
+        # Biased sampling: 50% negative, 50% positive but positives only from 'muslim' strat_col
+        neg_indices = [i for i, lab in enumerate(y) if lab == 0 and i not in non_sample]
+        
+        # Get positive indices only from muslim strat_col
+        muslim_pos_indices = [i for i, lab in enumerate(y) 
+                             if lab == 1 and i not in non_sample 
+                             and dataset_df.iloc[i]['strat_col'] == 'muslim']
+        
+        # If not enough muslim samples, fallback to random positives
+        if len(muslim_pos_indices) < expected_samples_per_class:
+            print(f"Warning: Not enough 'muslim' samples ({len(muslim_pos_indices)}). "
+                  f"Adding other positive samples to reach {expected_samples_per_class}.")
+            other_pos_indices = [i for i, lab in enumerate(y) 
+                                if lab == 1 and i not in non_sample 
+                                and dataset_df.iloc[i]['strat_col'] != 'muslim']
+            
+            # Sample all muslims
+            pos_sample = muslim_pos_indices.copy()
+            
+            # Add other positives if needed
+            remaining = expected_samples_per_class - len(pos_sample)
+            if remaining > 0 and other_pos_indices:
+                additional = random.sample(other_pos_indices, 
+                                         min(remaining, len(other_pos_indices)))
+                pos_sample.extend(additional)
+        else:
+            # We have enough muslim samples
+            pos_sample = random.sample(muslim_pos_indices, expected_samples_per_class)
+        
+        # Sample negatives
+        neg_samples = min(expected_samples_per_class, len(neg_indices))
+        neg_sample = random.sample(neg_indices, neg_samples)
+        
+        return np.array(pos_sample + neg_sample)
+    
     else:
-        indices_initial = random_initialization_balanced(y_train, n_samples=100)
+        raise ValueError(f"Unknown strategy: {strategy}. "
+                         f"Use one of: 'random', 'stratified', 'biased'.")
 
-    active_learner.initialize(indices_initial, y_train[indices_initial])
+def initialize_active_learner(active_learner, dataset, dataset_df, strategy='random'):
+    """Initialize the active learner with initial data points.
+    
+    Parameters
+    ----------
+    active_learner : PoolBasedActiveLearner
+        The active learning model to initialize
+    dataset : TransformersDataset
+        The dataset containing features and labels
+    dataset_df : pd.DataFrame
+        The dataframe with additional information for stratification
+    strategy : str
+        Initialization strategy ('random', 'stratified', or 'biased')
+    
+    Returns
+    -------
+    indices_initial : np.ndarray
+        The indices of the initial samples
+    """
+    # Simulate an initial labeling to warm-start the active learning process
+    indices_initial = random_initialization_custom(dataset=dataset, dataset_df=dataset_df, 
+                                                 n_samples=100, strategy=strategy)
+
+    active_learner.initialize(indices_initial, dataset.y[indices_initial])
 
     return indices_initial
 
-def evaluate(active_learner, train, test):
+def evaluate(active_learner, train, test, train_df=None, test_df=None):
 
     y_pred = active_learner.classifier.predict(train)
     y_pred_test = active_learner.classifier.predict(test)
@@ -502,26 +603,54 @@ def evaluate(active_learner, train, test):
         'Labelled data labels': train.y
     }
 
+    # Add subgroup metrics if dataframes are provided
+    if train_df is not None and test_df is not None:
+        # Get all religious subgroup columns
+        religion_cols = [col for col in test_df.columns if col.startswith('target_religion_') and col.endswith('_strict')]
+        
+        # Save the subgroup data
+        r['train_religion_subgroups'] = train_df[religion_cols]
+        r['test_religion_subgroups'] = test_df[religion_cols]
+        
+        # Calculate metrics for each subgroup
+        for col in religion_cols:
+            religion = col.replace('target_religion_', '').replace('_strict', '')
+            
+            # Test set metrics for this subgroup
+            if sum(test_df[col]) > 0:  # Skip if no examples in this subgroup
+                # Filter to just this subgroup
+                subgroup_indices = test_df[col].values.astype(bool)
+                subgroup_y_true = test.y[subgroup_indices]
+                subgroup_y_pred = y_pred_test[subgroup_indices]
+                
+                # Calculate metrics
+                r[f'Test accuracy_{religion}'] = accuracy_score(subgroup_y_pred, subgroup_y_true)
+                r[f'Test F1_{religion}'] = f1_score(subgroup_y_pred, subgroup_y_true)
+                r[f'Test precision_{religion}'] = precision_score(subgroup_y_pred, subgroup_y_true)
+            
+            # Train set metrics for this subgroup
+            if sum(train_df[col]) > 0:  # Skip if no examples in this subgroup
+                # Filter to just this subgroup
+                subgroup_indices = train_df[col].values.astype(bool)
+                subgroup_y_true = train.y[subgroup_indices]
+                subgroup_y_pred = y_pred[subgroup_indices]
+                
+                # Calculate metrics
+                r[f'Train accuracy_{religion}'] = accuracy_score(subgroup_y_pred, subgroup_y_true)
+                r[f'Train F1_{religion}'] = f1_score(subgroup_y_pred, subgroup_y_true)
+                r[f'Train precision_{religion}'] = precision_score(subgroup_y_pred, subgroup_y_true)
+
     print('Test accuracy:', r['Test accuracy'], 'Test F1:', r['Test F1'])
 
     return r
 
-def active_learning_loop(active_learner, train, test, num_queries, bias, selected_descr, active_learning_method):
+def active_learning_loop(active_learner, train, test, train_df, test_df, num_queries, selected_descr=None):
 
-    # Initialise with first sample
-    if bias:
-        indices_labeled = initialize_active_learner(active_learner, train.y, bias)
-    else:
-        indices_labeled = initialize_active_learner(active_learner, train.y)
-
-    print(f'Initial sample contains {sum(train.y[indices_labeled])} target class')
-    if bias:
-        in_bias = [i for i in indices_labeled if i in bias]
-        print(f'Initial sample contains {len(in_bias)} from non-seeded target class')
-
+    # Initialize with first sample
+    indices_labeled = initialize_active_learner(active_learner, train, train_df)
 
     results = []
-    results.append(evaluate(active_learner, train[indices_labeled], test))
+    results.append(evaluate(active_learner, train[indices_labeled], test, train_df.iloc[indices_labeled], test_df))
 
     for i in range(num_queries):
 
@@ -538,19 +667,26 @@ def active_learning_loop(active_learner, train, test, num_queries, bias, selecte
 
         print('---------------')
         print(f'Iteration #{i} ({len(indices_labeled)} samples)')
-        res = evaluate(active_learner, train[indices_labeled], test)
+        res = evaluate(active_learner, train[indices_labeled], test, train_df.iloc[indices_labeled], test_df)
 
-        # if active_learning_method not in ['NIHDAL', 'NIHDAL_simon']:
-
-        selected_descr = {
-            'all': {
-                'selected': len(indices_queried),
-                'target': int(sum(y))
-            }
+        # Track the counts of each type of sample selected
+        if selected_descr is None:
+            selected_descr = {}
+            
+        selected_descr['all'] = {
+            'selected': len(indices_queried),
+            'target': int(sum(y)),
         }
-
-        if bias:
-            selected_descr['all']['non_seeded_target'] = len([i for i in indices_queried if i in bias])
+        
+        # Track selection by subgroup
+        religion_cols = [col for col in train_df.columns if col.startswith('target_religion_') and col.endswith('_strict')]
+        for col in religion_cols:
+            religion = col.replace('target_religion_', '').replace('_strict', '')
+            subgroup_indices = train_df.iloc[indices_queried][col].values.astype(bool)
+            selected_descr[religion] = {
+                'selected': int(sum(subgroup_indices)),
+                'target': int(sum(y[subgroup_indices])) if sum(subgroup_indices) > 0 else 0
+            }
 
         res['counts'] = selected_descr
 
@@ -568,51 +704,33 @@ if __name__ == '__main__':
     datasets.logging.get_verbosity = lambda: logging.NOTSET
 
     transformer_model_name = 'distilroberta-base'
+    output_dir = '/n/netscratch/economics/Lab/esilcock/nihdal_results'
+    
+    # Active learning loop ------------------------------------------------------------
+    for als in ['NIHDAL', 'DAL2', 'Random']:
 
-    for ds in ['ag_news']:
-        for biased in [True]:
-            # for als in ["Random", "Least Confidence", "BALD", "BADGE", "DAL", "Core Set", 'NIHDAL', 'NIHDAL_simon']: #"Contrastive",
-            for als in ['NIHDAL', 'DAL2', 'Random']:
+        print(f'****************{als}**********************')
 
-                print(f'****************{als}**********************')
+        # Set seed
+        for seed in [42]:  # 42, 12731, 65372, 97, 163
 
-                # Set seed
-                for seed in [42]:  # 42, 12731, 65372, 97, 163
-                # for seed in [42, 12731]:  # 42, 12731, 65372, 97, 163
+            print(f'#################{seed}##################')
+            torch.manual_seed(seed)
+            np.random.seed(seed)
+            random.seed(seed)
 
-                    print(f'#################{seed}##################')
-                    torch.manual_seed(seed)
-                    np.random.seed(seed)
-                    random.seed(seed)
+            selected_descr = None
 
-                    selected_descr = None
+            train, test, train_df, test_df = load_and_format_dataset(
+                train_test_split_ratio = 0.2,
+                transformer_model_name = transformer_model_name,
+                random_state=seed
+            )
 
-                    # Load data
-                    if biased:
-                        train, test, bias_indices = load_and_format_dataset(
-                            dataset_name=ds,
-                            tokenization_model=transformer_model_name,
-                            target_labels=[0, 1],
-                            biased_labels=[1]
-                        )
+            active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als, train_dataset = train)
 
-                    else:
-                        train, test = load_and_format_dataset(
-                            dataset_name=ds,
-                            tokenization_model=transformer_model_name,
-                            target_labels=[0]
-                        )
-                        bias_indices = None
+            results = active_learning_loop(active_learner, train, test, train_df, test_df, num_queries=3, selected_descr=selected_descr)
 
-                    active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als, train_dataset = train)
+            with open(f'{output_dir}/hate_speech_{als}_results_{seed}_unbiased.pkl', 'wb') as f:
+                pickle.dump(results, f)
 
-                    results = active_learning_loop(active_learner, train, test, num_queries=3, bias=bias_indices, selected_descr=selected_descr,
-                                                   active_learning_method=als)
-
-                    if biased:
-                        with open(f'/n/netscratch/economics/Lab/esilcock/nihdal_results/{ds}_{als}_results_{seed}_biased_new.pkl', 'wb') as f:
-                            pickle.dump(results, f)
-
-                    else:
-                        with open(f'/n/netscratch/economics/Lab/esilcock/nihdal_results/{ds}_{als}_results_{seed}_unbiased.pkl', 'wb') as f:
-                            pickle.dump(results, f)
