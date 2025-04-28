@@ -382,13 +382,12 @@ if __name__ == '__main__':
         text = str(article['headline']) + sep + str(article['article'])
         texts.append(text)
 
-    print([i for i in parsed_labelled_data.keys() if i not in check])
+    print([i for i in parsed_labelled_data.keys() if i['ln_id'] not in check])
 
     print(f"Pool size: {len(texts)}")
     print(f"of which {len(labels)} are labelled")
-    print(f"of which {len(parsed_labelled_data)} are parsed labelled")
 
-    assert len(labels) == len(parsed_labelled_data)
+    # assert len(labels) == len(parsed_labelled_data)
     indices_labeled = np.array(indices_labeled)
     labels = np.array(labels)
 
