@@ -62,4 +62,4 @@ for s in tqdm(sample_list):
 
 
 with open('/n/home09/esilcock/stigma-non-take-up/data/raw_data/newspapers/ProQuest_data/france_chunked.json', 'w') as f:
-    json.dump(chunked_sample, f, indent=4)
+    json.dump(chunked_sample, f, indent=4, ensure_ascii=False)

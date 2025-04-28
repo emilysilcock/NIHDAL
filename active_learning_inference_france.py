@@ -343,12 +343,12 @@ if __name__ == '__main__':
 
     sample_list = open_pool(
         '/n/home09/esilcock/stigma-non-take-up/data/raw_data/newspapers/ProQuest_data/france_chunked.json',
-        soft_start_data = '/n/home09/esilcock/NIHDAL/Labelled_data/other_languages/French_mentions_benefits.json'
+        soft_start_data = 'Labelled_data/other_languages/French_mentions_benefits.json'
         )
 
     parsed_labelled_data = open_labelled_data(
-        [],
-        already_cleaned = '/n/home09/esilcock/NIHDAL/Labelled_data/other_languages/French_mentions_benefits.json')
+        ['Labelled_data/french_mentions/france_sample_1.json'],
+        already_cleaned = 'Labelled_data/other_languages/French_mentions_benefits.json')
 
     texts = []
     indices_labeled = []
@@ -414,5 +414,5 @@ if __name__ == '__main__':
             "data": sample_list[i]
         })
 
-    with open(f'data_to_label/france_sample_1.json', 'w') as f:
-        json.dump(to_label, f, indent=2)
+    with open(f'data_to_label/france_sample_2.json', 'w') as f:
+        json.dump(to_label, f, indent=2, ensure_ascii=False)
