@@ -383,6 +383,7 @@ if __name__ == '__main__':
 
     print(f"Pool size: {len(texts)}")
     print(f"of which {len(labels)} are labelled")
+    print(f"of which {len(parsed_labelled_data)} are parsed labelled")
 
     assert len(labels) == len(parsed_labelled_data)
     indices_labeled = np.array(indices_labeled)
