@@ -748,7 +748,7 @@ if __name__ == '__main__':
     datasets.logging.get_verbosity = lambda: logging.NOTSET
 
     transformer_model_name = 'distilroberta-base'
-    output_dir = '/n/netscratch/economics/Lab/esilcock/nihdal_results/hate_speech_sim0427'
+    output_dir = '/n/netscratch/economics/Lab/esilcock/nihdal_results/test'
     num_queries = 3
 
     # Create output directory if it doesn't exist
@@ -845,4 +845,14 @@ if __name__ == '__main__':
             # Save results for this method
             with open(f'{output_dir}/hate_speech_{als}_results_{seed}_unbiased.pkl', 'wb') as f:
                 pickle.dump(results, f)
+            
+            with open(f'{output_dir}/hate_speech_{als}_results_{seed}_unbiased.pkl', 'rb') as f:
+                data = pickle.load(f)
+
+            # Print each iteration's counts
+            for i, result in enumerate(data):
+                if 'counts' in result:
+                    print(f"Iteration {i}:")
+                    print(result['counts'])
+                    print()
 
