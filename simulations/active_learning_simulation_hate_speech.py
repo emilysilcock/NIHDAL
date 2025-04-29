@@ -749,7 +749,7 @@ if __name__ == '__main__':
 
     transformer_model_name = 'distilroberta-base'
     output_dir = '/n/netscratch/economics/Lab/esilcock/nihdal_results/hate_speech_sim0427'
-    num_queries = 10
+    num_queries = 3
 
     # Create output directory if it doesn't exist
     if not os.path.exists(output_dir):
@@ -781,7 +781,8 @@ if __name__ == '__main__':
         )
         
         # Now run different active learning methods with the same initial data
-        for als in ['NIHDAL', 'DAL2', 'Core Set', 'Least Confidence', 'Random']:
+        # for als in ['NIHDAL', 'DAL2', 'Core Set', 'Least Confidence', 'Random']:
+        for als in ['Random']:
             print(f'****************{als}**********************')
 
             # Reset seeds to ensure all random operations are consistent
