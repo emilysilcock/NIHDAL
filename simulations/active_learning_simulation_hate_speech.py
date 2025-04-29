@@ -664,7 +664,7 @@ def evaluate(active_learner, train, test, train_df=None, test_df=None):
 
 # Old functions ------------------------------------------------------------
 
-def active_learning_loop(active_learner, train, test, train_df, test_df, num_queries, selected_descr=None, strategy='random'):
+def active_learning_loop(active_learner, train, test, train_df, test_df, num_queries, strategy='random'):
 
     # Initialize with first sample
     indices_labeled = initialize_active_learner(active_learner, train, train_df, strategy=strategy)
@@ -689,11 +689,10 @@ def active_learning_loop(active_learner, train, test, train_df, test_df, num_que
         print(f'Iteration #{i} ({len(indices_labeled)} samples)')
         res = evaluate(active_learner, train[indices_labeled], test, train_df.iloc[indices_labeled], test_df)
 
-        # Track the counts of each type of sample selected
-        if selected_descr is None:
-            selected_descr = {}
+        # Track the counts directly in res
+        res['counts'] = {}
             
-        selected_descr['all'] = {
+        res['counts']['all'] = {
             'selected': len(indices_queried),
             'target': int(sum(y)),
         }
@@ -703,14 +702,12 @@ def active_learning_loop(active_learner, train, test, train_df, test_df, num_que
         for col in religion_cols:
             religion = col.replace('target_religion_', '').replace('_strict', '')
             subgroup_indices = train_df.iloc[indices_queried][col].values.astype(bool)
-            selected_descr[religion] = {
+            res['counts'][religion] = {
                 'selected': int(sum(subgroup_indices)),
                 'target': int(sum(y[subgroup_indices])) if sum(subgroup_indices) > 0 else 0
             }
 
-        res['counts'] = selected_descr
-
-        print(selected_descr)
+        print(res['counts'])
 
         results.append(res)
 
@@ -823,11 +820,10 @@ if __name__ == '__main__':
                 print(f'Iteration #{i} ({len(indices_labeled)} samples)')
                 res = evaluate(active_learner, train[indices_labeled], test, train_df.iloc[indices_labeled], test_df)
                 
-                # Track the counts of each type of sample selected
-                if selected_descr is None:
-                    selected_descr = {}
-                    
-                selected_descr['all'] = {
+                # Track the counts directly in res
+                res['counts'] = {}
+                
+                res['counts']['all'] = {
                     'selected': len(indices_queried),
                     'target': int(sum(y)),
                 }
@@ -837,13 +833,12 @@ if __name__ == '__main__':
                 for col in religion_cols:
                     religion = col.replace('target_religion_', '').replace('_strict', '')
                     subgroup_indices = train_df.iloc[indices_queried][col].values.astype(bool)
-                    selected_descr[religion] = {
+                    res['counts'][religion] = {
                         'selected': int(sum(subgroup_indices)),
                         'target': int(sum(y[subgroup_indices])) if sum(subgroup_indices) > 0 else 0
                     }
                 
-                res['counts'] = selected_descr
-                print(selected_descr)
+                print(res['counts'])
                 results.append(res)
             
             # Save results for this method
