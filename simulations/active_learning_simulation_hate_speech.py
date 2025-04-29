@@ -748,8 +748,8 @@ if __name__ == '__main__':
     datasets.logging.get_verbosity = lambda: logging.NOTSET
 
     transformer_model_name = 'distilroberta-base'
-    output_dir = '/n/netscratch/economics/Lab/esilcock/nihdal_results/test'
-    num_queries = 3
+    output_dir = '/n/netscratch/economics/Lab/esilcock/nihdal_results/hate_speech_sim0428'
+    num_queries = 10
 
     # Create output directory if it doesn't exist
     if not os.path.exists(output_dir):
@@ -757,7 +757,7 @@ if __name__ == '__main__':
         print(f"Created output directory: {output_dir}")
     
     # Process each seed once
-    for seed in [42]:  # 42, 12731, 65372, 97, 163
+    for seed in [12731, 65372]:  # 42, 12731, 65372, 97, 163
         print(f'#################{seed}##################')
         
         # Set seeds for everything
@@ -781,8 +781,8 @@ if __name__ == '__main__':
         )
         
         # Now run different active learning methods with the same initial data
-        # for als in ['NIHDAL', 'DAL2', 'Core Set', 'Least Confidence', 'Random']:
-        for als in ['Random']:
+        for als in ['NIHDAL', 'DAL2', 'Core Set', 'Least Confidence', 'Random']:
+        # for als in ['Random']:
             print(f'****************{als}**********************')
 
             # Reset seeds to ensure all random operations are consistent
@@ -848,11 +848,3 @@ if __name__ == '__main__':
             
             with open(f'{output_dir}/hate_speech_{als}_results_{seed}_unbiased.pkl', 'rb') as f:
                 data = pickle.load(f)
-
-            # Print each iteration's counts
-            for i, result in enumerate(data):
-                if 'counts' in result:
-                    print(f"Iteration {i}:")
-                    print(result['counts'])
-                    print()
-
