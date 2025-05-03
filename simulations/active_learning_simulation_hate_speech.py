@@ -432,7 +432,8 @@ def load_and_format_dataset(train_test_split_ratio = 0.2, transformer_model_name
         test_df['label'] = test_df['strat_col'].isin([0,1]).astype(int)
 
         # Downsample the label 1 to 1% of the data
-        train_df = pd.concat([train_df[train_df['strat_col'] == 0].sample(frac=0.09), train_df[train_df['strat_col'] == 1].sample(frac=0.01), train_df[train_df['label'] == 1]])
+        train_df = pd.concat([train_df[train_df['strat_col'] == 0].sample(frac=0.09), train_df[train_df['strat_col'] == 1].sample(frac=0.01), train_df[train_df['label'] == 0]])
+        # test_df = pd.concat([test_df[test_df['strat_col'] == 0].sample(frac=0.09), test_df[test_df['strat_col'] == 1].sample(frac=0.01), test_df[test_df['label'] == 1]])
 
         # Create train and test dataframes
         train_df = train_df.reset_index(drop=True)
