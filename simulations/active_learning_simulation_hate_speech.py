@@ -1,6 +1,7 @@
 import logging
 import pickle
 import os
+import pandas as pd
 
 import random
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
@@ -254,164 +255,211 @@ class NIHDAL(QueryStrategy):
 
 # Functions for creating the data ------------------------------------------------------------
 
-def load_and_format_dataset(train_test_split_ratio = 0.2, transformer_model_name = 'distilroberta-base', random_state=42):
-    # Load data
-    dataset = datasets.load_dataset('ucberkeley-dlab/measuring-hate-speech', 'default')   
-    dat = dataset['train'].to_pandas()
-
-    # Group by comment_id and text, and calculate aggregates
-    dat = dat.groupby(['comment_id', 'text']).agg({
-        'annotator_id': 'count',  # Count of records
-        'hatespeech': 'mean',
-        'hate_speech_score': 'mean',
-        'target_religion': 'mean',
-        'target_religion_atheist': 'mean',
-        'target_religion_buddhist': 'mean',
-        'target_religion_christian': 'mean',
-        'target_religion_hindu': 'mean',
-        'target_religion_jewish': 'mean',
-        'target_religion_mormon': 'mean',
-        'target_religion_muslim': 'mean',
-        'target_religion_other': 'mean'
-    }).reset_index()
-
-    # Flatten the column names
-    dat.columns = ['comment_id', 'text', 'n', 
-                  'hatespeech', 'hate_speech_score',
-                  'target_religion', 'target_religion_atheist', 'target_religion_buddhist',
-                  'target_religion_christian', 'target_religion_hindu', 'target_religion_jewish',
-                  'target_religion_mormon', 'target_religion_muslim', 'target_religion_other']
-
-    # Create the label column
-    dat['label'] = ((dat['hate_speech_score'] > 1) & (dat['target_religion'] == 1)).astype(int)
-
-    # Create the strict label columns
-    dat['target_religion_atheist_strict'] = (dat['target_religion_atheist'] == 1) & (dat['hate_speech_score'] > 1)
-    dat['target_religion_buddhist_strict'] = (dat['target_religion_buddhist'] == 1) & (dat['hate_speech_score'] > 1)
-    dat['target_religion_christian_strict'] = (dat['target_religion_christian'] == 1) & (dat['hate_speech_score'] > 1)
-    dat['target_religion_hindu_strict'] = (dat['target_religion_hindu'] == 1) & (dat['hate_speech_score'] > 1)
-    dat['target_religion_jewish_strict'] = (dat['target_religion_jewish'] == 1) & (dat['hate_speech_score'] > 1)
-    dat['target_religion_mormon_strict'] = (dat['target_religion_mormon'] == 1) & (dat['hate_speech_score'] > 1)
-    dat['target_religion_muslim_strict'] = (dat['target_religion_muslim'] == 1) & (dat['hate_speech_score'] > 1)
-    dat['target_religion_other_strict'] = (dat['target_religion_other'] == 1) & (dat['hate_speech_score'] > 1)
-
-    # Get list of all strict target columns
-    strict_cols = [c for c in dat.columns if c.endswith('_strict')]
-
-    # First create a column with all targeted religions
-    dat['target_religions_list'] = ''
-    for col in strict_cols:
-        religion = col.replace('target_religion_', '').replace('_strict', '')
-        dat.loc[dat[col] == True, 'target_religions_list'] = dat.loc[dat[col] == True, 'target_religions_list'] + religion + ','
-
-    # Remove trailing comma
-    dat['target_religions_list'] = dat['target_religions_list'].str.rstrip(',')
-
-    # Count how many religions are targeted
-    dat['target_religions_count'] = (dat[strict_cols].sum(axis=1)).astype(int)
+def load_and_format_dataset(train_test_split_ratio = 0.2, transformer_model_name = 'distilroberta-base', random_state=42, which_data = 'hate_speech'):
     
-    # Remove inconsistent rows where label is 1 but no specific religions are marked
-    inconsistent_rows = (dat['label'] == 1) & (dat['target_religions_count'] == 0)
-    if sum(inconsistent_rows) > 0:
-        print(f"Removing {sum(inconsistent_rows)} rows where label=1 but no specific religions are targeted")
-        dat = dat[~inconsistent_rows].reset_index(drop=True)
+    if which_data == 'hate_speech':
+        # Load data
+        dataset = datasets.load_dataset('ucberkeley-dlab/measuring-hate-speech', 'default')   
+        dat = dataset['train'].to_pandas()
 
-    # Get counts for each religion to determine which are smallest
-    religion_counts = {}
-    for col in strict_cols:
-        religion = col.replace('target_religion_', '').replace('_strict', '')
-        religion_counts[religion] = dat[col].sum()
+        # Group by comment_id and text, and calculate aggregates
+        dat = dat.groupby(['comment_id', 'text']).agg({
+            'annotator_id': 'count',  # Count of records
+            'hatespeech': 'mean',
+            'hate_speech_score': 'mean',
+            'target_religion': 'mean',
+            'target_religion_atheist': 'mean',
+            'target_religion_buddhist': 'mean',
+            'target_religion_christian': 'mean',
+            'target_religion_hindu': 'mean',
+            'target_religion_jewish': 'mean',
+            'target_religion_mormon': 'mean',
+            'target_religion_muslim': 'mean',
+            'target_religion_other': 'mean'
+        }).reset_index()
 
-    # Sort religions by count (smallest first)
-    religions_by_size = sorted(religion_counts.keys(), key=lambda r: religion_counts[r])
+        # Flatten the column names
+        dat.columns = ['comment_id', 'text', 'n', 
+                    'hatespeech', 'hate_speech_score',
+                    'target_religion', 'target_religion_atheist', 'target_religion_buddhist',
+                    'target_religion_christian', 'target_religion_hindu', 'target_religion_jewish',
+                    'target_religion_mormon', 'target_religion_muslim', 'target_religion_other']
 
-    # Initialize strat_col as 'none'
-    dat['strat_col'] = 'none'
+        # Create the label column
+        dat['label'] = ((dat['hate_speech_score'] > 1) & (dat['target_religion'] == 1)).astype(int)
 
-    # For each row, find the smallest targeted religion
-    for _, row in dat.iterrows():
-        # Skip if no religion is targeted
-        if row['target_religions_count'] == 0:
-            continue
+        # Create the strict label columns
+        dat['target_religion_atheist_strict'] = (dat['target_religion_atheist'] == 1) & (dat['hate_speech_score'] > 1)
+        dat['target_religion_buddhist_strict'] = (dat['target_religion_buddhist'] == 1) & (dat['hate_speech_score'] > 1)
+        dat['target_religion_christian_strict'] = (dat['target_religion_christian'] == 1) & (dat['hate_speech_score'] > 1)
+        dat['target_religion_hindu_strict'] = (dat['target_religion_hindu'] == 1) & (dat['hate_speech_score'] > 1)
+        dat['target_religion_jewish_strict'] = (dat['target_religion_jewish'] == 1) & (dat['hate_speech_score'] > 1)
+        dat['target_religion_mormon_strict'] = (dat['target_religion_mormon'] == 1) & (dat['hate_speech_score'] > 1)
+        dat['target_religion_muslim_strict'] = (dat['target_religion_muslim'] == 1) & (dat['hate_speech_score'] > 1)
+        dat['target_religion_other_strict'] = (dat['target_religion_other'] == 1) & (dat['hate_speech_score'] > 1)
+
+        # Get list of all strict target columns
+        strict_cols = [c for c in dat.columns if c.endswith('_strict')]
+
+        # First create a column with all targeted religions
+        dat['target_religions_list'] = ''
+        for col in strict_cols:
+            religion = col.replace('target_religion_', '').replace('_strict', '')
+            dat.loc[dat[col] == True, 'target_religions_list'] = dat.loc[dat[col] == True, 'target_religions_list'] + religion + ','
+
+        # Remove trailing comma
+        dat['target_religions_list'] = dat['target_religions_list'].str.rstrip(',')
+
+        # Count how many religions are targeted
+        dat['target_religions_count'] = (dat[strict_cols].sum(axis=1)).astype(int)
         
-        # Find the smallest targeted religion for this row
-        for religion in religions_by_size:
-            col = f'target_religion_{religion}_strict'
-            if row[col]:
-                dat.loc[_, 'strat_col'] = religion
-                break
+        # Remove inconsistent rows where label is 1 but no specific religions are marked
+        inconsistent_rows = (dat['label'] == 1) & (dat['target_religions_count'] == 0)
+        if sum(inconsistent_rows) > 0:
+            print(f"Removing {sum(inconsistent_rows)} rows where label=1 but no specific religions are targeted")
+            dat = dat[~inconsistent_rows].reset_index(drop=True)
 
-    # Split the data (80% train, 20% test) with stratification by subclass
-    # Create separate train/test splits for each strat_col value
-    all_strat_values = dat['strat_col'].unique()
-    train_indices = []
-    test_indices = []
-    
-    # Print the distribution before split
-    print("\nSubclass distribution before split:")
-    for strat_val in all_strat_values:
-        subset_size = sum(dat['strat_col'] == strat_val)
-        subset_pct = subset_size / len(dat) * 100
-        print(f"{strat_val}: {subset_size} samples ({subset_pct:.2f}%)")
-    
-    # Split each stratum separately to maintain distribution
-    for strat_val in all_strat_values:
-        # Get indices for this stratum
-        stratum_indices = np.where(dat['strat_col'] == strat_val)[0]
+        # Get counts for each religion to determine which are smallest
+        religion_counts = {}
+        for col in strict_cols:
+            religion = col.replace('target_religion_', '').replace('_strict', '')
+            religion_counts[religion] = dat[col].sum()
+
+        # Sort religions by count (smallest first)
+        religions_by_size = sorted(religion_counts.keys(), key=lambda r: religion_counts[r])
+
+        # Initialize strat_col as 'none'
+        dat['strat_col'] = 'none'
+
+        # For each row, find the smallest targeted religion
+        for _, row in dat.iterrows():
+            # Skip if no religion is targeted
+            if row['target_religions_count'] == 0:
+                continue
             
-        # Split this stratum
-        stratum_train, stratum_test = train_test_split(
-            stratum_indices,
-            test_size=train_test_split_ratio,
-            random_state=random_state
+            # Find the smallest targeted religion for this row
+            for religion in religions_by_size:
+                col = f'target_religion_{religion}_strict'
+                if row[col]:
+                    dat.loc[_, 'strat_col'] = religion
+                    break
+
+        # Split the data (80% train, 20% test) with stratification by subclass
+        # Create separate train/test splits for each strat_col value
+        all_strat_values = dat['strat_col'].unique()
+        train_indices = []
+        test_indices = []
+        
+        # Print the distribution before split
+        print("\nSubclass distribution before split:")
+        for strat_val in all_strat_values:
+            subset_size = sum(dat['strat_col'] == strat_val)
+            subset_pct = subset_size / len(dat) * 100
+            print(f"{strat_val}: {subset_size} samples ({subset_pct:.2f}%)")
+        
+        # Split each stratum separately to maintain distribution
+        for strat_val in all_strat_values:
+            # Get indices for this stratum
+            stratum_indices = np.where(dat['strat_col'] == strat_val)[0]
+                
+            # Split this stratum
+            stratum_train, stratum_test = train_test_split(
+                stratum_indices,
+                test_size=train_test_split_ratio,
+                random_state=random_state
+            )
+            
+            train_indices.extend(stratum_train)
+            test_indices.extend(stratum_test)
+        
+        # Convert to numpy arrays
+        train_indices = np.array(train_indices)
+        test_indices = np.array(test_indices)
+        
+        # Print the distribution after split
+        print("\nSubclass distribution after split:")
+        print("Train set:")
+        for strat_val in all_strat_values:
+            train_count = sum(dat.iloc[train_indices]['strat_col'] == strat_val)
+            train_pct = train_count / len(train_indices) * 100
+            print(f"{strat_val}: {train_count} samples ({train_pct:.2f}%)")
+        
+        print("\nTest set:")
+        for strat_val in all_strat_values:
+            test_count = sum(dat.iloc[test_indices]['strat_col'] == strat_val)
+            test_pct = test_count / len(test_indices) * 100
+            print(f"{strat_val}: {test_count} samples ({test_pct:.2f}%)")
+        
+        # Create train and test dataframes
+        train_df = dat.iloc[train_indices].reset_index(drop=True)
+        test_df = dat.iloc[test_indices].reset_index(drop=True)
+        
+        # Tokenize data
+        tokenizer = AutoTokenizer.from_pretrained(transformer_model_name)
+
+        # Create TransformersDataset for train and test
+        train_dataset = TransformersDataset.from_arrays(
+            train_df['text'],
+            train_df['label'],
+            tokenizer,
+            max_length=100,
+            target_labels=np.array([0, 1])
+        )
+
+        test_dataset = TransformersDataset.from_arrays(
+            test_df['text'],
+            test_df['label'],
+            tokenizer,
+            max_length=100,
+            target_labels=np.array([0, 1])
+        )
+
+        return train_dataset, test_dataset, train_df, test_df
+
+    elif which_data == 'ag_news':
+        # Load data
+        dataset = datasets.load_dataset('ag_news')
+        train_df = dataset['train'].to_pandas()
+        test_df = dataset['test'].to_pandas()  
+
+        # For AG News, we need to create a stratification column
+        # Rename label to strat_col for consistency with hate_speech data
+        train_df = train_df.rename(columns={'label': 'strat_col'})
+        test_df = test_df.rename(columns={'label': 'strat_col'})
+        
+        # Create binary labels
+        train_df['label'] = train_df['strat_col'].isin([0,1]).astype(int)
+        test_df['label'] = test_df['strat_col'].isin([0,1]).astype(int)
+
+        # Downsample the label 1 to 1% of the data
+        train_df = pd.concat([train_df[train_df['strat_col'] == 0].sample(frac=0.09), train_df[train_df['strat_col'] == 1].sample(frac=0.01), train_df[train_df['label'] == 1]])
+
+        # Tokenize data
+        tokenizer = AutoTokenizer.from_pretrained(transformer_model_name)
+        
+        # Create TransformersDataset for train and test
+        train_dataset = TransformersDataset.from_arrays(
+            train_df['text'],
+            train_df['label'],
+            tokenizer,
+            max_length=100,
+            target_labels=np.array([0, 1])
         )
         
-        train_indices.extend(stratum_train)
-        test_indices.extend(stratum_test)
-    
-    # Convert to numpy arrays
-    train_indices = np.array(train_indices)
-    test_indices = np.array(test_indices)
-    
-    # Print the distribution after split
-    print("\nSubclass distribution after split:")
-    print("Train set:")
-    for strat_val in all_strat_values:
-        train_count = sum(dat.iloc[train_indices]['strat_col'] == strat_val)
-        train_pct = train_count / len(train_indices) * 100
-        print(f"{strat_val}: {train_count} samples ({train_pct:.2f}%)")
-    
-    print("\nTest set:")
-    for strat_val in all_strat_values:
-        test_count = sum(dat.iloc[test_indices]['strat_col'] == strat_val)
-        test_pct = test_count / len(test_indices) * 100
-        print(f"{strat_val}: {test_count} samples ({test_pct:.2f}%)")
-    
-    # Create train and test dataframes
-    train_df = dat.iloc[train_indices].reset_index(drop=True)
-    test_df = dat.iloc[test_indices].reset_index(drop=True)
-    
-    # Tokenize data
-    tokenizer = AutoTokenizer.from_pretrained(transformer_model_name)
+        test_dataset = TransformersDataset.from_arrays(
+            test_df['text'],
+            test_df['label'],
+            tokenizer,
+            max_length=100,
+            target_labels=np.array([0, 1])
+        )
+        
+        return train_dataset, test_dataset, train_df, test_df
 
-    # Create TransformersDataset for train and test
-    train_dataset = TransformersDataset.from_arrays(
-        train_df['text'],
-        train_df['label'],
-        tokenizer,
-        max_length=100,
-        target_labels=np.array([0, 1])
-    )
-
-    test_dataset = TransformersDataset.from_arrays(
-        test_df['text'],
-        test_df['label'],
-        tokenizer,
-        max_length=100,
-        target_labels=np.array([0, 1])
-    )
-
-    return train_dataset, test_dataset, train_df, test_df
+    
+    else:
+        raise ValueError(f"Unknown dataset: {which_data}. "
+                         f"Use one of: 'hate_speech', 'ag_news'.")
 
 def set_up_active_learner(transformer_model_name, active_learning_method,
                           train_dataset,
@@ -472,7 +520,7 @@ def set_up_active_learner(transformer_model_name, active_learning_method,
 
     return a_learner
 
-def random_initialization_custom(dataset, dataset_df, n_samples=100, strategy='random', non_sample=None):
+def random_initialization_custom(dataset, dataset_df, n_samples=100, strategy='random', non_sample=None, which_data = 'hate_speech'):
     """Randomly initializes data points based on different strategies.
 
     Parameters
@@ -558,46 +606,85 @@ def random_initialization_custom(dataset, dataset_df, n_samples=100, strategy='r
         return np.array(pos_sample + neg_sample)
     
     elif strategy == 'biased':
-        # Biased sampling: 50% negative, 50% positive but positives only from 'muslim' strat_col
-        neg_indices = [i for i, lab in enumerate(y) if lab == 0 and i not in non_sample]
-        
-        # Get positive indices only from muslim strat_col
-        muslim_pos_indices = [i for i, lab in enumerate(y) 
-                             if lab == 1 and i not in non_sample 
-                             and dataset_df.iloc[i]['strat_col'] == 'muslim']
-        
-        # If not enough muslim samples, fallback to random positives
-        if len(muslim_pos_indices) < expected_samples_per_class:
-            print(f"Warning: Not enough 'muslim' samples ({len(muslim_pos_indices)}). "
-                  f"Adding other positive samples to reach {expected_samples_per_class}.")
-            other_pos_indices = [i for i, lab in enumerate(y) 
+        if which_data == 'hate_speech':
+            # Biased sampling: 50% negative, 50% positive but positives only from 'muslim' strat_col
+            neg_indices = [i for i, lab in enumerate(y) if lab == 0 and i not in non_sample]
+            
+            # Get positive indices only from muslim strat_col
+            muslim_pos_indices = [i for i, lab in enumerate(y) 
                                 if lab == 1 and i not in non_sample 
-                                and dataset_df.iloc[i]['strat_col'] != 'muslim']
+                                and dataset_df.iloc[i]['strat_col'] == 'muslim']
             
-            # Sample all muslims
-            pos_sample = muslim_pos_indices.copy()
+            # If not enough muslim samples, fallback to random positives
+            if len(muslim_pos_indices) < expected_samples_per_class:
+                print(f"Warning: Not enough 'muslim' samples ({len(muslim_pos_indices)}). "
+                    f"Adding other positive samples to reach {expected_samples_per_class}.")
+                other_pos_indices = [i for i, lab in enumerate(y) 
+                                    if lab == 1 and i not in non_sample 
+                                    and dataset_df.iloc[i]['strat_col'] != 'muslim']
+                
+                # Sample all muslims
+                pos_sample = muslim_pos_indices.copy()
+                
+                # Add other positives if needed
+                remaining = expected_samples_per_class - len(pos_sample)
+                if remaining > 0 and other_pos_indices:
+                    additional = random.sample(other_pos_indices, 
+                                            min(remaining, len(other_pos_indices)))
+                    pos_sample.extend(additional)
+            else:
+                # We have enough muslim samples
+                pos_sample = random.sample(muslim_pos_indices, expected_samples_per_class)
             
-            # Add other positives if needed
-            remaining = expected_samples_per_class - len(pos_sample)
-            if remaining > 0 and other_pos_indices:
-                additional = random.sample(other_pos_indices, 
-                                         min(remaining, len(other_pos_indices)))
-                pos_sample.extend(additional)
+            # Sample negatives
+            neg_samples = min(expected_samples_per_class, len(neg_indices))
+            neg_sample = random.sample(neg_indices, neg_samples)
+            
+            return np.array(pos_sample + neg_sample)
+        elif which_data == 'ag_news':
+            # Biased sampling: 50% negative, 50% positive but positives only from 0 strat_col
+            neg_indices = [i for i, lab in enumerate(y) if lab == 0 and i not in non_sample]
+            
+            # Get positive indices only from muslim strat_col
+            zero_pos_indices = [i for i, lab in enumerate(y) 
+                                if lab == 1 and i not in non_sample 
+                                and dataset_df.iloc[i]['strat_col'] == 0]
+            
+            # If not enough muslim samples, fallback to random positives
+            if len(zero_pos_indices) < expected_samples_per_class:
+                print(f"Warning: Not enough '0' samples ({len(zero_pos_indices)}). "
+                    f"Adding other positive samples to reach {expected_samples_per_class}.")
+                other_pos_indices = [i for i, lab in enumerate(y) 
+                                    if lab == 1 and i not in non_sample 
+                                    and dataset_df.iloc[i]['strat_col'] != 0]
+                
+                # Sample all 0s
+                pos_sample = zero_pos_indices.copy()
+                
+                # Add other positives if needed
+                remaining = expected_samples_per_class - len(pos_sample)
+                if remaining > 0 and other_pos_indices:
+                    additional = random.sample(other_pos_indices, 
+                                            min(remaining, len(other_pos_indices)))
+                    pos_sample.extend(additional)
+            else:
+                # We have enough samples with strat_col 0
+                pos_sample = random.sample(zero_pos_indices, expected_samples_per_class)
+            
+            # Sample negatives
+            neg_samples = min(expected_samples_per_class, len(neg_indices))
+            neg_sample = random.sample(neg_indices, neg_samples)
+            
+            return np.array(pos_sample + neg_sample)
         else:
-            # We have enough muslim samples
-            pos_sample = random.sample(muslim_pos_indices, expected_samples_per_class)
-        
-        # Sample negatives
-        neg_samples = min(expected_samples_per_class, len(neg_indices))
-        neg_sample = random.sample(neg_indices, neg_samples)
-        
-        return np.array(pos_sample + neg_sample)
-    
+            raise ValueError(f"Unknown dataset: {which_data}. "
+                             f"Use one of: 'hate_speech', 'ag_news'.")
+
     else:
         raise ValueError(f"Unknown strategy: {strategy}. "
                          f"Use one of: 'random', 'stratified', 'biased'.")
 
-def evaluate(active_learner, train, test, train_df=None, test_df=None):
+def evaluate(active_learner, train, test, train_df=None, test_df=None, which_data = 'hate_speech'):
 
     y_pred = active_learner.classifier.predict(train)
     y_pred_test = active_learner.classifier.predict(test)
@@ -623,122 +710,77 @@ def evaluate(active_learner, train, test, train_df=None, test_df=None):
 
     # Add subgroup metrics if dataframes are provided
     if train_df is not None and test_df is not None:
-        # Get all religious subgroup columns
-        religion_cols = [col for col in test_df.columns if col.startswith('target_religion_') and col.endswith('_strict')]
-        
-        # Save the subgroup data
-        r['train_religion_subgroups'] = train_df[religion_cols]
-        r['test_religion_subgroups'] = test_df[religion_cols]
-        
-        # Calculate metrics for each subgroup
-        for col in religion_cols:
-            religion = col.replace('target_religion_', '').replace('_strict', '')
+        if which_data == 'hate_speech':
+            # Get all religious subgroup columns
+            religion_cols = [col for col in test_df.columns if col.startswith('target_religion_') and col.endswith('_strict')]
             
-            # Test set metrics for this subgroup
-            if sum(test_df[col]) > 0:  # Skip if no examples in this subgroup
-                # Filter to just this subgroup
-                subgroup_indices = test_df[col].values.astype(bool)
-                subgroup_y_true = test.y[subgroup_indices]
-                subgroup_y_pred = y_pred_test[subgroup_indices]
-                
-                # Calculate metrics
-                r[f'Test accuracy_{religion}'] = accuracy_score(subgroup_y_pred, subgroup_y_true)
-                r[f'Test F1_{religion}'] = f1_score(subgroup_y_pred, subgroup_y_true)
-                r[f'Test precision_{religion}'] = precision_score(subgroup_y_pred, subgroup_y_true)
+            # Save the subgroup data
+            r['train_religion_subgroups'] = train_df[religion_cols]
+            r['test_religion_subgroups'] = test_df[religion_cols]
             
-            # Train set metrics for this subgroup
-            if sum(train_df[col]) > 0:  # Skip if no examples in this subgroup
-                # Filter to just this subgroup
-                subgroup_indices = train_df[col].values.astype(bool)
-                subgroup_y_true = train.y[subgroup_indices]
-                subgroup_y_pred = y_pred[subgroup_indices]
+            # Calculate metrics for each subgroup
+            for col in religion_cols:
+                religion = col.replace('target_religion_', '').replace('_strict', '')
                 
-                # Calculate metrics
-                r[f'Train accuracy_{religion}'] = accuracy_score(subgroup_y_pred, subgroup_y_true)
-                r[f'Train F1_{religion}'] = f1_score(subgroup_y_pred, subgroup_y_true)
-                r[f'Train precision_{religion}'] = precision_score(subgroup_y_pred, subgroup_y_true)
+                # Test set metrics for this subgroup
+                if sum(test_df[col]) > 0:  # Skip if no examples in this subgroup
+                    # Filter to just this subgroup
+                    subgroup_indices = test_df[col].values.astype(bool)
+                    subgroup_y_true = test.y[subgroup_indices]
+                    subgroup_y_pred = y_pred_test[subgroup_indices]
+                    
+                    # Calculate metrics
+                    r[f'Test accuracy_{religion}'] = accuracy_score(subgroup_y_pred, subgroup_y_true)
+                    r[f'Test F1_{religion}'] = f1_score(subgroup_y_pred, subgroup_y_true)
+                    r[f'Test precision_{religion}'] = precision_score(subgroup_y_pred, subgroup_y_true)
+                
+                # Train set metrics for this subgroup
+                if sum(train_df[col]) > 0:  # Skip if no examples in this subgroup
+                    # Filter to just this subgroup
+                    subgroup_indices = train_df[col].values.astype(bool)
+                    subgroup_y_true = train.y[subgroup_indices]
+                    subgroup_y_pred = y_pred[subgroup_indices]
+                    
+                    # Calculate metrics
+                    r[f'Train accuracy_{religion}'] = accuracy_score(subgroup_y_pred, subgroup_y_true)
+                    r[f'Train F1_{religion}'] = f1_score(subgroup_y_pred, subgroup_y_true)
+                    r[f'Train precision_{religion}'] = precision_score(subgroup_y_pred, subgroup_y_true)
+        elif which_data == 'ag_news':
+            # Save category data
+            r['train_categories'] = train_df[['strat_col']]
+            r['test_categories'] = test_df[['strat_col']]
+            
+            # Calculate metrics for each category (0-3)
+            for category in range(4):
+                category_name = f'category_{category}'
+                
+                # Test set metrics for this category
+                test_category_indices = test_df['strat_col'] == category
+                if sum(test_category_indices) > 0:  # Skip if no examples in this category
+                    # Filter to just this category
+                    subgroup_y_true = test.y[test_category_indices]
+                    subgroup_y_pred = y_pred_test[test_category_indices]
+                    
+                    # Calculate metrics
+                    r[f'Test accuracy_{category_name}'] = accuracy_score(subgroup_y_pred, subgroup_y_true)
+                    r[f'Test F1_{category_name}'] = f1_score(subgroup_y_pred, subgroup_y_true)
+                    r[f'Test precision_{category_name}'] = precision_score(subgroup_y_pred, subgroup_y_true)
+                
+                # Train set metrics for this category
+                train_category_indices = train_df['strat_col'] == category
+                if sum(train_category_indices) > 0:  # Skip if no examples in this category
+                    # Filter to just this category
+                    subgroup_y_true = train.y[train_category_indices]
+                    subgroup_y_pred = y_pred[train_category_indices]
+                    
+                    # Calculate metrics
+                    r[f'Train accuracy_{category_name}'] = accuracy_score(subgroup_y_pred, subgroup_y_true)
+                    r[f'Train F1_{category_name}'] = f1_score(subgroup_y_pred, subgroup_y_true)
+                    r[f'Train precision_{category_name}'] = precision_score(subgroup_y_pred, subgroup_y_true)
 
     print('Test accuracy:', r['Test accuracy'], 'Test F1:', r['Test F1'])
 
     return r
-
-# Old functions ------------------------------------------------------------
-
-def active_learning_loop(active_learner, train, test, train_df, test_df, num_queries, strategy='random'):
-
-    # Initialize with first sample
-    indices_labeled = initialize_active_learner(active_learner, train, train_df, strategy=strategy)
-
-    results = []
-    results.append(evaluate(active_learner, train[indices_labeled], test, train_df.iloc[indices_labeled], test_df))
-
-    for i in range(num_queries):
-
-        # Query samples to label
-        indices_queried = active_learner.query(num_samples=100)
-
-        # Simulate labelling
-        y = train.y[indices_queried]
-
-        # Return the labels for the current query to the active learner.
-        active_learner.update(y)
-
-        indices_labeled = np.concatenate([indices_queried, indices_labeled])
-
-        print('---------------')
-        print(f'Iteration #{i} ({len(indices_labeled)} samples)')
-        res = evaluate(active_learner, train[indices_labeled], test, train_df.iloc[indices_labeled], test_df)
-
-        # Track the counts directly in res
-        res['counts'] = {}
-            
-        res['counts']['all'] = {
-            'selected': len(indices_queried),
-            'target': int(sum(y)),
-        }
-        
-        # Track selection by subgroup
-        religion_cols = [col for col in train_df.columns if col.startswith('target_religion_') and col.endswith('_strict')]
-        for col in religion_cols:
-            religion = col.replace('target_religion_', '').replace('_strict', '')
-            subgroup_indices = train_df.iloc[indices_queried][col].values.astype(bool)
-            res['counts'][religion] = {
-                'selected': int(sum(subgroup_indices)),
-                'target': int(sum(y[subgroup_indices])) if sum(subgroup_indices) > 0 else 0
-            }
-
-        print(res['counts'])
-
-        results.append(res)
-
-    return results
-
-def initialize_active_learner(active_learner, dataset, dataset_df, strategy='random'):
-    """Initialize the active learner with initial data points.
-    
-    Parameters
-    ----------
-    active_learner : PoolBasedActiveLearner
-        The active learning model to initialize
-    dataset : TransformersDataset
-        The dataset containing features and labels
-    dataset_df : pd.DataFrame
-        The dataframe with additional information for stratification
-    strategy : str
-        Initialization strategy ('random', 'stratified', or 'biased')
-    
-    Returns
-    -------
-    indices_initial : np.ndarray
-        The indices of the initial samples
-    """
-    # Simulate an initial labeling to warm-start the active learning process
-    indices_initial = random_initialization_custom(dataset=dataset, dataset_df=dataset_df, 
-                                                 n_samples=100, strategy=strategy)
-
-    active_learner.initialize(indices_initial, dataset.y[indices_initial])
-
-    return indices_initial
 
 # Main body -----------------------------------------------------------
 
@@ -748,8 +790,11 @@ if __name__ == '__main__':
     datasets.logging.get_verbosity = lambda: logging.NOTSET
 
     transformer_model_name = 'distilroberta-base'
-    output_dir = '/n/netscratch/economics/Lab/esilcock/nihdal_results/hate_speech_sim0428'
+    which_data = 'ag_news'
+    date = '0503'
     num_queries = 10
+
+    output_dir = f'/n/netscratch/economics/Lab/esilcock/nihdal_results/{which_data}_sim{date}'
 
     # Create output directory if it doesn't exist
     if not os.path.exists(output_dir):
@@ -769,7 +814,8 @@ if __name__ == '__main__':
         train, test, train_df, test_df = load_and_format_dataset(
             train_test_split_ratio = 0.2,
             transformer_model_name = transformer_model_name,
-            random_state=seed
+            random_state=seed,
+            which_data = which_data
         )
         
         # Generate initial indices once for this seed
@@ -777,7 +823,8 @@ if __name__ == '__main__':
             dataset=train, 
             dataset_df=train_df, 
             n_samples=100, 
-            strategy='random'
+            strategy='random',
+            which_data = which_data
         )
         
         # Now run different active learning methods with the same initial data
@@ -801,7 +848,7 @@ if __name__ == '__main__':
             # Modified active learning loop that skips initialization
             results = []
             # Add initial evaluation
-            results.append(evaluate(active_learner, train[indices_initial], test, train_df.iloc[indices_initial], test_df))
+            results.append(evaluate(active_learner, train[indices_initial], test, train_df.iloc[indices_initial], test_df, which_data = which_data))
             
             # Run active learning queries
             indices_labeled = indices_initial.copy()
@@ -819,7 +866,7 @@ if __name__ == '__main__':
                 
                 print('---------------')
                 print(f'Iteration #{i} ({len(indices_labeled)} samples)')
-                res = evaluate(active_learner, train[indices_labeled], test, train_df.iloc[indices_labeled], test_df)
+                res = evaluate(active_learner, train[indices_labeled], test, train_df.iloc[indices_labeled], test_df, which_data = which_data)
                 
                 # Track the counts directly in res
                 res['counts'] = {}
@@ -829,22 +876,35 @@ if __name__ == '__main__':
                     'target': int(sum(y)),
                 }
                 
-                # Track selection by subgroup
-                religion_cols = [col for col in train_df.columns if col.startswith('target_religion_') and col.endswith('_strict')]
-                for col in religion_cols:
-                    religion = col.replace('target_religion_', '').replace('_strict', '')
-                    subgroup_indices = train_df.iloc[indices_queried][col].values.astype(bool)
-                    res['counts'][religion] = {
-                        'selected': int(sum(subgroup_indices)),
-                        'target': int(sum(y[subgroup_indices])) if sum(subgroup_indices) > 0 else 0
-                    }
+                if which_data == 'hate_speech':
+                    # Track selection by subgroup
+                    religion_cols = [col for col in train_df.columns if col.startswith('target_religion_') and col.endswith('_strict')]
+                    for col in religion_cols:
+                        religion = col.replace('target_religion_', '').replace('_strict', '')
+                        subgroup_indices = train_df.iloc[indices_queried][col].values.astype(bool)
+
+                        res['counts'][religion] = {
+                            'selected': int(sum(subgroup_indices)),
+                            'target': int(sum(y[subgroup_indices])) if sum(subgroup_indices) > 0 else 0
+                        }
+                elif which_data == 'ag_news':
+                    # Track selection by subgroup
+                    for cat in range(4):
+                        # Get indices of samples with this strat_col value
+                        subgroup_indices = train_df.iloc[indices_queried]['strat_col'] == cat
+                        category_name = f'category_{cat}'
+                        
+                        res['counts'][category_name] = {
+                            'selected': int(sum(subgroup_indices)),
+                            'target': int(sum(y[subgroup_indices])) if sum(subgroup_indices) > 0 else 0
+                        }
                 
                 print(res['counts'])
                 results.append(res)
             
             # Save results for this method
-            with open(f'{output_dir}/hate_speech_{als}_results_{seed}_unbiased.pkl', 'wb') as f:
+            with open(f'{output_dir}/{which_data}_{als}_results_{seed}_unbiased.pkl', 'wb') as f:
                 pickle.dump(results, f)
             
-            with open(f'{output_dir}/hate_speech_{als}_results_{seed}_unbiased.pkl', 'rb') as f:
+            with open(f'{output_dir}/{which_data}_{als}_results_{seed}_unbiased.pkl', 'rb') as f:
                 data = pickle.load(f)
