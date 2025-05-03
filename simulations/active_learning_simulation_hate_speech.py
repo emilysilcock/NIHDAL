@@ -725,12 +725,12 @@ def evaluate(active_learner, train, test, train_df=None, test_df=None, which_dat
     r = {
         'Train accuracy': accuracy_score(y_pred, train.y),
         'Test accuracy': accuracy_score(y_pred_test, test.y),
-        'Train F1': f1_score(y_pred, train.y),
-        'Test F1': f1_score(y_pred_test, test.y),
-        'Train precision': precision_score(y_pred, train.y),
-        'Test precision': precision_score(y_pred_test, test.y),
-        'Train recall': recall_score(y_pred, train.y),
-        'Test recall': recall_score(y_pred_test, test.y),
+        'Train F1': f1_score(y_pred, train.y, zero_division=np.nan),
+        'Test F1': f1_score(y_pred_test, test.y, zero_division=np.nan),
+        'Train precision': precision_score(y_pred, train.y, zero_division=np.nan),
+        'Test precision': precision_score(y_pred_test, test.y, zero_division=np.nan),
+        'Train recall': recall_score(y_pred, train.y, zero_division=np.nan),
+        'Test recall': recall_score(y_pred_test, test.y, zero_division=np.nan),
         'Test predictions': y_pred_test,
         'Test ground truth': test.y,
         'Test embeddings': test_embeddings,
@@ -808,7 +808,7 @@ def evaluate(active_learner, train, test, train_df=None, test_df=None, which_dat
                     r[f'Train F1_{category_name}'] = f1_score(subgroup_y_pred, subgroup_y_true)
                     r[f'Train precision_{category_name}'] = precision_score(subgroup_y_pred, subgroup_y_true)
 
-    print('Test accuracy:', r['Test accuracy'], 'Test F1:', r['Test F1'])
+    print('Test accuracy:', r['Test accuracy'], 'Test F1:', r['Test F1'], 'Test precision:', r['Test precision'], 'Test recall:', r['Test recall'])
 
     return r
 
@@ -872,12 +872,13 @@ if __name__ == '__main__':
             # Set up the active learner for this method
             active_learner = set_up_active_learner(transformer_model_name, active_learning_method=als, train_dataset=train)
             
-            # Directly initialize with the pre-generated indices instead of calling initialize_active_learner
+            # Directly initialize with the pre-generated indices
             active_learner.initialize(indices_initial, train.y[indices_initial])
             
             # Modified active learning loop that skips initialization
             results = []
             # Add initial evaluation
+            print('Initial evaluation:')
             results.append(evaluate(active_learner, train[indices_initial], test, train_df.iloc[indices_initial], test_df, which_data = which_data))
             
             # Run active learning queries
