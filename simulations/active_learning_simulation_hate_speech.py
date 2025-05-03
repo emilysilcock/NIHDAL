@@ -434,6 +434,10 @@ def load_and_format_dataset(train_test_split_ratio = 0.2, transformer_model_name
         # Downsample the label 1 to 1% of the data
         train_df = pd.concat([train_df[train_df['strat_col'] == 0].sample(frac=0.09), train_df[train_df['strat_col'] == 1].sample(frac=0.01), train_df[train_df['label'] == 1]])
 
+        # Create train and test dataframes
+        train_df = train_df.reset_index(drop=True)
+        test_df = test_df.reset_index(drop=True)
+
         # Tokenize data
         tokenizer = AutoTokenizer.from_pretrained(transformer_model_name)
         
