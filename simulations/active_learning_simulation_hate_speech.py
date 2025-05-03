@@ -457,6 +457,31 @@ def load_and_format_dataset(train_test_split_ratio = 0.2, transformer_model_name
             max_length=100,
             target_labels=np.array([0, 1])
         )
+
+        # Print dataset sizes and distribution
+        print(f"\nAG News Dataset Statistics:")
+        print(f"Train set size: {len(train_df)}")
+        print(f"Test set size: {len(test_df)}")
+        
+        # Print distribution by strat_col
+        print("\nTrain set distribution by category:")
+        train_counts = train_df['strat_col'].value_counts().sort_index()
+        for category, count in train_counts.items():
+            print(f"  Category {category}: {count} samples ({count/len(train_df)*100:.2f}%)")
+            
+        print("\nTest set distribution by category:")
+        test_counts = test_df['strat_col'].value_counts().sort_index()
+        for category, count in test_counts.items():
+            print(f"  Category {category}: {count} samples ({count/len(test_df)*100:.2f}%)")
+            
+        # Print binary label distribution
+        print(f"\nTrain set binary label distribution:")
+        print(f"  Label 0: {sum(train_df['label'] == 0)} samples ({sum(train_df['label'] == 0)/len(train_df)*100:.2f}%)")
+        print(f"  Label 1: {sum(train_df['label'] == 1)} samples ({sum(train_df['label'] == 1)/len(train_df)*100:.2f}%)")
+        
+        print(f"\nTest set binary label distribution:")
+        print(f"  Label 0: {sum(test_df['label'] == 0)} samples ({sum(test_df['label'] == 0)/len(test_df)*100:.2f}%)")
+        print(f"  Label 1: {sum(test_df['label'] == 1)} samples ({sum(test_df['label'] == 1)/len(test_df)*100:.2f}%)")
         
         return train_dataset, test_dataset, train_df, test_df
 
