@@ -793,8 +793,8 @@ def evaluate(active_learner, train, test, train_df=None, test_df=None, which_dat
                     
                     # Calculate metrics
                     r[f'Test accuracy_{category_name}'] = accuracy_score(subgroup_y_pred, subgroup_y_true)
-                    r[f'Test F1_{category_name}'] = f1_score(subgroup_y_pred, subgroup_y_true)
-                    r[f'Test precision_{category_name}'] = precision_score(subgroup_y_pred, subgroup_y_true)
+                    r[f'Test F1_{category_name}'] = f1_score(subgroup_y_pred, subgroup_y_true, zero_division=np.nan)
+                    r[f'Test precision_{category_name}'] = precision_score(subgroup_y_pred, subgroup_y_true, zero_division=np.nan)
                 
                 # Train set metrics for this category
                 train_category_indices = train_df['strat_col'] == category
@@ -805,8 +805,8 @@ def evaluate(active_learner, train, test, train_df=None, test_df=None, which_dat
                     
                     # Calculate metrics
                     r[f'Train accuracy_{category_name}'] = accuracy_score(subgroup_y_pred, subgroup_y_true)
-                    r[f'Train F1_{category_name}'] = f1_score(subgroup_y_pred, subgroup_y_true)
-                    r[f'Train precision_{category_name}'] = precision_score(subgroup_y_pred, subgroup_y_true)
+                    r[f'Train F1_{category_name}'] = f1_score(subgroup_y_pred, subgroup_y_true, zero_division=np.nan)
+                    r[f'Train precision_{category_name}'] = precision_score(subgroup_y_pred, subgroup_y_true, zero_division=np.nan)
 
     print('Test accuracy:', r['Test accuracy'], 'Test F1:', r['Test F1'], 'Test precision:', r['Test precision'], 'Test recall:', r['Test recall'])
 
@@ -832,7 +832,7 @@ if __name__ == '__main__':
         print(f"Created output directory: {output_dir}")
     
     # Process each seed once
-    for seed in [12731, 65372]:  # 42, 12731, 65372, 97, 163
+    for seed in [42, 12731, 65372]:  # 42, 12731, 65372, 97, 163
         print(f'#################{seed}##################')
         
         # Set seeds for everything
