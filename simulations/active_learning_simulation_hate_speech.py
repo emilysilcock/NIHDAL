@@ -853,7 +853,7 @@ if __name__ == '__main__':
             dataset=train, 
             dataset_df=train_df, 
             n_samples=100, 
-            strategy='random',
+            strategy='biased',
             which_data = which_data
         )
         
