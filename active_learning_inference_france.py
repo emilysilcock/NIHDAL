@@ -347,9 +347,10 @@ if __name__ == '__main__':
         )
 
     parsed_labelled_data = open_labelled_data(
-        ['Labelled_data/french_mentions/france_sample_1.json', 
+        ['Labelled_data/french_mentions/france_sample_1.json',
          'Labelled_data/french_mentions/france_sample_2.json',
-         'Labelled_data/french_mentions/france_sample_3.json',],
+         'Labelled_data/french_mentions/france_sample_3.json',
+         'Labelled_data/french_mentions/france_sample_4.json'],
         already_cleaned = 'Labelled_data/other_languages/French_mentions_benefits.json')
 
     texts = []
@@ -417,5 +418,5 @@ if __name__ == '__main__':
             "data": sample_list[i]
         })
 
-    with open(f'data_to_label/france_sample_4.json', 'w') as f:
+    with open(f'data_to_label/france_sample_5.json', 'w') as f:
         json.dump(to_label, f, indent=2, ensure_ascii=False)
