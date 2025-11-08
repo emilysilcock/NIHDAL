@@ -13,7 +13,7 @@ sample_list = []
 
 # Handelsblatt
 with open(f"/n/home09/esilcock/stigma-non-take-up/0_data/raw_data/newspapers/Handelsblatt_data/Articles/handelsblatt_sample.json") as f:
-    sample_list.extend(json.load(f).keys().list())
+    sample_list.extend(list(json.load(f).values()))
 
 
 # Bild
