@@ -349,7 +349,7 @@ if __name__ == '__main__':
     parsed_labelled_data = open_labelled_data(
         ['/n/home09/esilcock/stigma-non-take-up/0_data/raw_data/newspapers/Labelled_data/french_mentions/france_sample_corrected.json'
         ],
-        already_cleaned = '/n/home09/esilcock/stigma-non-take-up/0_data/raw_data/newspapers/Labelled_data/french_mentions/france_sample_corrected.json')
+        already_cleaned = 'Labelled_data/other_languages/French_mentions_benefits.json')
 
     texts = []
     indices_labeled = []
