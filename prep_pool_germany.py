@@ -27,29 +27,6 @@ sample_list.extend(random.sample(full_dat, 1000))
 print("Number of articles: ", len(sample_list))
 
 
-
-
-# LexisNexis
-publications = ["Le_Figaro", "Libération"]
-
-for publication in publications:
-
-    print(publication)
-
-    full_dat = []
-
-    for year in range(1995, 2024):
-        with open(f"/n/netscratch/economics/Lab/esilcock/LexisNexis_data/LexisNexis_clean/{publication}/{year}_cleaned.json") as f:
-            full_dat.extend(list(json.load(f).values()))
-
-    print(len(full_dat))
-
-    sample_list.extend(random.sample(full_dat, 1000))
-
-print("Number of articles: ", len(sample_list))
-
-
-
 # Split into chunks
 
 tokenization_model = 'deepset/gbert-large'
