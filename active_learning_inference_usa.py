@@ -339,10 +339,7 @@ if __name__ == '__main__':
 
     parsed_labelled_data = open_labelled_data([
         'Labelled_data/kw_initialisation/full_corrected.json',
-        'Labelled_data/usa_mentions/usa_sample_1.json',
-        'Labelled_data/usa_mentions/usa_sample_2.json',
-        'Labelled_data/usa_mentions/usa_sample_3.json',
-        'Labelled_data/usa_mentions/usa_sample_4.json'
+        '/n/home09/esilcock/stigma-non-take-up/0_data/raw_data/newspapers/Labelled_data/usa_mentions/usa_sample_corrected.json',
         ])
 
     texts = []
@@ -410,5 +407,5 @@ if __name__ == '__main__':
             "data": sample_list[i]
         })
 
-    with open(f'data_to_label/usa_sample_5.json', 'w') as f:
+    with open(f'data_to_label/usa_sample_6.json', 'w') as f:
         json.dump(to_label, f, indent=2)
