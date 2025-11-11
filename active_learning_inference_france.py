@@ -417,5 +417,5 @@ if __name__ == '__main__':
             "data": sample_list[i]
         })
 
-    with open(f'data_to_label/france_sample_6.json', 'w') as f:
+    with open(f'data_to_label/france_sample_7.json', 'w') as f:
         json.dump(to_label, f, indent=2, ensure_ascii=False)
