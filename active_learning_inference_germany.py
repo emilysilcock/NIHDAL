@@ -347,7 +347,7 @@ if __name__ == '__main__':
         )
 
     parsed_labelled_data = open_labelled_data(
-        [],
+        ['/n/home09/esilcock/stigma-non-take-up/0_data/raw_data/newspapers/Labelled_data/germany_mentions/sample_1.json'],
         already_cleaned = 'Labelled_data/other_languages/German_mentions_benefits.json')
 
     texts = []
@@ -415,5 +415,5 @@ if __name__ == '__main__':
             "data": sample_list[i]
         })
 
-    with open(f'data_to_label/germany_sample_1.json', 'w') as f:
+    with open(f'data_to_label/germany_sample_2.json', 'w') as f:
         json.dump(to_label, f, indent=2, ensure_ascii=False)
