@@ -1,4 +1,7 @@
+import gc
+
 import numpy as np
+import torch
 
 from small_text import DiscriminativeActiveLearning
 from small_text.query_strategies import QueryStrategy
@@ -54,6 +57,9 @@ class PretrainedDiscriminativeActiveLearning(QueryStrategy):
     def _train_and_get_most_confident(self, clf, ds, indices_unlabeled, indices_labeled, q):
         if self.clf_ is not None:
             del self.clf_
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
         original_num_classes = self.classifier_factory.num_classes
         self.classifier_factory.num_classes = 2
