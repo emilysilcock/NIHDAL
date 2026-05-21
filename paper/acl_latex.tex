@@ -1,0 +1,514 @@
+% This must be in the first 5 lines to tell arXiv to use pdfLaTeX, which is strongly recommended.
+\pdfoutput=1
+% In particular, the hyperref package requires pdfLaTeX in order to break URLs across lines.
+
+\documentclass[11pt]{article}
+
+% Change "review" to "final" to generate the final (sometimes called camera-ready) version.
+% Change to "preprint" to generate a non-anonymous version with page numbers.
+\usepackage[review]{acl}
+
+% Standard package includes
+\usepackage{times}
+\usepackage{latexsym}
+
+% For proper rendering and hyphenation of words containing Latin characters (including in bib files)
+\usepackage[T1]{fontenc}
+% For Vietnamese characters
+% \usepackage[T5]{fontenc}
+% See https://www.latex-project.org/help/documentation/encguide.pdf for other character sets
+
+% This assumes your files are encoded as UTF8
+\usepackage[utf8]{inputenc}
+
+% This is not strictly necessary, and may be commented out,
+% but it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+% This is also not strictly necessary, and may be commented out.
+% However, it will improve the aesthetics of text in
+% the typewriter font.
+\usepackage{inconsolata}
+
+%Including images in your LaTeX document requires adding
+%additional package(s)
+\usepackage{graphicx}
+
+% If the title and author information does not fit in the area allocated, uncomment the following
+%
+%\setlength\titlebox{<dim>}
+%
+% and set <dim> to something 5cm or larger.
+
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{amssymb}
+
+\title{Active Learning for Finding a Needle in a Haystack}
+
+% Author information can be set in various styles:
+% For several authors from the same institution:
+% \author{Author 1 \and ... \and Author n \\
+%         Address line \\ ... \\ Address line}
+% if the names do not fit well on one line use
+%         Author 1 \\ {\bf Author 2} \\ ... \\ {\bf Author n} \\
+% For authors from different institutions:
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \And  ... \And
+%         Author n \\ Address line \\ ... \\ Address line}
+% To start a separate ``row'' of authors use \AND, as in
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \AND
+%         Author 2 \\ Address line \\ ... \\ Address line \And
+%         Author 3 \\ Address line \\ ... \\ Address line}
+
+\author{First Author \\
+  Affiliation / Address line 1 \\
+  Affiliation / Address line 2 \\
+  Affiliation / Address line 3 \\
+  \texttt{email@domain} \\\And
+  Second Author \\
+  Affiliation / Address line 1 \\
+  Affiliation / Address line 2 \\
+  Affiliation / Address line 3 \\
+  \texttt{email@domain} \\}
+
+%\author{
+%  \textbf{First Author\textsuperscript{1}},
+%  \textbf{Second Author\textsuperscript{1,2}},
+%  \textbf{Third T. Author\textsuperscript{1}},
+%  \textbf{Fourth Author\textsuperscript{1}},
+%\\
+%  \textbf{Fifth Author\textsuperscript{1,2}},
+%  \textbf{Sixth Author\textsuperscript{1}},
+%  \textbf{Seventh Author\textsuperscript{1}},
+%  \textbf{Eighth Author \textsuperscript{1,2,3,4}},
+%\\
+%  \textbf{Ninth Author\textsuperscript{1}},
+%  \textbf{Tenth Author\textsuperscript{1}},
+%  \textbf{Eleventh E. Author\textsuperscript{1,2,3,4,5}},
+%  \textbf{Twelfth Author\textsuperscript{1}},
+%\\
+%  \textbf{Thirteenth Author\textsuperscript{3}},
+%  \textbf{Fourteenth F. Author\textsuperscript{2,4}},
+%  \textbf{Fifteenth Author\textsuperscript{1}},
+%  \textbf{Sixteenth Author\textsuperscript{1}},
+%\\
+%  \textbf{Seventeenth S. Author\textsuperscript{4,5}},
+%  \textbf{Eighteenth Author\textsuperscript{3,4}},
+%  \textbf{Nineteenth N. Author\textsuperscript{2,5}},
+%  \textbf{Twentieth Author\textsuperscript{1}}
+%\\
+%\\
+%  \textsuperscript{1}Affiliation 1,
+%  \textsuperscript{2}Affiliation 2,
+%  \textsuperscript{3}Affiliation 3,
+%  \textsuperscript{4}Affiliation 4,
+%  \textsuperscript{5}Affiliation 5
+%\\
+%  \small{
+%    \textbf{Correspondence:} \href{mailto:email@domain}{email@domain}
+%  }
+%}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+TBD
+\end{abstract}
+
+\section{Introduction}
+
+A really nice motivating example throughout this is hate speech 
+\begin{itemize}
+    \item Very small amount of speech is hate speech: \url{https://phys.org/news/2023-04-analysis-speech-significantly-twitter.html} - so it's a needle in a haystack problem
+    \item There are lots of different types of hate speech - some of them are big and some of them are small 
+    \item But we're interesting in finding all of them, even if they make up a very small part of total hate speech
+    \item So we're interested in this ``bias'' (defined below) idea rather than just accuracy in finding hate speech overall 
+\end{itemize}
+
+More generally, needle in a haystack problems must be common, because generally the most applicable cases for AL are those with a small target class - if it’s easy to find positives, then AL is less important. 
+
+[We've reformulated the problem a bit since I wrote this] There are two problems that we're trying to solve with Active Learning 
+
+\begin{enumerate}
+\item Biased seed - don’t want to this to affect our final classification 
+\item Imbalanced data - want to disproportionately label the target class (ie. want labelling to be efficient) 
+\end{enumerate}
+
+Random/DAL does really well on the former, but badly on the latter
+
+\begin{itemize}
+\item DAL experiments with highly imbalanced data, we find that it pulls out close to 0 of the target class for labelling 
+\item Somewhat unsurprising as in both cases, you are making your training sample representative of your pool and your pool is really unbalanced, so it’s going to be really inefficient
+\end{itemize}
+
+Uncertainty-based methods do well on the latter, but poorly on the former - they are known for introducing bias \url{https://arxiv.org/pdf/1909.09389.pdf}
+
+
+
+So if we set this as the goalposts, we can’t have efficient, representative active learning 
+
+A goal that makes more sense: we want the positive labels to be representative of all the positives in the data and the negatives to be representative of all the negatives in the data, while having a roughly equal number of positives and negatives. 
+
+
+
+\section{Literature}
+
+Previous active learning lit
+\url{https://arxiv.org/abs/2007.00077} - focuses on rare classes
+
+Surveys, Active Learning with BERT 
+
+Also related to the papers on domain adaptation 
+
+\begin{itemize} 
+\item Melissa/Jake suggested this: \url{https://arxiv.org/pdf/2403.03208.pdf}
+\item \url{https://melissadell.atlassian.net/wiki/spaces/TCC/pages/2584412161/Domain+Adaptation+Discriminative+Active+Learning}
+\item \url{https://spj.science.org/doi/10.34133/icomputing.0058#abstract}
+\item \url{https://link-springer-com.ezp-prod1.hul.harvard.edu/chapter/10.1007/978-3-031-33377-4_39}
+\item \url{https://aclanthology.org/D18-1318/}
+\item \url{https://arxiv.org/abs/2203.13450}
+\item \url{https://arxiv.org/abs/2210.10109}
+\item \url{https://proceedings.neurips.cc/paper_files/paper/2022/file/8c64bc3f7796d31caa7c3e6b969bf7da-Paper-Conference.pdf}
+\item \url{https://dl.acm.org/doi/abs/10.1145/3510414}
+\item \url{https://www-sciencedirect-com.ezp-prod1.hul.harvard.edu/science/article/abs/pii/S0950705122009248}
+\item \url{https://aclanthology.org/2020.emnlp-main.637/}
+\item \url{https://aclanthology.org/2021.emnlp-main.51.pdf}
+\item \url{https://aclanthology.org/2021.findings-emnlp.36v2.pdf}
+\end{itemize}
+
+
+\section{Measures/metrics/whatever}
+
+\subsection{Measuring efficiency}
+
+\begin{itemize}
+    \item Number of on-topic and off-topic articles pulled out
+    \item Accuracy, F1, Precision, Recall (AL with BERT paper comments on improvements on precision and recall)
+    \item Number of iterations until all positives are labelled 
+    \item Representativeness - For each labelled sample, how close are the 10 nearest unlabelled point - measures whether you’re disproportionately picking outliers. This isn’t really a bias-related measure, but an efficiency-related measure. Not very sure this is important, because we have better measures of efficiency. 
+\end{itemize}
+
+
+
+\subsection{Measuring bias}
+
+What do we mean by bias? Unbiased = errors made by the model are as good as random. Ie. every article in the dataset has the same probability of being mispredicted.
+
+Using the hate speech example, there is no marginalised group where we are systematically more likely to mispredict hate speech. 
+
+How to measure this? 
+
+\subsubsection{Looking at mispredictions}
+
+An ideal measure: run the AL method thousands of times, with different seeds. Look at whether there are some data points that are more likely to be mispredicted than others. But this is not compute feasible! 
+
+Another measure (less ideal, more feasible): somehow chunk the space up and see whether there are systematically different accuracies/F1s in different parts of the space. 
+
+
+\subsubsection{Exploring the space}
+
+If all points are a priori equally difficult to classify, then we want a uniform sampling of the support of the distribution of the pool. (If they're not equally difficult to classify, then we'd want this to be proportional to their difficulty of classification). 
+
+Related to the idea of whether we have explored the space.
+
+Ways of measuring this: 
+
+\begin{itemize}
+\item Time taken (number of iterations) to find rest of the positive class  
+\item Diversity 
+\begin{itemize}
+\item Every point as a labelled point that is close to it 
+\item  AL for BERT does this by using Euclidean distance on the CLS token 
+\item They take the mean of the minimum distance 
+\item Might want to think about taking the max of the minimum distance - could be a better measure of whether some spaces are entirely missed 
+\end{itemize}
+\item Are there other ways of looking whether a sample has labels for the support of the distribution? 
+\begin{itemize}
+\item Something to do with evenly spaced labels? 
+\item Average distance between labelled point? 
+\end{itemize}
+\item Given the goal outlined above, it seems to make sense so look at these each class at a time, or just for the positive class, rather than across the whole dataset. 
+\end{itemize}
+
+
+
+
+
+More/older thoughts on bias, and things that people have previously written about this: 
+
+We could have:  
+
+\begin{enumerate}
+    \item Bias from the initial seed -  we take this as given 
+    \item Bias from the AL method - ideally we want this to eliminate the bias from the seed and not introduce any additional bias, but there’s evidence that some AL methods increase bias 
+    \begin{itemize}
+        \item \url{https://arxiv.org/pdf/1909.09389.pdf} divide this kind of bias into two types:
+\item 1. Class bias: Greedy uncertainty based query strategies are said to pick disproportionately from a subset of classes per query (Sener and Savarese, 2018; Ebert et al., 2012), developing a lopsided representation in each query. However, its effect on the resulting sample set is not clear. We test this by measuring the  Kullback-Leibler (KL) divergence between the ground-truth label distribution and the distribution obtained per query  as one experiment and over the resulting sample ($\cap S$) as the second. 
+\begin{itemize}
+\item Note: this is really not what we want - we want balance between classes! 
+\item So we actually want to exact opposite of this measure 
+    \end{itemize}
+\item 2. Feature bias 
+\begin{itemize}
+\item Uncertainty sampling can lead to undesirable sampling bias in feature space (Settles, 2009) by repeating redundant samples and picking outliers (Zhu et al., 2008). Diversity-based query strategies (Sener and Savarese, 2018) are used to address this issue, by selecting a representative subset of the data.
+\item They find that it is biased, but it is biased in a way that helps with classification because it picks things close the boundary 
+\item Note: but this is bad if the boundary is wrong - if we have a biased seed, the initial boundary could be quite wrong, and if we only ever test things close to the boundary, we will never get over this bias 
+\end{itemize}
+    \end{itemize}    
+\end{enumerate}
+
+
+
+
+
+\section{Our method}
+
+Basic idea: split pool into predicted positives and predicted negatives and then run DAL 
+
+Two versions of this:
+
+1. Run DAL among pool of predicted positives, pulling n/2 samples, then repeat among pool of predicted negatives
+
+2. Reweight the pool so the number of predicted positives and predicted negatives are the same, then run DAL in this pool 
+
+In practice, the two give similar results. 
+
+\subsection{Stopping Criterion AL}
+NIHDAL lends itself to a stopping procedure - when you are getting consistently 50\% on topic and not, then you are done ... I think ? 
+
+Alternative stopping criterion: when you get down to nothing returned as positive 
+
+
+
+\section{Datasets}
+\label{sec:datasets}
+
+We evaluate on three publicly available text classification benchmarks, all sourced from the Hugging Face Hub. They are deliberately different in topic and class structure.
+
+\paragraph{AG News} \citep{zhang2015character} is a four-way news topic classification dataset whose classes are World, Sports, Business and Sci/Tech. The Hugging Face release ships balanced train (120{,}000) and test (7{,}600) splits, with $\sim$30{,}000 and 1{,}900 examples per class respectively.
+
+\paragraph{TREC-10} \citep{li-roth-2002-learning, hovy-etal-2001-toward} is a six-way coarse-grained question-type classification dataset whose classes are ABBR (abbreviations), ENTY (entities), DESC (descriptions), HUM (humans), LOC (locations) and NUM (numerics). The Hugging Face release ships 5{,}452 training questions and 500 test questions; class sizes are imbalanced, with ABBR the smallest at $\sim$86 training examples.
+
+\paragraph{UCB Measuring Hate Speech} \citep{sachdeva2022measuring} is a corpus of social-media comments annotated by multiple annotators along several dimensions, including an ordinal hate-speech-intensity score (\texttt{hate\_speech\_score}) and indicator flags for which demographic groups each comment targets (race, religion, gender, sexuality, age, disability, origin) and which sub-groups within them (e.g.\ Muslim, Jewish, Christian under religion). The Hugging Face release contains 135{,}556 annotator-level rows over 39{,}565 unique comments and ships only a train split.
+
+
+\section{Experiments}
+
+\subsection{Active Learning Strategies tested}
+
+Things that we experiment with:
+
+\begin{itemize}
+    \item Random
+    \item Uncertainty-based
+    \begin{itemize}
+        \item Least confidence \citep{DBLP:journals/corr/LewisG94}
+        \item BALD \citep{houlsby2011bayesian, pmlr-v48-gal16}
+    \end{itemize}
+    \item Gradient-based, aka, expected model change
+    \begin{itemize}
+        \item EGL \citep{DBLP:journals/corr/HuangCRLSC16} - not doing this, small-text guy said no one uses it any more
+        \item BADGE \citep{DBLP:journals/corr/abs-1906-03671}
+    \end{itemize}
+    \item Distribution-based aka diversity sampling 
+    \begin{itemize}
+        \item Core set  \citep{sener2018active, DBLP:journals/corr/abs-1711-00941}
+        \item DAL \citep{DBLP:journals/corr/abs-1907-06347}
+        \item Contrastive active learning \cite{margatina-etal-2021-active} - have not currently run this. Should look into it more
+    \end{itemize}
+    \item Hybrid/Ensemble results
+    \begin{itemize}
+        \item Haven't done any of these. Should read up more about these
+    \end{itemize}
+\end{itemize}
+
+Ours is either distribution-based or hybrid. 
+
+
+
+We might want to think about whether we can apply our split-sample approach to other methods 
+We can predict positives and negatives and then sample randomly within each 
+I guess we could do this with least confidence as well? 
+
+
+
+\subsection{Data preparation}
+\label{sec:datapprep}
+
+Across all three benchmarks (Section~\ref{sec:datasets}) we apply a common data-preparation pipeline.
+
+\paragraph{(a) Binarisation.} For each dataset we choose a target class and collapse the multi-class label to $\{0, 1\}$, with $1$ marking the target class and $0$ everything else. The target class for each dataset is given in Table~\ref{tab:datasets}.
+
+\paragraph{(b) Down-sampling to $\sim$1\% positive rate.} If the natural positive rate is materially above 1\% we down-sample the positive class until it accounts for $1\%$ of the dataset; if it is already at or near 1\%, no down-sampling is applied. The same rate is applied to train and test. This puts the target class firmly into ``needle in a haystack'' territory, which is the regime where active learning is most useful.
+
+\paragraph{(c) Biased and unbiased configurations.} For each dataset we run experiments under \emph{two} warm-start configurations. The biased configuration is motivated by a common practical pattern: a labeller starting a project is often aware of only one part of the target class, and we want to know whether an AL method can recover the parts they have not yet seen. The unbiased configuration is a control.
+
+Both configurations produce an initial labelled set of 100 examples (50 positive, 50 negative); negatives are always sampled uniformly at random, and the configurations differ only in how positives are drawn. In the \emph{unbiased} configuration the 50 positives are sampled uniformly at random from the full train positive pool. In the \emph{biased} configuration they are sampled uniformly at random from a designated \emph{seed sub-population} of the positives; all other positives are excluded from initialisation and tracked through the AL loop as a recovery diagnostic. The target class, seed sub-population, and resulting dataset sizes for each dataset and configuration are given in Table~\ref{tab:datasets}.
+
+For UCB Measuring Hate Speech the held-out sub-population is naturally available \emph{within} the target class --- the corpus annotates which religious sub-group each comment targets --- so we can hold out non-Muslim religion-targeted positives without changing what counts as a positive at all. AG News and TREC-10 do not have natural sub-populations within a single class, so to construct a comparable biased setup we widen the target class to a union of two neighbouring classes (World $\cup$ Sports, ABBR $\cup$ ENTY) and treat the second class as the held-out sub-population. This is why the biased target class is strictly broader than the unbiased one for those two datasets, and why their post-preprocessing dataset sizes differ between configurations in Table~\ref{tab:datasets}, while the two hate-speech rows have identical sizes by construction.
+
+\begin{table*}[t]
+\centering
+\small
+\begin{tabular}{@{}llllrrr@{}}
+\toprule
+Dataset & Setup & Target class & Positive seed pool & Train size & Test size & \% target (train) \\
+\midrule
+\multirow{2}{*}{AG News}         & Unbiased & World                  & World             & 90{,}909 & 5{,}757 & 1.00\% \\
+                                  & Biased   & World $\cup$ Sports    & World             & 60{,}606 & 3{,}838 & 1.00\% \\
+\cmidrule(lr){2-7}
+\multirow{2}{*}{TREC-10}         & Unbiased & ABBR                   & ABBR              & 5{,}420  & 495     & 1.00\% \\
+                                  & Biased   & ABBR $\cup$ ENTY       & ABBR              & 4{,}157  & 401     & 0.99\% \\
+\cmidrule(lr){2-7}
+\multirow{2}{*}{UCB Hate Speech} & Unbiased & Religion targeted      & Religion-targeted & 31{,}587 & 7{,}901 & 1.34\% \\
+                                  & Biased   & Religion targeted      & Muslim-targeted   & 31{,}587 & 7{,}901 & 1.34\% \\
+\bottomrule
+\end{tabular}
+\caption{Benchmark datasets after data preparation (Section~\ref{sec:datapprep}), shown for both experimental configurations. ``Positive seed pool'' is the subset of train positives from which the warm-start sample draws its 50 positive examples; for the biased configuration of AG News and TREC-10 the positive class is widened so that the held-out sub-population (Sports / ENTY) is part of the AL pool but not the seed. Hate speech keeps the same target class across configurations, with the seed pool restricted to Muslim-targeted comments in the biased configuration. The target down-sampling fraction is $0.01$ for AG News and TREC-10; hate speech is left at its natural rate ($\sim$1.34\%) because annotator aggregation already yields close to that target. Hugging Face source identifiers and full per-dataset processing details are given in Appendix~\ref{sec:appendix-datasets}.}
+\label{tab:datasets}
+\end{table*}
+
+
+
+
+\section{Early Stopping in training}
+Unlike the original DAL paper we do not find that early stopping is helpful in the discriminative training. 
+
+\section{Limitations}
+
+
+Should extend beyond binary classification? But we haven't implemented 
+
+\section*{Acknowledgments}
+
+% Melissa, Jake
+
+\bibliography{custom}
+
+\appendix
+
+\section{Implementation notes}
+\label{sec:appendix}
+
+Unlike the original DAL paper we do not find that early stopping is helpful in the discriminative training.
+
+\section{Dataset-specific preprocessing}
+\label{sec:appendix-datasets}
+
+The shared preprocessing pipeline (binarise $\to$ down-sample to $\sim$1\%) is described in the main body. Per-dataset choices are below.
+
+\paragraph{AG News.} Used as-is from the Hugging Face \texttt{ag\_news} release: 120{,}000 train and 7{,}600 test examples, balanced 25\% per class. The target class is selected by the loader's \texttt{target\_labels} argument; the default \texttt{(0,)} corresponds to \emph{World}. For biased-seed experiments, \texttt{target\_labels = [0, 1]} so that the second listed class (\emph{Sports}) acts as the held-out sub-population: those rows are excluded from the initial seed and tracked through the AL loop.
+
+\paragraph{TREC-10.} Loaded from the Hugging Face \texttt{trec} release, renaming the \texttt{coarse\_label} column to \texttt{label}. There are 5{,}452 train and 500 test questions, with the canonical six-way coarse-grained label set (ABBR, ENTY, DESC, HUM, LOC, NUM); ABBR is the smallest coarse class with a natural rate of $\sim$1.6\% in train. The default target class is ABBR (\texttt{label = 0}); for biased-seed experiments, \texttt{target\_labels = [0, 1]} so that ENTY is held out.
+
+\paragraph{UCB Measuring Hate Speech.} Loaded from the Hugging Face \texttt{ucberkeley-dlab/measuring-hate-speech} release. Requires substantially more preprocessing than the other two benchmarks:
+\begin{enumerate}
+    \item \textbf{Annotator aggregation.} The raw release contains one row per (comment, annotator) pair. We group by \texttt{(comment\_id, text)} and average the numeric fields (overall \texttt{hate\_speech\_score}, \texttt{target\_religion}, and each of the eight per-religion indicators), reducing 135{,}556 rows to 39{,}565 unique comments.
+    \item \textbf{Label derivation.} The binary label is set to $1$ where the aggregated $\texttt{hate\_speech\_score} > 1$ \emph{and} aggregated $\texttt{target\_religion} = 1$; $0$ otherwise.
+    \item \textbf{Per-religion strict flags.} For each of the eight religious groups (atheist, buddhist, christian, hindu, jewish, mormon, muslim, other) we form a strict flag equal to $1$ where $\texttt{target\_religion\_X} = 1$ \emph{and} $\texttt{hate\_speech\_score} > 1$.
+    \item \textbf{Inconsistency filter.} 77 rows where the binary label is $1$ but no strict religious flag is set are dropped, leaving 39{,}488 comments.
+    \item \textbf{Stratification column.} Each row is assigned a \texttt{strat\_col} equal to the \emph{smallest} religious sub-population it strictly targets (resolving ties by religion-size order); rows that target no religion are labelled ``none''. This rare-first assignment ensures that the smallest sub-populations are represented in both splits.
+    \item \textbf{Train/test split.} The Hugging Face release ships only a \texttt{train} split, so we form an 80/20 split stratified on \texttt{strat\_col} with fixed \texttt{random\_state = 42}.
+    \item \textbf{No down-sampling.} Because annotator aggregation already yields a positive rate close to the 1\% target, we apply no further imbalance. The \texttt{target\_fraction} argument is accepted by the loader for registry compatibility but ignored.
+    \item \textbf{Biased sub-population.} For biased-seed experiments, the seed pool is restricted to \emph{Muslim-targeted} positives (the largest religious sub-population, $n=184$ in train); the other 240 religion-targeted train positives are returned as \texttt{bias\_indices} and held out from initialisation.
+\end{enumerate}
+
+
+
+\section{Motivating econometrics/statistics}
+
+\paragraph{Problem Statement.}
+Suppose we have a binary variable $D \in \{0,1\}$ and a high-dimensional covariate vector $\mathbf{X} \in \mathcal{X} \subseteq \mathbb{R}^d$. The \emph{true} $D$ is partially or fully unobserved, and instead we only have access to a \emph{predicted or measured} variable
+\[
+  \widehat{D} = \widehat{D}(\mathbf{X}),
+\]
+which may be subject to misclassification relative to $D$. We define the misclassification indicator
+\[
+  M \;=\; \mathbf{1}\{\widehat{D} \neq D\}.
+\]
+This setup arises in numerous applications:
+\begin{itemize}
+  \item \textbf{Classification tasks in machine learning (ML) or computer science (CS):} $\widehat{D}$ is learned from data, potentially with high-dimensional features (e.g.\ text embeddings, images).
+  \item \textbf{Measurement error in econometrics or statistics:} $D$ is a latent binary variable (e.g.\ ``treatment'' or ``eligibility''), and $\widehat{D}$ is a noisy observed proxy.
+\end{itemize}
+
+\paragraph{Motivation: Downstream Tasks and Shortcomings of Overall Accuracy.}
+Standard practice in computer science and ML is to evaluate a classifier $\widehat{D}(\mathbf{X})$ by \emph{overall accuracy}, precision, recall, AUC, or other aggregate predictive metrics. However, these metrics \emph{do not} fully capture whether misclassification is \emph{differential with respect to $\mathbf{X}$}, i.e.\ if there exist subpopulations (possibly small) in which misclassification rates deviate systematically from the global average.
+
+This distinction matters especially when there are \emph{downstream tasks} such as regression or causal inference, where $D$ plays an important role (eg as a selection variable or a regressor). If $\widehat{D}$ makes \emph{systematic} errors in subpopulations of $\mathbf{X}$---in other words, $\Pr(\widehat{D} \neq D \mid \mathbf{X} = x)$ depends on $x$---it can result in additional bias that could be significantly than for instance standard "attenuation" bias from random measurement error.
+
+\paragraph{Basic example 1}
+If $D$ selects instances for treatment effect estimation and it systematically selects the ones with low treatment effects that would yield a significant bias in treatment effect estimation.
+
+\paragraph{Could write a more explicit example based on regression like this}
+A canonical downstream task is the linear model
+\[
+  Y \;=\; \alpha \;+\; \beta\,D \;+\; \gamma^\top \mathbf{X} \;+\; u,
+\]
+with $\mathbb{E}[u \mid D,\mathbf{X}] = 0.$ If we replace $D$ by $\widehat{D}$ in a naive regression of $Y$ on $(\widehat{D}, \mathbf{X})$, bias arises whenever $\widehat{D}$ is systematically correlated with $u$. Differential misclassification with respect to $\mathbf{X}$---especially in regions where $u$ or $\beta$ is large---can induce significant bias. In contrast, if $\widehat{D}\neq D$ is \emph{nondifferential} w.r.t.\ $\mathbf{X}$, the main effect is an overall attenuation of $\beta$ rather than a more severe bias.
+
+\subsection*{Measuring Differential Misclassification}
+
+So clearly we want some measures of differential misclassification.
+
+
+The first basic one which we should definitely have because it is nice and intuitive is simply the F1 or any other classic CS score on a small subclass of the target class (for instance the unseeded one).
+
+
+But then we can think about some more formal options.
+
+\subsubsection*{Testing the Constancy of Conditional Misclassification Probability}
+
+A natural approach is to examine 
+\[
+  m(\mathbf{x}) \;=\; \Pr(M=1 \mid \mathbf{X}=\mathbf{x})
+\]
+If $m(\mathbf{x})$ is \emph{constant} in $\mathbf{x}$, we say misclassification is nondifferential (no subpopulation has systematically higher errors). If $m(\mathbf{x})$ is not constant, we have differential misclassification.
+
+In practice, we want a summary measure of this and we need a way of knowing whether the deviations of an estimated $m(\mathbf{x})$ are significant.
+
+\paragraph{Cross-Validated Prediction \& Permutation Test.}
+In high-dimensional settings, a practical and conceptually straightforward method is:
+\begin{enumerate}
+  \item \textbf{Treat $M$ as the target to predict from $\mathbf{X}$.} Train a flexible classifier (\emph{e.g.}, random forests, gradient boosting) to predict $M$ using $\mathbf{X}$, using cross-validation for out-of-sample metrics.
+  \item \textbf{Compare observed predictive performance to a null/permutation distribution.} Under the null hypothesis of no dependence between $M$ and $\mathbf{X}$, permuting the $M_i$ labels relative to $\mathbf{X}_i$ should not decrease predictive power. Formally, compute a p-value by how often random permutations yield an equal or better out-of-sample AUC (or accuracy) than the original.
+\end{enumerate}
+A significant result implies that $\widehat{D}\neq D$ is predictable from $\mathbf{X}$, so misclassification must be differential. If it is not significant, we fail to reject nondifferential errors. Then maybe we could look at the p-value as a summary value to compare the different methods.
+
+\paragraph{Why a Permutation Test Is Necessary.}
+Merely observing that this prediction achieves an AUC above 0.5 or an accuracy above chance does not tell us \emph{how statistically significant} the improvement is nor whether it could arise from overfitting.  A \emph{permutation test} provides a formally justified $p$-value in a distribution-free manner:
+\begin{enumerate}
+  \item \textbf{Null hypothesis.} Under $H_0$: $M$ is independent of $\mathbf{X}$ (i.e.\ no differential misclassification).  In such a case, random permutations of $M$ relative to $\mathbf{X}$ should produce similar cross-validated accuracy/AUC as the original pairing.
+  \item \textbf{Permutation procedure.} Shuffle $(M_1, \dots, M_n)$ among the $(\mathbf{X}_1, \dots, \mathbf{X}_n)$, retrain and re-evaluate the classifier to obtain a distribution of predictive metrics under $H_0$.
+  \item \textbf{$p$-value.} If the observed predictive performance (e.g.\ out-of-sample AUC) on the actual data is in the extreme tail of the permuted distribution, we reject $H_0$ at the chosen significance level, concluding $\Pr(M=1 \mid \mathbf{X})$ is \emph{not} constant.
+\end{enumerate}
+\textbf{Key benefit:} The permutation approach is \emph{not} just an aggregate measure of predictive performance---it gives a formal test of ``is there truly a dependence between $\mathbf{X}$ and $M$ in the population?'' Even a modest AUC could be highly significant if the dataset is large, whereas a large AUC might fail to be significant if sample size is small or if $M$ is noisy in ways that the classifier can exploit by chance. Hence, a permutation test rigorously distinguishes a genuine systematic pattern from one that could be explained by random fluctuations or finite-sample overfitting.
+
+
+\paragraph{Some other ideas: Shape-Testing and Treatment Effect Heterogeneity.}
+The econometrics literature on testing shape constraints seems very relevant. Maybe we can adapt some or find some nonparametric specification tests to check if $m(\mathbf{x})$ is constant. Maybe the Max Farrell binning paper and testing shape constraints would be relevant, though I am not sure it applies in the high-dimensional setting.
+
+
+There is also a pretty strong seeming relevance of the treatment effect heterogeneity literature. A basic idea would be regress $D$ on $\hat{D}$ and see whether $X$ makes a difference and that is testing for treatment effect heterogeneity and there has been tons of results in the past years, in particular for RCTs with high-dimensional covariates, which is more or less exactly our situation.
+
+\subsubsection*{Considering Small Regions or Rare Subpopulations}
+
+This still doesn't address all the potential worries. A potential limitation of global tests (or average measures) is that they weigh each $(\mathbf{x}_i, M_i)$ according to the empirical distribution of $\mathbf{X}$. Hence, large errors in a \emph{small} region of $\mathbf{X}$ may be diluted in an overall average. However, that small region could be highly relevant in downstream analysis.
+
+\paragraph{Some ideas.}
+\begin{itemize}
+  \item \textbf{Subgroup Analysis or Bin/Cluster Approaches.} Partition $\mathbf{X}$ into subgroups (possibly via clustering). Evaluate misclassification \emph{within} each subgroup. This identifies ``hotspots'' where $m(\mathbf{x})$ is large, even if the group is small. 
+  \item \textbf{Nonparametric ``Anomaly'' or ``Hotspot'' Detection.} Scan statistics or local detection methods can systematically search for small regions of high misclassification. In high dimensions, approximate methods (e.g.\ cluster-based scanning) are often used.
+  \item \textbf{\emph{Sup} Tests.} Really what we want is something like a uniform test, which suggests looking at the sup of the deviation.
+  
+  Note that actually maybe the sup is too strong of a condition because in a region where this basically no points it actually wouldn't matter, so maybe it would be sup with a minimal mass constraint. 
+
+  Statistically, this does not seem obvious to get actual results on.
+  \item \textbf{Treatment Effect Heterogeneity (Subgroup) Analyses.} I think there is some literature in the treatment effect literature on finding subgroups that were particularly affected (or negatively affected), which again is more or less exactly our problem.
+\end{itemize}
+All these strategies aim to ensure that rare but systematically misclassified subpopulations are detected.
+
+\end{document}

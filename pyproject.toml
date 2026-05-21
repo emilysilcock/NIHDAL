@@ -1,0 +1,14 @@
+[project]
+name = "nihdal"
+version = "0.1.0"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "small-text[transformers]==1.4.1",
+    "transformers",
+    "datasets",
+    "scikit-learn",
+    "numpy",
+    "tqdm",
+    "beautifulsoup4",
+    "truststore>=0.10 ; sys_platform == 'win32'",
+]

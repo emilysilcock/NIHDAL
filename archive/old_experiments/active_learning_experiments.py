@@ -20,6 +20,9 @@ from small_text import (
     random_initialization_balanced
 )
 
+from small_text.query_strategies import QueryStrategy
+from small_text.utils.context import build_pbar_context
+
 
 class DiscriminativeActiveLearning_amended(DiscriminativeActiveLearning):
 
@@ -53,7 +56,122 @@ class DiscriminativeActiveLearning_amended(DiscriminativeActiveLearning):
         return np.argpartition(-proba, q)[:q]
 
 
-class NIHDAL(DiscriminativeActiveLearning_amended):
+class PretrainedDiscriminativeActiveLearning(QueryStrategy):
+    """Discriminative Active Learning that initializes the discriminative transformer classifier
+    with weights from the main transformer model.
+    """
+
+    LABEL_LABELED_POOL = 0
+    LABEL_UNLABELED_POOL = 1
+
+    def __init__(self, classifier_factory, num_iterations=10, unlabeled_factor=10, pbar='tqdm'):
+        self.classifier_factory = classifier_factory
+        self.num_iterations = num_iterations
+        self.unlabeled_factor = unlabeled_factor
+        self.pbar = pbar
+        self.clf_ = None
+
+    def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
+        self._validate_query_input(indices_unlabeled, n)
+
+        if len(indices_unlabeled) == n:
+            return np.array(indices_unlabeled)
+
+        query_sizes = DiscriminativeActiveLearning._get_query_sizes(self.num_iterations, n)
+        indices = self._discriminative_active_learning(clf, dataset, indices_unlabeled, indices_labeled,
+                                                      query_sizes)
+        return indices
+
+    def _discriminative_active_learning(self, clf, dataset, indices_unlabeled, indices_labeled, query_sizes):
+        indices = np.array([], dtype=indices_labeled.dtype)
+        indices_unlabeled_copy = np.copy(indices_unlabeled)
+        indices_labeled_copy = np.copy(indices_labeled)
+
+        with build_pbar_context(len(query_sizes)) as pbar:
+            for q in query_sizes:
+                indices_most_confident = self._train_and_get_most_confident(clf, dataset,
+                                                                         indices_unlabeled_copy,
+                                                                         indices_labeled_copy, q)
+
+                indices = np.append(indices, indices_unlabeled_copy[indices_most_confident])
+                indices_labeled_copy = np.append(indices_labeled_copy,
+                                              indices_unlabeled_copy[indices_most_confident])
+                indices_unlabeled_copy = np.delete(indices_unlabeled_copy, indices_most_confident)
+                pbar.update(1)
+
+        return indices
+
+    def _train_and_get_most_confident(self, clf, ds, indices_unlabeled, indices_labeled, q):
+        if self.clf_ is not None:
+            del self.clf_
+
+        # Create a new binary classifier from the factory
+        original_num_classes = self.classifier_factory.num_classes
+        self.classifier_factory.num_classes = 2
+        discr_clf = self.classifier_factory.new()
+        self.classifier_factory.num_classes = original_num_classes
+
+        # Create the discriminative dataset first
+        num_unlabeled = min(indices_labeled.shape[0] * self.unlabeled_factor,
+                        indices_unlabeled.shape[0])
+
+        indices_unlabeled_sub = np.random.choice(indices_unlabeled,
+                                            num_unlabeled,
+                                            replace=False)
+
+        ds_discr = DiscriminativeActiveLearning.get_relabeled_copy(ds,
+                                                                indices_unlabeled_sub,
+                                                                indices_labeled)
+
+        # Try to initialize the model if needed
+        # Many transformer models initialize on first use
+        if hasattr(discr_clf, 'initialize'):
+            discr_clf.initialize()
+
+        # Now try copying weights from the main model if possible
+        if hasattr(clf, 'model') and hasattr(discr_clf, 'model') and \
+        clf.model is not None and discr_clf.model is not None:
+            try:
+                # Get state dictionaries
+                main_state_dict = clf.model.state_dict()
+                discr_state_dict = discr_clf.model.state_dict()
+
+                # Copy all matching parameters except the classification head
+                for name, param in main_state_dict.items():
+                    # Skip classification head parameters and mismatched shapes
+                    if 'classifier' not in name and 'head' not in name and \
+                    name in discr_state_dict and \
+                    discr_state_dict[name].shape == param.shape:
+                        discr_state_dict[name].copy_(param)
+
+                # Load the updated state dict
+                discr_clf.model.load_state_dict(discr_state_dict)
+
+                # Retrain with the copied weights
+                self.clf_ = discr_clf.fit(ds_discr)
+            except Exception as e:
+                # Fit the model from scratch if weight transfer fails
+                discr_clf.fit(ds_discr)
+                self.clf_ = discr_clf
+                print(f"Weight transfer failed, training from scratch. Error: {e}")
+        else:
+            print("No weights to transfer, training from scratch")
+            discr_clf.fit(ds_discr)
+            self.clf_ = discr_clf
+
+        # Get predictions
+        proba = self.clf_.predict_proba(ds[indices_unlabeled])
+        proba = proba[:, self.LABEL_UNLABELED_POOL]
+
+        # Return instances which most likely belong to the "unlabeled" class
+        return np.argpartition(-proba, q)[:q]
+
+    def __str__(self):
+        return f'PretrainedDiscriminativeActiveLearning(classifier_factory={str(self.classifier_factory)}, ' \
+               f'num_iterations={self.num_iterations}, unlabeled_factor={self.unlabeled_factor})'
+
+
+class NIHDAL(PretrainedDiscriminativeActiveLearning):
 
     """Similar to Discriminative Active Learning, but applied on the predicted target and 
      others separately. 
@@ -101,10 +219,11 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
             target_indices = np.array(target_indices_unlabeled)
 
             # Run normal DAL for the rest
-            query_sizes = self._get_query_sizes(self.num_iterations, n - len(target_indices))
+            query_sizes = DiscriminativeActiveLearning._get_query_sizes(self.num_iterations, n - len(target_indices))
 
             print("Finding others to label ...")
-            other_indices = self.discriminative_active_learning(
+            other_indices = self._discriminative_active_learning(
+                clf,
                 dataset,
                 other_indices_unlabeled,
                 other_indices_labeled,
@@ -120,10 +239,11 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
             other_indices = np.array(target_indices_unlabeled)
 
             # Run normal DAL for the rest
-            query_sizes = self._get_query_sizes(self.num_iterations, n - len(other_indices))
+            query_sizes = DiscriminativeActiveLearning._get_query_sizes(self.num_iterations, n - len(other_indices))
 
             print("Finding targets to label ...")
-            target_indices = self.discriminative_active_learning(
+            target_indices = self._discriminative_active_learning(
+                clf,
                 dataset,
                 target_indices_unlabeled,
                 target_indices_labeled,
@@ -131,17 +251,19 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
             )
 
         else:
-            query_sizes = self._get_query_sizes(self.num_iterations, int(n/2))
+            query_sizes = DiscriminativeActiveLearning._get_query_sizes(self.num_iterations, int(n/2))
 
             print("Finding targets to label ...")
-            target_indices = self.discriminative_active_learning(
+            target_indices = self._discriminative_active_learning(
+                clf,
                 dataset,
                 target_indices_unlabeled,
                 target_indices_labeled,
                 query_sizes
             )
             print("Finding others to label ...")
-            other_indices = self.discriminative_active_learning(
+            other_indices = self._discriminative_active_learning(
+                clf,
                 dataset,
                 other_indices_unlabeled,
                 other_indices_labeled,
@@ -191,7 +313,7 @@ class NIHDAL(DiscriminativeActiveLearning_amended):
         return selected_indices
 
 
-class NIHDAL_2(DiscriminativeActiveLearning_amended):
+class NIHDAL_2(PretrainedDiscriminativeActiveLearning):
 
     """Similar to Discriminative Active Learning, but applied reweighting the pool.
     """
@@ -229,9 +351,10 @@ class NIHDAL_2(DiscriminativeActiveLearning_amended):
         # Run DAL
         self._validate_query_input(balanced_indices_unlabeled, n)
 
-        query_sizes = self._get_query_sizes(self.num_iterations, int(n))
+        query_sizes = DiscriminativeActiveLearning._get_query_sizes(self.num_iterations, int(n))
 
-        selected_indices = self.discriminative_active_learning(
+        selected_indices = self._discriminative_active_learning(
+            clf,
             dataset,
             balanced_indices_unlabeled,
             indices_labeled,
@@ -552,7 +675,7 @@ def set_up_active_learner(transformer_model_name, active_learning_method):
                                                                     }))
 
     if active_learning_method == "DAL":
-        query_strategy = DiscriminativeActiveLearning_amended(classifier_factory=clf_factory_2, num_iterations=10)
+        query_strategy = PretrainedDiscriminativeActiveLearning(classifier_factory=clf_factory_2, num_iterations=10)
     elif active_learning_method == "NIHDAL":
         query_strategy = NIHDAL(classifier_factory=clf_factory_2, num_iterations=10)
     elif active_learning_method == "NIHDAL_simon":

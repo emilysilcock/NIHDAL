@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+.venv/
+.python-version-local
+
+results/
+!results/.gitkeep
+
+# FASRC / SLURM scripts and notes (private, not for release)
+slurm/
+
+.ipynb_checkpoints/
+
+.DS_Store

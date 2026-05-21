@@ -1,0 +1,58 @@
+This is BibTeX, Version 0.99d (TeX Live 2024)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: acl_latex.aux
+The style file: acl_natbib.bst
+Reallocated glb_str_ptr (elt_size=4) to 20 items from 10.
+Reallocated global_strs (elt_size=200001) to 20 items from 10.
+Reallocated glb_str_end (elt_size=4) to 20 items from 10.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+Database file #1: custom.bib
+Repeated entry---line 198 of file custom.bib
+ : @article{DBLP:journals/corr/abs-1907-06347
+ :                                           ,
+I'm skipping whatever remains of this entry
+Warning--I didn't find a database entry for "margatina-etal-2021-active"
+You've used 12 entries,
+            3764 wiz_defined-function locations,
+            821 strings with 8579 characters,
+and the built_in function-call counts, 8581 in all, are:
+= -- 733
+> -- 422
+< -- 9
++ -- 168
+- -- 124
+* -- 582
+:= -- 1302
+add.period$ -- 49
+call.type$ -- 12
+change.case$ -- 111
+chr.to.int$ -- 13
+cite$ -- 12
+duplicate$ -- 522
+empty$ -- 613
+format.name$ -- 171
+if$ -- 1877
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 117
+newline$ -- 64
+num.names$ -- 48
+pop$ -- 305
+preamble$ -- 1
+purify$ -- 89
+quote$ -- 0
+skip$ -- 472
+stack$ -- 0
+substring$ -- 176
+swap$ -- 278
+text.length$ -- 3
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 108
+warning$ -- 0
+while$ -- 39
+width$ -- 0
+write$ -- 159
+(There was 1 error message)

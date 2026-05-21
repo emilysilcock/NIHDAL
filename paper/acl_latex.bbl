@@ -1,0 +1,91 @@
+\begin{thebibliography}{12}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Ash et~al.(2019)Ash, Zhang, Krishnamurthy, Langford, and
+  Agarwal}]{DBLP:journals/corr/abs-1906-03671}
+Jordan~T. Ash, Chicheng Zhang, Akshay Krishnamurthy, John Langford, and Alekh
+  Agarwal. 2019.
+\newblock \href {https://arxiv.org/abs/1906.03671} {Deep batch active learning
+  by diverse, uncertain gradient lower bounds}.
+\newblock \emph{CoRR}, abs/1906.03671.
+
+\bibitem[{Gal and Ghahramani(2016)}]{pmlr-v48-gal16}
+Yarin Gal and Zoubin Ghahramani. 2016.
+\newblock \href {https://proceedings.mlr.press/v48/gal16.html} {Dropout as a
+  bayesian approximation: Representing model uncertainty in deep learning}.
+\newblock In \emph{Proceedings of The 33rd International Conference on Machine
+  Learning}, volume~48 of \emph{Proceedings of Machine Learning Research},
+  pages 1050--1059, New York, New York, USA. PMLR.
+
+\bibitem[{Geifman and El{-}Yaniv(2017)}]{DBLP:journals/corr/abs-1711-00941}
+Yonatan Geifman and Ran El{-}Yaniv. 2017.
+\newblock \href {https://arxiv.org/abs/1711.00941} {Deep active learning over
+  the long tail}.
+\newblock \emph{CoRR}, abs/1711.00941.
+
+\bibitem[{Gissin and
+  Shalev{-}Shwartz(2019)}]{DBLP:journals/corr/abs-1907-06347}
+Daniel Gissin and Shai Shalev{-}Shwartz. 2019.
+\newblock \href {https://arxiv.org/abs/1907.06347} {Discriminative active
+  learning}.
+\newblock \emph{CoRR}, abs/1907.06347.
+
+\bibitem[{Houlsby et~al.(2011)Houlsby, Huszár, Ghahramani, and
+  Lengyel}]{houlsby2011bayesian}
+Neil Houlsby, Ferenc Huszár, Zoubin Ghahramani, and Máté Lengyel. 2011.
+\newblock \href {https://arxiv.org/abs/1112.5745} {Bayesian active learning for
+  classification and preference learning}.
+\newblock \emph{Preprint}, arXiv:1112.5745.
+
+\bibitem[{Hovy et~al.(2001)Hovy, Gerber, Hermjakob, Lin, and
+  Ravichandran}]{hovy-etal-2001-toward}
+Eduard Hovy, Laurie Gerber, Ulf Hermjakob, Chin-Yew Lin, and Deepak
+  Ravichandran. 2001.
+\newblock \href {https://www.aclweb.org/anthology/H01-1069} {Toward
+  semantics-based answer pinpointing}.
+\newblock In \emph{Proceedings of the First International Conference on Human
+  Language Technology Research}.
+
+\bibitem[{Huang et~al.(2016)Huang, Child, Rao, Liu, Satheesh, and
+  Coates}]{DBLP:journals/corr/HuangCRLSC16}
+Jiaji Huang, Rewon Child, Vinay Rao, Hairong Liu, Sanjeev Satheesh, and Adam
+  Coates. 2016.
+\newblock \href {https://arxiv.org/abs/1612.03226} {Active learning for speech
+  recognition: the power of gradients}.
+\newblock \emph{CoRR}, abs/1612.03226.
+
+\bibitem[{Lewis and Gale(1994)}]{DBLP:journals/corr/LewisG94}
+David~D. Lewis and William~A. Gale. 1994.
+\newblock \href {https://arxiv.org/abs/cmp-lg/9407020} {A sequential algorithm
+  for training text classifiers}.
+\newblock \emph{CoRR}, abs/cmp-lg/9407020.
+
+\bibitem[{Li and Roth(2002)}]{li-roth-2002-learning}
+Xin Li and Dan Roth. 2002.
+\newblock \href {https://www.aclweb.org/anthology/C02-1150} {Learning question
+  classifiers}.
+\newblock In \emph{{COLING} 2002: The 19th International Conference on
+  Computational Linguistics}.
+
+\bibitem[{Sachdeva et~al.(2022)Sachdeva, Barreto, Bacon, Sahn, von Vacano, and
+  Kennedy}]{sachdeva2022measuring}
+Pratik~S. Sachdeva, Renata Barreto, Geoff Bacon, Alexander Sahn, Claudia von
+  Vacano, and Chris Kennedy. 2022.
+\newblock The measuring hate speech corpus: Leveraging rasch measurement theory
+  for data perspectivism.
+\newblock In \emph{Proceedings of the 1st Workshop on Perspectivist Approaches
+  to NLP @LREC2022}.
+
+\bibitem[{Sener and Savarese(2018)}]{sener2018active}
+Ozan Sener and Silvio Savarese. 2018.
+\newblock \href {https://arxiv.org/abs/1708.00489} {Active learning for
+  convolutional neural networks: A core-set approach}.
+\newblock \emph{Preprint}, arXiv:1708.00489.
+
+\bibitem[{Zhang et~al.(2015)Zhang, Zhao, and LeCun}]{zhang2015character}
+Xiang Zhang, Junbo Zhao, and Yann LeCun. 2015.
+\newblock Character-level convolutional networks for text classification.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~28.
+
+\end{thebibliography}
