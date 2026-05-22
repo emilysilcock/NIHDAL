@@ -4,11 +4,28 @@ version = "0.1.0"
 requires-python = ">=3.11,<3.12"
 dependencies = [
     "small-text[transformers]==1.4.1",
-    "transformers",
+    # small-text 1.4.1 (Jan 2024) uses tokenizer.encode_plus, which transformers 5.x removed.
+    "transformers>=4.30,<5",
+    # datasets >=3.0 dropped support for Python loader scripts; benchmarks/trec.py now
+    # downloads the raw .label files directly, so we no longer need a script-supporting
+    # version. Keep latest as long as the API we use (Dataset.from_dict, rename_column,
+    # cast, etc.) stays stable.
     "datasets",
     "scikit-learn",
     "numpy",
     "tqdm",
     "beautifulsoup4",
     "truststore>=0.10 ; sys_platform == 'win32'",
+    # Pin torch to a cu128 build: FASRC drivers cap at CUDA 12.9, so +cu130
+    # wheels silently fall back to CPU on the cluster. cu128 wheels also work
+    # on Windows (CUDA backwards compat).
+    "torch>=2.11,<2.12",
 ]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
