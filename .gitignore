@@ -8,6 +8,10 @@ __pycache__/
 results/
 !results/.gitkeep
 
+# Runtime dirs created on FASRC when SCRATCH_BASE == project root
+hf_cache/
+logs/
+
 # FASRC / SLURM scripts and notes (private, not for release)
 slurm/
 
