@@ -30,27 +30,28 @@ def make_imbalanced(dataset, indices_to_track=None, target_fraction=0.01):
     that survived the down-sampling. Used to keep track of a non-seeded sub-population
     of targets in the biased-initialization experiments.
     """
-    other_samples = dataset.filter(lambda example: example["label"] == 0)
-    target_samples = dataset.filter(lambda example: example["label"] == 1)
+    labels = np.asarray(dataset["label"])
+    target_positions = np.where(labels == 1)[0]
+    other_positions = np.where(labels == 0)[0]
 
-    other_samples_count = len(other_samples)
-    imbalanced_total = other_samples_count / (1 - target_fraction)
+    other_count = len(other_positions)
+    imbalanced_total = other_count / (1 - target_fraction)
     target_count = int(imbalanced_total * target_fraction)
     print(f"There are {target_count} target examples left in the dataset")
 
-    target_samples = target_samples.shuffle()
-    target_samples_to_keep = target_samples.select(range(target_count))
+    shuffled_targets = np.random.permutation(target_positions)
+    kept_target_positions = shuffled_targets[:target_count]
 
-    imbalanced_dataset = datasets.concatenate_datasets([target_samples_to_keep, other_samples])
+    new_order = np.concatenate([kept_target_positions, other_positions])
+    imbalanced_dataset = dataset.select(new_order.tolist())
 
-    if indices_to_track:
-        target_list = [i for i in target_samples_to_keep]
-        tracked_indices = []
-        for idx in indices_to_track:
-            point = dataset[idx]
-            if point in target_list:
-                tracked_indices.append(target_list.index(dataset[idx]))
-        return imbalanced_dataset, tracked_indices
+    if indices_to_track is not None:
+        tracked_set = {int(i) for i in indices_to_track}
+        bias_indices = [
+            new_pos for new_pos, orig_pos in enumerate(new_order)
+            if int(orig_pos) in tracked_set
+        ]
+        return imbalanced_dataset, bias_indices
 
     return imbalanced_dataset
 
@@ -82,30 +83,37 @@ def tokenize_to_transformers_dataset(raw_dataset, tokenization_model, max_length
 def format_binary_imbalanced(raw_dataset, target_labels, tokenization_model, biased=False,
                               max_length=100, target_fraction=0.01):
     """Shared pipeline: binarize -> imbalance -> tokenize. Returns (train, test) or
-    (train, test, bias_indices) if biased."""
+    (train, test, bias_indices_train, bias_indices_test) if biased."""
     if biased:
         unsampled_train_indices = [
             i for i, lab in enumerate(raw_dataset["train"]["label"]) if lab == target_labels[1]
+        ]
+        unsampled_test_indices = [
+            i for i, lab in enumerate(raw_dataset["test"]["label"]) if lab == target_labels[1]
         ]
 
     raw_dataset["train"] = make_binary(raw_dataset["train"], target_labels)
     raw_dataset["test"] = make_binary(raw_dataset["test"], target_labels)
 
     if biased:
-        raw_dataset["train"], bias_indices = make_imbalanced(
+        raw_dataset["train"], bias_indices_train = make_imbalanced(
             raw_dataset["train"],
             indices_to_track=unsampled_train_indices,
             target_fraction=target_fraction,
         )
+        raw_dataset["test"], bias_indices_test = make_imbalanced(
+            raw_dataset["test"],
+            indices_to_track=unsampled_test_indices,
+            target_fraction=target_fraction,
+        )
     else:
         raw_dataset["train"] = make_imbalanced(raw_dataset["train"], target_fraction=target_fraction)
-
-    raw_dataset["test"] = make_imbalanced(raw_dataset["test"], target_fraction=target_fraction)
+        raw_dataset["test"] = make_imbalanced(raw_dataset["test"], target_fraction=target_fraction)
 
     train_dat, test_dat = tokenize_to_transformers_dataset(
         raw_dataset, tokenization_model, max_length=max_length
     )
 
     if biased:
-        return train_dat, test_dat, bias_indices
+        return train_dat, test_dat, bias_indices_train, bias_indices_test
     return train_dat, test_dat

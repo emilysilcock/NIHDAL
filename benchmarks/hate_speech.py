@@ -106,7 +106,9 @@ def load_hate_speech(tokenization_model, target_labels=(0,), biased=False,
     train_dat, test_dat = tokenize_to_transformers_dataset(raw_dataset, tokenization_model)
 
     if biased:
-        held_out_mask = (train_df["strat_col"] != SEED_SUBGROUP) & (train_df["label"] == 1)
-        bias_indices = train_df.index[held_out_mask].tolist()
-        return train_dat, test_dat, bias_indices
+        held_out_train = (train_df["strat_col"] != SEED_SUBGROUP) & (train_df["label"] == 1)
+        held_out_test = (test_df["strat_col"] != SEED_SUBGROUP) & (test_df["label"] == 1)
+        bias_indices_train = train_df.index[held_out_train].tolist()
+        bias_indices_test = test_df.index[held_out_test].tolist()
+        return train_dat, test_dat, bias_indices_train, bias_indices_test
     return train_dat, test_dat

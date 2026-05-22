@@ -10,10 +10,12 @@ NIHDAL_METHODS = {"NIHDAL", "NIHDAL_simon"}
 
 
 def active_learning_loop(active_learner, train, test, num_queries, method, bias_indices=None,
-                         query_batch_size=100, initial_sample_size=100):
+                         bias_indices_test=None, query_batch_size=100, initial_sample_size=100):
     """Run the AL loop. `method` is the human-readable method name (e.g. 'NIHDAL').
-    `bias_indices` is None for unbiased runs, or a list of held-out target indices for
-    biased-init runs (used both to skip during initialisation and for diagnostics).
+    `bias_indices` is None for unbiased runs, or a list of held-out target indices in the
+    train pool for biased-init runs (used both to skip during initialisation and for
+    diagnostics). `bias_indices_test` is the matching held-out positions in the test set,
+    used to compute non-seeded subset metrics.
     """
     if bias_indices is not None:
         indices_labeled = initialize_active_learner_biased(
@@ -29,7 +31,10 @@ def active_learning_loop(active_learner, train, test, num_queries, method, bias_
         in_bias = [i for i in indices_labeled if i in bias_indices]
         print(f"Initial sample contains {len(in_bias)} from non-seeded target class")
 
-    results = [evaluate(active_learner, train[indices_labeled], test)]
+    initial_eval = evaluate(active_learner, train, indices_labeled, test,
+                            bias_indices_test=bias_indices_test)
+    initial_eval["indices_labeled_initial"] = np.asarray(indices_labeled, dtype=np.int64)
+    results = [initial_eval]
 
     for i in range(num_queries):
         indices_queried = active_learner.query(num_samples=query_batch_size)
@@ -39,7 +44,8 @@ def active_learning_loop(active_learner, train, test, num_queries, method, bias_
 
         print("---------------")
         print(f"Iteration #{i} ({len(indices_labeled)} samples)")
-        res = evaluate(active_learner, train[indices_labeled], test)
+        res = evaluate(active_learner, train, indices_labeled, test,
+                       bias_indices_test=bias_indices_test)
 
         if method in NIHDAL_METHODS:
             selected_descr = getattr(active_learner.query_strategy, "last_selected_descr", {})
@@ -56,6 +62,7 @@ def active_learning_loop(active_learner, train, test, num_queries, method, bias_
                 )
 
         res["counts"] = selected_descr
+        res["indices_queried"] = np.asarray(indices_queried, dtype=np.int64)
         print(selected_descr)
         results.append(res)
 

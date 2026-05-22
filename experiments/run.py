@@ -80,10 +80,11 @@ def main(argv=None):
         target_fraction=args.target_fraction,
     )
     if args.biased:
-        train, test, bias_indices = loaded
+        train, test, bias_indices, bias_indices_test = loaded
     else:
         train, test = loaded
         bias_indices = None
+        bias_indices_test = None
 
     active_learner = set_up_active_learner(
         args.transformer_model,
@@ -99,6 +100,7 @@ def main(argv=None):
         num_queries=args.num_queries,
         method=args.method,
         bias_indices=bias_indices,
+        bias_indices_test=bias_indices_test,
         query_batch_size=args.query_batch_size,
         initial_sample_size=args.initial_sample_size,
     )
