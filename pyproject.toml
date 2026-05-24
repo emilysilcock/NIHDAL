@@ -13,6 +13,7 @@ dependencies = [
     "datasets",
     "scikit-learn",
     "numpy",
+    "matplotlib",
     "tqdm",
     "beautifulsoup4",
     "truststore>=0.10 ; sys_platform == 'win32'",
