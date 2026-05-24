@@ -8,8 +8,11 @@ Example:
     python -m analysis.plot_f1_curves --results-dir results --output-dir results/figures
 """
 import argparse
+import json
 import pickle
 import re
+import subprocess
+import sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -58,8 +61,25 @@ def parse_filename(name, datasets, method_slugs):
     return None
 
 
-def collect_runs(results_dir, datasets, method_slugs):
-    """Return {(dataset, bias, method): {seed: [f1_per_iter]}}."""
+def extract_f1_from_pickle(path):
+    """Load one pickle and return its Test F1 trajectory.
+
+    Used by the subprocess-per-file mode (see collect_runs) so the pickle's
+    large embedding arrays are freed as soon as this process exits, keeping
+    peak memory bounded to one file at a time.
+    """
+    with open(path, "rb") as f:
+        res = pickle.load(f)
+    return [r["Test F1"] for r in res]
+
+
+def collect_runs(results_dir, datasets, method_slugs, use_subprocess=True):
+    """Return {(dataset, bias, method): {seed: [f1_per_iter]}}.
+
+    With `use_subprocess=True`, each pickle is loaded in a child process.
+    Pickles include large embedding arrays; loading them all in one process
+    can OOM on a memory-capped login node.
+    """
     runs = defaultdict(lambda: defaultdict(list))
     for p in sorted(Path(results_dir).glob("*.pkl")):
         parsed = parse_filename(p.name, datasets, method_slugs)
@@ -67,9 +87,14 @@ def collect_runs(results_dir, datasets, method_slugs):
             print(f"Skipping unparseable filename: {p.name}")
             continue
         ds, method, seed, bias = parsed
-        with open(p, "rb") as f:
-            res = pickle.load(f)
-        f1 = [r["Test F1"] for r in res]
+        if use_subprocess:
+            r = subprocess.run(
+                [sys.executable, __file__, "--extract-f1", str(p)],
+                check=True, capture_output=True, text=True,
+            )
+            f1 = json.loads(r.stdout)
+        else:
+            f1 = extract_f1_from_pickle(p)
         runs[(ds, bias, method)][seed] = f1
     return runs
 
@@ -114,15 +139,24 @@ def plot(aggregated, output_dir, method_order):
 
 
 def main():
+    # Subprocess mode: load one pickle, print its F1 trajectory as JSON, exit.
+    # Used internally by collect_runs to keep peak memory to one pickle at a time.
+    if len(sys.argv) >= 3 and sys.argv[1] == "--extract-f1":
+        print(json.dumps(extract_f1_from_pickle(sys.argv[2])))
+        return
+
     ap = argparse.ArgumentParser(description=__doc__)
     default_results = Path(__file__).resolve().parents[1] / "results"
     ap.add_argument("--results-dir", type=Path, default=default_results)
     ap.add_argument("--output-dir", type=Path, default=default_results / "figures")
+    ap.add_argument("--in-process", action="store_true",
+                    help="Load all pickles in this process (faster, but uses lots of RAM).")
     args = ap.parse_args()
 
     method_slugs = {m.replace(" ", "_"): m for m in METHODS}
 
-    runs = collect_runs(args.results_dir, DATASETS, method_slugs)
+    runs = collect_runs(args.results_dir, DATASETS, method_slugs,
+                        use_subprocess=not args.in_process)
     if not runs:
         raise SystemExit(f"No parseable pickles found in {args.results_dir}")
 
