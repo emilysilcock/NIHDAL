@@ -8,11 +8,9 @@ Example:
     python -m analysis.plot_f1_curves --results-dir results --output-dir results/figures
 """
 import argparse
-import json
+import multiprocessing as mp
 import pickle
 import re
-import subprocess
-import sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -61,41 +59,49 @@ def parse_filename(name, datasets, method_slugs):
     return None
 
 
-def extract_f1_from_pickle(path):
-    """Load one pickle and return its Test F1 trajectory.
+def _extract_one(args):
+    """Worker entry point: load one pickle and return (key, f1_list).
 
-    Used by the subprocess-per-file mode (see collect_runs) so the pickle's
-    large embedding arrays are freed as soon as this process exits, keeping
-    peak memory bounded to one file at a time.
+    `args` is (path_str, key) where key = (ds, bias, method, seed). Returning
+    the key alongside the result lets us use Pool.imap_unordered without
+    losing the path<->cell mapping.
     """
-    with open(path, "rb") as f:
+    path_str, key = args
+    with open(path_str, "rb") as f:
         res = pickle.load(f)
-    return [r["Test F1"] for r in res]
+    return key, [r["Test F1"] for r in res]
 
 
-def collect_runs(results_dir, datasets, method_slugs, use_subprocess=True):
+def collect_runs(results_dir, datasets, method_slugs, processes=None, maxtasksperchild=20):
     """Return {(dataset, bias, method): {seed: [f1_per_iter]}}.
 
-    With `use_subprocess=True`, each pickle is loaded in a child process.
-    Pickles include large embedding arrays; loading them all in one process
-    can OOM on a memory-capped login node.
+    Pickles include large embedding arrays. Each worker loads one pickle,
+    extracts the small Test F1 trajectory, and lets the rest go out of scope.
+    `maxtasksperchild` recycles each worker after N pickles so memory cannot
+    grow unboundedly. The pool amortises the matplotlib/numpy import cost
+    across pickles, which is what makes this ~10x faster than
+    subprocess-per-file.
     """
-    runs = defaultdict(lambda: defaultdict(list))
+    tasks = []
     for p in sorted(Path(results_dir).glob("*.pkl")):
         parsed = parse_filename(p.name, datasets, method_slugs)
         if parsed is None:
             print(f"Skipping unparseable filename: {p.name}")
             continue
         ds, method, seed, bias = parsed
-        if use_subprocess:
-            r = subprocess.run(
-                [sys.executable, __file__, "--extract-f1", str(p)],
-                check=True, capture_output=True, text=True,
-            )
-            f1 = json.loads(r.stdout)
-        else:
-            f1 = extract_f1_from_pickle(p)
-        runs[(ds, bias, method)][seed] = f1
+        tasks.append((str(p), (ds, bias, method, seed)))
+
+    runs = defaultdict(lambda: defaultdict(list))
+    if not tasks:
+        return runs
+
+    processes = processes or min(8, mp.cpu_count())
+    with mp.Pool(processes=processes, maxtasksperchild=maxtasksperchild) as pool:
+        for i, (key, f1) in enumerate(pool.imap_unordered(_extract_one, tasks, chunksize=1)):
+            ds, bias, method, seed = key
+            runs[(ds, bias, method)][seed] = f1
+            if (i + 1) % 50 == 0 or i == len(tasks) - 1:
+                print(f"Loaded {i + 1}/{len(tasks)} pickles", flush=True)
     return runs
 
 
@@ -139,24 +145,17 @@ def plot(aggregated, output_dir, method_order):
 
 
 def main():
-    # Subprocess mode: load one pickle, print its F1 trajectory as JSON, exit.
-    # Used internally by collect_runs to keep peak memory to one pickle at a time.
-    if len(sys.argv) >= 3 and sys.argv[1] == "--extract-f1":
-        print(json.dumps(extract_f1_from_pickle(sys.argv[2])))
-        return
-
     ap = argparse.ArgumentParser(description=__doc__)
     default_results = Path(__file__).resolve().parents[1] / "results"
     ap.add_argument("--results-dir", type=Path, default=default_results)
     ap.add_argument("--output-dir", type=Path, default=default_results / "figures")
-    ap.add_argument("--in-process", action="store_true",
-                    help="Load all pickles in this process (faster, but uses lots of RAM).")
+    ap.add_argument("--processes", type=int, default=None,
+                    help="Pool worker count (default: min(8, cpu_count())).")
     args = ap.parse_args()
 
     method_slugs = {m.replace(" ", "_"): m for m in METHODS}
 
-    runs = collect_runs(args.results_dir, DATASETS, method_slugs,
-                        use_subprocess=not args.in_process)
+    runs = collect_runs(args.results_dir, DATASETS, method_slugs, processes=args.processes)
     if not runs:
         raise SystemExit(f"No parseable pickles found in {args.results_dir}")
 

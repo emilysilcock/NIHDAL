@@ -20,11 +20,9 @@ Example:
     python -m analysis.plot_target_selection --results-dir results --output-dir results/figures
 """
 import argparse
-import json
+import multiprocessing as mp
 import pickle
 import re
-import subprocess
-import sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -88,23 +86,40 @@ def extract_counts(path):
     return out
 
 
-def collect_runs(results_dir, datasets, method_slugs, use_subprocess=True):
-    runs = defaultdict(lambda: defaultdict(list))
+def _extract_one(args):
+    """Worker entry point: load one pickle and return (key, counts_list)."""
+    path_str, key = args
+    return key, extract_counts(path_str)
+
+
+def collect_runs(results_dir, datasets, method_slugs, processes=None, maxtasksperchild=20):
+    """Return {(dataset, bias, method): {seed: [counts_dict_per_iter]}}.
+
+    Pickles include large embedding arrays. multiprocessing.Pool with
+    `maxtasksperchild` recycles workers after N tasks so memory stays
+    bounded, while amortising the matplotlib/numpy import across pickles
+    (the main reason this is ~10x faster than subprocess-per-file).
+    """
+    tasks = []
     for p in sorted(Path(results_dir).glob("*.pkl")):
         parsed = parse_filename(p.name, datasets, method_slugs)
         if parsed is None:
             print(f"Skipping unparseable filename: {p.name}")
             continue
         ds, method, seed, bias = parsed
-        if use_subprocess:
-            r = subprocess.run(
-                [sys.executable, __file__, "--extract", str(p)],
-                check=True, capture_output=True, text=True,
-            )
-            counts = json.loads(r.stdout)
-        else:
-            counts = extract_counts(p)
-        runs[(ds, bias, method)][seed] = counts
+        tasks.append((str(p), (ds, bias, method, seed)))
+
+    runs = defaultdict(lambda: defaultdict(list))
+    if not tasks:
+        return runs
+
+    processes = processes or min(8, mp.cpu_count())
+    with mp.Pool(processes=processes, maxtasksperchild=maxtasksperchild) as pool:
+        for i, (key, counts) in enumerate(pool.imap_unordered(_extract_one, tasks, chunksize=1)):
+            ds, bias, method, seed = key
+            runs[(ds, bias, method)][seed] = counts
+            if (i + 1) % 50 == 0 or i == len(tasks) - 1:
+                print(f"Loaded {i + 1}/{len(tasks)} pickles", flush=True)
     return runs
 
 
@@ -188,22 +203,17 @@ def plot(runs, output_dir, method_order):
 
 
 def main():
-    if len(sys.argv) >= 3 and sys.argv[1] == "--extract":
-        print(json.dumps(extract_counts(sys.argv[2])))
-        return
-
     ap = argparse.ArgumentParser(description=__doc__)
     default_results = Path(__file__).resolve().parents[1] / "results"
     ap.add_argument("--results-dir", type=Path, default=default_results)
     ap.add_argument("--output-dir", type=Path, default=default_results / "figures")
-    ap.add_argument("--in-process", action="store_true",
-                    help="Load all pickles in this process (uses much more RAM).")
+    ap.add_argument("--processes", type=int, default=None,
+                    help="Pool worker count (default: min(8, cpu_count())).")
     args = ap.parse_args()
 
     method_slugs = {m.replace(" ", "_"): m for m in METHODS}
 
-    runs = collect_runs(args.results_dir, DATASETS, method_slugs,
-                        use_subprocess=not args.in_process)
+    runs = collect_runs(args.results_dir, DATASETS, method_slugs, processes=args.processes)
     if not runs:
         raise SystemExit(f"No parseable pickles found in {args.results_dir}")
 
